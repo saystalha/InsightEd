@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 
 /* ── Icons ─────────────────────────────── */
@@ -175,19 +174,13 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
         className={`flex items-center gap-3 border-b border-[rgba(196,124,62,0.16)] flex-shrink-0 ${open ? "px-5 py-5" : "justify-center px-3 py-5"}`}
       >
         <div
-          className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 overflow-hidden"
+          className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
           style={{
+            background: "rgba(196,124,62,0.15)",
             border: "1px solid rgba(196,124,62,0.30)",
           }}
         >
-          <Image
-            src="/logo.jpeg"
-            alt="InsightEd Logo"
-            width={36}
-            height={36}
-            className="w-full h-full object-cover rounded-[9px]"
-            priority
-          />
+          <LogoIcon />
         </div>
         {open && (
           <span className="font-black text-[1.05rem] tracking-tight whitespace-nowrap">

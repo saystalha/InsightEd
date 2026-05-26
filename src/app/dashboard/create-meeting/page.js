@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 
 const LogoIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -168,15 +167,8 @@ export default function CreateMeetingPage() {
         </Link>
         <div className="w-flow h-4 w-px bg-white/10" />
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden border border-white/10">
-            <Image
-              src="/logo.jpeg"
-              alt="InsightEd Logo"
-              width={28}
-              height={28}
-              className="w-full h-full object-cover rounded-md"
-              priority
-            />
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center text-copper bg-white/5 border border-white/10">
+            <LogoIcon />
           </div>
           <span className="text-xs font-black uppercase tracking-wider text-white">New Session Configuration</span>
         </div>

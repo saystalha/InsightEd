@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 
 const LogoIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -149,15 +148,8 @@ export default function AuthModal({ type, onClose, onSwitch }) {
 
         {/* Logo */}
         <div className="flex items-center gap-2.5 mb-6 relative z-10">
-          <div className="w-9 h-9 rounded-[10px] flex items-center justify-center overflow-hidden" style={{ border: '1.5px solid rgba(196,124,62,0.28)' }}>
-            <Image
-              src="/logo.jpeg"
-              alt="InsightEd Logo"
-              width={36}
-              height={36}
-              className="w-full h-full object-cover rounded-[9px]"
-              priority
-            />
+          <div className="w-9 h-9 rounded-[10px] flex items-center justify-center text-copper" style={{ background: 'rgba(196,124,62,0.16)', border: '1.5px solid rgba(196,124,62,0.28)' }}>
+            <LogoIcon />
           </div>
           <span className="text-snow font-bold text-[1.05rem]">
             <span style={{ color: '#c47c3e' }}>IN</span>sightEd
