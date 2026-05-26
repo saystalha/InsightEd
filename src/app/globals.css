@@ -1,26 +1,333 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* ── NEW PALETTE: Dark Navy + Copper + Cream ── */
+  --color-navy:        #1c2c44;   /* main app background         */
+  --color-navy-dark:   #152038;   /* sidebar / deeper surfaces   */
+  --color-navy-mid:    #243452;   /* slightly lighter navy       */
+  --color-navy-card:   #1e3050;   /* card on dark background     */
+  --color-copper:      #c47c3e;   /* primary accent — copper     */
+  --color-copper-lt:   #d4924e;   /* hover / lighter copper      */
+  --color-copper-dim:  #8c5828;   /* muted copper                */
+  --color-cream:       #f8f4ee;   /* card / panel background     */
+  --color-snow:        #f2f2f2;   /* primary text on dark        */
+  --color-mist:        rgba(242,242,242,0.55); /* secondary text */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: #1c2c44;
+    color: #f2f2f2;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: #152038; }
+  ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #c47c3e, #8c5828); border-radius: 10px; }
+
+  a { text-decoration: none; color: inherit; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  input, textarea, select { font-family: inherit; }
+  ul { list-style: none; }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ════════════════════════════════════════════
+   KEYFRAMES
+   ════════════════════════════════════════════ */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-22px) scale(1.04); }
+}
+@keyframes floatDown {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(18px) scale(0.97); }
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.94) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 16px rgba(196,124,62,0.45); }
+  50%       { box-shadow: 0 0 38px rgba(196,124,62,0.80); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmerCopper {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ════════════════════════════════════════════
+   CUSTOM UTILITIES
+   ════════════════════════════════════════════ */
+@layer utilities {
+
+  /* ── Animations ─────────────────────────── */
+  .animate-marquee    { animation: marquee 28s linear infinite; }
+  .animate-float      { animation: floatUp 9s ease-in-out infinite; }
+  .animate-float-r    { animation: floatDown 12s ease-in-out infinite; }
+  .animate-fadeUp     { animation: fadeUp 0.75s cubic-bezier(0.22,1,0.36,1) both; }
+  .animate-fadeIn     { animation: fadeIn 0.28s ease both; }
+  .animate-modal-in   { animation: modalIn 0.3s cubic-bezier(0.22,1,0.36,1) both; }
+  .animate-pulse-glow { animation: pulseGlow 2.5s ease-in-out infinite; }
+  .animate-spin-slow  { animation: spin 0.75s linear infinite; }
+  .animate-slide-down { animation: slideDown 0.25s ease both; }
+
+  /* ── Gradient text — copper shimmer ──────── */
+  .gradient-text {
+    background: linear-gradient(135deg, #c47c3e 0%, #d4924e 45%, #c47c3e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .gradient-text-shimmer {
+    background: linear-gradient(90deg, #c47c3e 0%, #f2c27a 40%, #c47c3e 70%, #d4924e 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmerCopper 3.5s linear infinite;
+  }
+
+  /* ── Page backgrounds ───────────────────── */
+
+  /* Default app background — matte dark navy */
+  .app-bg {
+    background: #1c2c44;
+  }
+
+  /* Hero — rich layered navy */
+  .hero-bg {
+    background:
+      radial-gradient(ellipse 70% 55% at 10% 15%, rgba(196,124,62,0.12) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 90% 85%, rgba(36,52,82,0.80) 0%, transparent 60%),
+      linear-gradient(160deg, #152038 0%, #1c2c44 40%, #1e3050 100%);
+  }
+
+  /* Features — deep navy */
+  .features-bg {
+    background: linear-gradient(180deg, #1c2c44 0%, #162038 60%, #1c2c44 100%);
+  }
+
+  /* Stats — copper stripe */
+  .stats-bg {
+    background: linear-gradient(135deg, #c47c3e 0%, #8c5828 100%);
+  }
+
+  /* How it works */
+  .hiw-bg {
+    background: linear-gradient(160deg, #1e3050 0%, #1c2c44 50%, #152038 100%);
+  }
+
+  /* CTA — navy with copper glow */
+  .cta-bg {
+    background: linear-gradient(160deg, #152038 0%, #1c2c44 55%, #243452 100%);
+  }
+
+  /* Footer — deepest navy */
+  .footer-bg {
+    background: linear-gradient(180deg, #0f1824 0%, #152038 100%);
+  }
+
+  /* Dashboard background */
+  .dashboard-bg {
+    background: #1c2c44;
+  }
+
+  /* ── Mesh grid — navy lines ──────────────── */
+  .mesh-grid {
+    background-image:
+      linear-gradient(rgba(196,124,62,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(196,124,62,0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ── Glass / surface variants ─────────────── */
+
+  /* Light cream card (like in the screenshot) */
+  .card-cream {
+    background: #f8f4ee;
+    border: 1px solid rgba(196,124,62,0.18);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.20);
+  }
+
+  /* Dark navy card */
+  .card-navy {
+    background: rgba(30,48,80,0.65);
+    border: 1px solid rgba(196,124,62,0.18);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  }
+
+  /* Glass dark — for nav, overlays */
+  .glass-dark {
+    background: rgba(21,32,56,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(196,124,62,0.15);
+  }
+
+  /* Navbar transparent (on hero) */
+  .glass-nav {
+    background: rgba(21,32,56,0.50);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  /* Navbar scrolled */
+  .glass-nav-scrolled {
+    background: rgba(15,24,36,0.96);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 4px 32px rgba(0,0,0,0.40);
+  }
+
+  /* Sidebar dark navy */
+  .glass-sidebar {
+    background: linear-gradient(180deg, #0f1824 0%, #152038 100%);
+    border-right: 1px solid rgba(196,124,62,0.12);
+    box-shadow: 4px 0 32px rgba(0,0,0,0.35);
+  }
+
+  /* Top bar */
+  .glass-topbar {
+    background: rgba(28,44,68,0.92);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(196,124,62,0.12);
+  }
+
+  /* Input fields */
+  .neu-input {
+    background: rgba(15,24,36,0.60);
+    border: 1.5px solid rgba(196,124,62,0.22);
+    color: #f2f2f2;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .neu-input::placeholder { color: rgba(242,242,242,0.35); }
+  .neu-input:focus {
+    outline: none;
+    border-color: rgba(196,124,62,0.60) !important;
+    box-shadow: 0 0 0 3px rgba(196,124,62,0.15);
+    background: rgba(15,24,36,0.80);
+  }
+
+  /* Light input — for light card forms */
+  .input-light {
+    background: rgba(255,255,255,0.85);
+    border: 1.5px solid rgba(196,124,62,0.25);
+    color: #1c2c44;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-light::placeholder { color: rgba(28,44,68,0.40); }
+  .input-light:focus {
+    outline: none;
+    border-color: #c47c3e !important;
+    box-shadow: 0 0 0 3px rgba(196,124,62,0.14);
+  }
+
+  /* ── Glow orbs ──────────────────────────── */
+  .orb-copper {
+    background: radial-gradient(circle, rgba(196,124,62,0.22) 0%, transparent 70%);
+  }
+  .orb-navy {
+    background: radial-gradient(circle, rgba(36,52,82,0.50) 0%, transparent 70%);
+  }
+
+  /* ── PRIMARY BUTTON — copper ─────────────── */
+  .btn-primary {
+    background: linear-gradient(135deg, #c47c3e 0%, #8c5828 100%);
+    color: #f8f4ee;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 4px 18px rgba(196,124,62,0.38);
+    transition: transform 0.22s cubic-bezier(0.22,1,0.36,1), box-shadow 0.22s;
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px rgba(196,124,62,0.55);
+    background: linear-gradient(135deg, #d4924e 0%, #a06030 100%);
+  }
+  .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(196,124,62,0.30);
+  }
+
+  /* ── SECONDARY BUTTON — navy outline ──────── */
+  .btn-secondary {
+    background: rgba(255,255,255,0.08);
+    color: #f2f2f2;
+    border: 1.5px solid rgba(196,124,62,0.35);
+    transition: transform 0.22s, background 0.2s, border-color 0.2s;
+    backdrop-filter: blur(8px);
+  }
+  .btn-secondary:hover {
+    background: rgba(196,124,62,0.12);
+    border-color: rgba(196,124,62,0.65);
+    transform: translateY(-1px);
+    color: #f8f4ee;
+  }
+
+  /* ── LIGHT BUTTON — cream on dark ──────────── */
+  .btn-light {
+    background: #f8f4ee;
+    color: #1c2c44;
+    border: 1px solid rgba(196,124,62,0.25);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.20);
+    transition: transform 0.22s, box-shadow 0.22s;
+    font-weight: 700;
+  }
+  .btn-light:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.30);
+    background: #fff;
+  }
+
+  /* ── Copper badge / tag ─────────────────── */
+  .badge-copper {
+    background: rgba(196,124,62,0.16);
+    border: 1px solid rgba(196,124,62,0.35);
+    color: #d4924e;
+  }
+
+  /* ── Dividers ────────────────────────────── */
+  .divider-navy  { border-color: rgba(196,124,62,0.14); }
+  .divider-copper { border-color: rgba(196,124,62,0.35); }
+
+  /* ── Copper accent line ──────────────────── */
+  .copper-line {
+    background: linear-gradient(90deg, transparent, #c47c3e, transparent);
+  }
+
+  /* ── Scrollbar for dark containers ──────── */
+  .dark-scroll::-webkit-scrollbar { width: 4px; }
+  .dark-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.20); }
+  .dark-scroll::-webkit-scrollbar-thumb { background: rgba(196,124,62,0.40); border-radius: 8px; }
 }
