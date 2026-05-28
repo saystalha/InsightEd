@@ -160,24 +160,7 @@ export default function Navbar() {
           >
             Login
           </Link>
-          <Link
-            href="/signup"
-            id="nav-signup"
-            className="px-5 py-2 text-[0.85rem] font-bold rounded-full transition-all duration-200 active:scale-95 hover:-translate-y-0.5"
-            style={{
-              background: "linear-gradient(135deg, #c47c3e 0%, #8c5828 100%)",
-              color: "#f8f4ee",
-              boxShadow: "0 4px 12px rgba(196, 124, 62, 0.2)",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = "0 6px 20px rgba(196, 124, 62, 0.45)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(196, 124, 62, 0.2)";
-            }}
-          >
-            Get Started
-          </Link>
+          {/* Removed Get Started Button */}
         </div>
 
         {/* ── Mobile Hamburger ─────────────── */}
@@ -244,17 +227,7 @@ export default function Navbar() {
             >
               Login
             </Link>
-            <Link
-              href="/signup"
-              onClick={() => setMenuOpen(false)}
-              className="flex-1 py-3 text-center text-[0.88rem] font-bold rounded-xl active:scale-95 transition-transform"
-              style={{
-                background: "linear-gradient(135deg, #c47c3e 0%, #8c5828 100%)",
-                color: "#f8f4ee",
-              }}
-            >
-              Get Started
-            </Link>
+            {/* Removed Get Started Button */}
           </div>
         </div>
       )}

@@ -136,17 +136,37 @@ const STUDENT_SIDEBAR = [
 
 const ADMIN_SIDEBAR = [
   {
-    id: "nav-dashboard",
-    label: "Dashboard",
+    id: "nav-overview",
+    label: "Overview Dashboard",
     icon: ["M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z", "M9 22V12h6v10"],
   },
   {
-    id: "nav-database",
-    label: "Database Panel",
+    id: "nav-faculty",
+    label: "Faculty Hub",
     icon: [
-      "M12 5c4.418 0 8 1.79 8 4s-3.582 4-8 4-8-1.79-8-4 3.582-4 8-4z",
-      "M4 9v6c0 2.21 3.582 4 8 4s8-1.79 8-4V9",
-      "M4 15v6c0 2.21 3.582 4 8 4s8-1.79 8-4v-6",
+      "M12 14l9-5-9-5-9 5 9 5z", "M12 14v7", "M5.4 12.5v5c0 .6.4 1 1 1h11.2c.6 0 1-.4 1-1v-5"
+    ],
+  },
+  {
+    id: "nav-enrollment",
+    label: "Academic Enrollment",
+    icon: [
+      "M22 10v6M2 10l10-5 10 5-10 5z", "M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"
+    ],
+  },
+  {
+    id: "nav-mapping",
+    label: "Relationship Engine",
+    icon: [
+      "M13.828 10.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101",
+      "M10.172 13.828a4 4 0 0 0 5.656 0l4-4a4 4 0 1 0-5.656-5.656l-1.1 1.1"
+    ],
+  },
+  {
+    id: "nav-logs",
+    label: "System Audit Logs",
+    icon: [
+      "M12 20h9", "M5 12h14", "M5 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm0 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
     ],
   },
   {
@@ -328,6 +348,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                       onClick={() => {
                         setRole("admin");
                         try { localStorage.setItem('userRole', 'admin'); } catch (e) {}
+                        setActive("nav-overview");
                         setDropdownOpen(false);
                       }}
                       className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
@@ -341,6 +362,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                       onClick={() => {
                         setRole("teacher");
                         try { localStorage.setItem('userRole', 'teacher'); } catch (e) {}
+                        setActive("nav-dashboard");
                         setDropdownOpen(false);
                       }}
                       className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
@@ -354,6 +376,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                       onClick={() => {
                         setRole("student");
                         try { localStorage.setItem('userRole', 'student'); } catch (e) {}
+                        setActive("nav-dashboard");
                         setDropdownOpen(false);
                       }}
                       className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
@@ -438,7 +461,60 @@ export default function DashboardPage() {
     email: "",
     password: "",
     role: "student",
+    department: "",
+    subjects: "",
+    rollNumber: "",
+    degreeBatch: "",
   });
+
+  const [activeMeetings, setActiveMeetings] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
+  const [relationships, setRelationships] = useState([]);
+  const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [selectedTeacherId, setSelectedTeacherId] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("");
+
+  const fetchActiveMeetings = async () => {
+    try {
+      const res = await fetch('/api/classroom');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setActiveMeetings(data.meetings);
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching active meetings:', e);
+    }
+  };
+
+  const fetchAuditLogs = async () => {
+    try {
+      const res = await fetch('/api/admin/audit-logs');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setAuditLogs(data.logs);
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching audit logs:', e);
+    }
+  };
+
+  const fetchRelationships = async () => {
+    try {
+      const res = await fetch('/api/admin/relationships');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setRelationships(data.relationships);
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching relationships:', e);
+    }
+  };
 
   useEffect(() => {
     async function checkSession() {
@@ -503,8 +579,20 @@ export default function DashboardPage() {
     if (actualRole === 'admin') {
       const timer = setTimeout(() => {
         fetchUsers();
+        fetchActiveMeetings();
+        fetchAuditLogs();
+        fetchRelationships();
       }, 0);
-      return () => clearTimeout(timer);
+      
+      const interval = setInterval(() => {
+        fetchActiveMeetings();
+        fetchAuditLogs();
+      }, 10000);
+      
+      return () => {
+        clearTimeout(timer);
+        clearInterval(interval);
+      };
     }
   }, [actualRole]);
 
@@ -581,6 +669,63 @@ export default function DashboardPage() {
       setCrudSuccess("User deleted successfully!");
       setIsDeleteModalOpen(false);
       setSelectedUser(null);
+      fetchUsers();
+    } catch (err) {
+      setCrudError("An error occurred. Please try again.");
+    }
+  };
+
+  const handleMapRelationship = async (e) => {
+    e.preventDefault();
+    setCrudError("");
+    setCrudSuccess("");
+    
+    if (!selectedStudentId || !selectedTeacherId || !selectedSubject) {
+      setCrudError("Please select a student, a teacher, and a course/subject.");
+      return;
+    }
+    
+    try {
+      const res = await fetch("/api/admin/relationships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId: selectedStudentId,
+          teacherId: selectedTeacherId,
+          subject: selectedSubject,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCrudError(data.error || "Failed to map relationship");
+        return;
+      }
+      setCrudSuccess("Student mapped successfully!");
+      setSelectedStudentId("");
+      setSelectedTeacherId("");
+      setSelectedSubject("");
+      fetchRelationships();
+      fetchUsers();
+    } catch (err) {
+      setCrudError("An error occurred. Please try again.");
+    }
+  };
+
+  const handleUnmapRelationship = async (studentId) => {
+    setCrudError("");
+    setCrudSuccess("");
+    
+    try {
+      const res = await fetch(`/api/admin/relationships?studentId=${studentId}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCrudError(data.error || "Failed to remove mapping");
+        return;
+      }
+      setCrudSuccess("Relationship unmapped successfully!");
+      fetchRelationships();
       fetchUsers();
     } catch (err) {
       setCrudError("An error occurred. Please try again.");
@@ -906,172 +1051,665 @@ export default function DashboardPage() {
         </header>
 
         <div className="p-8 flex flex-col gap-6 animate-fadeUp">
-          {activeTab === 'nav-database' && role === 'admin' ? (
-            <div className="flex flex-col gap-6">
-              {/* Header with Search and Create button */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {role === 'admin' ? (
+            activeTab === 'nav-overview' ? (
+              <div className="flex flex-col gap-6 animate-fadeUp">
+                {/* Header */}
                 <div>
-                  <h2 className="text-[1.25rem] font-black text-white">Database Management</h2>
-                  <p className="text-[0.8rem] text-mist font-medium">Manage user registrations, permissions, and roles in real-time.</p>
+                  <h2 className="text-[1.25rem] font-black text-white">IT Super-Admin Overview</h2>
+                  <p className="text-[0.8rem] text-mist font-medium">Platform-wide statistics and live academic channels.</p>
                 </div>
-                
-                <button
-                  onClick={() => {
-                    setCrudForm({ firstName: "", lastName: "", email: "", password: "", role: "student" });
-                    setCrudError("");
-                    setCrudSuccess("");
-                    setIsCreateModalOpen(true);
-                  }}
-                  className="btn-primary self-start sm:self-auto px-5 py-3 rounded-xl font-bold text-[0.85rem] flex items-center gap-2"
-                >
-                  <SvgIcon paths={["M12 5v14M5 12h14"]} size={15} />
-                  Add New User
-                </button>
+
+                {/* Admin Stats Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                  {adminStats.map((st) => (
+                    <div key={st.id} className="relative overflow-hidden rounded-[22px] p-6 card-navy flex flex-col justify-between border border-white/[0.03]">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <p className="text-[0.78rem] text-mist font-bold uppercase tracking-wider mb-1">{st.label}</p>
+                          <p className="text-[1.8rem] font-black text-snow leading-none font-mono">{st.value}</p>
+                        </div>
+                        <span className="w-9 h-9 rounded-xl flex items-center justify-center text-snow bg-[rgba(196,124,62,0.12)] border border-[rgba(196,124,62,0.22)]">
+                          <SvgIcon paths={st.icon} size={15} />
+                        </span>
+                      </div>
+                      <p className="text-[0.7rem] text-[#c47c3e] font-semibold">{st.delta}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Active Live Classrooms */}
+                <div className="flex flex-col gap-4 mt-4">
+                  <h3 className="text-[1.05rem] font-extrabold text-white">Active Online Live Classrooms</h3>
+                  <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Classroom Title</th>
+                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">6-Digit Code</th>
+                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Instructor</th>
+                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Active Students</th>
+                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
+                          {activeMeetings.length === 0 ? (
+                            <tr>
+                              <td colSpan="5" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
+                                There are no active live sessions currently online.
+                              </td>
+                            </tr>
+                          ) : (
+                            activeMeetings.map((m) => {
+                              const activeStudentsCount = m.participants.filter(p => p.role === 'student').length;
+                              return (
+                                <tr key={m._id} className="hover:bg-white/[0.02] transition-colors">
+                                  <td className="px-6 py-4">
+                                    <div className="text-[0.88rem] font-bold text-white">{m.title}</div>
+                                    <div className="text-[0.74rem] text-mist">{m.description || 'No description'}</div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="px-2.5 py-1 rounded bg-[rgba(196,124,62,0.15)] border border-[rgba(196,124,62,0.25)] font-mono text-[0.8rem] text-snow font-bold">
+                                      {m.code}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 text-[0.85rem] font-semibold text-snow">{m.teacherName}</td>
+                                  <td className="px-6 py-4">
+                                    <span className="flex items-center gap-1.5 text-[0.85rem] font-semibold text-snow">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                      {activeStudentsCount} active
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 text-right">
+                                    <Link href={`/dashboard/classroom/${m.code}`} className="btn-primary px-4 py-2 rounded-xl text-[0.78rem] font-bold inline-flex items-center gap-1">
+                                      Join Meet
+                                    </Link>
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              {/* CRUD notifications */}
-              {crudSuccess && (
-                <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
-                  ✓ {crudSuccess}
-                </div>
-              )}
-              {crudError && (
-                <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-red-400 bg-red-500/10 border border-red-500/20">
-                  ⚠ {crudError}
-                </div>
-              )}
-
-              {/* Filter controls row */}
-              <div className="flex flex-col sm:flex-row gap-3 items-center justify-between p-4 rounded-2xl card-navy">
-                {/* Search */}
-                <div className="relative w-full sm:max-w-xs">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-snow/30">
-                    <SvgIcon paths={["M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"]} size={15} />
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Search by name or email..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="neu-input w-full pl-10 pr-4 py-2.5 rounded-xl text-[0.85rem] outline-none"
-                  />
-                </div>
-
-                {/* Filter */}
-                <div className="flex gap-2 w-full sm:w-auto items-center justify-end">
-                  <span className="text-[0.78rem] text-mist font-medium whitespace-nowrap">Filter Role:</span>
-                  <select
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="neu-input px-3.5 py-2.5 rounded-xl text-[0.85rem] outline-none cursor-pointer text-snow"
-                    style={{ background: "#152038" }}
+            ) : activeTab === 'nav-faculty' ? (
+              <div className="flex flex-col gap-6 animate-fadeUp">
+                {/* Faculty Hub Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-[1.25rem] font-black text-white">Faculty Hub</h2>
+                    <p className="text-[0.8rem] text-mist font-medium">Provision teacher accounts and assign primary subjects.</p>
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      setCrudForm({ firstName: "", lastName: "", email: "", password: "", role: "teacher", department: "", subjects: "", rollNumber: "", degreeBatch: "" });
+                      setCrudError("");
+                      setCrudSuccess("");
+                      setIsCreateModalOpen(true);
+                    }}
+                    className="btn-primary px-5 py-3 rounded-xl font-bold text-[0.85rem] flex items-center gap-2"
                   >
-                    <option value="all">All Roles</option>
-                    <option value="admin">Admin</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="student">Student</option>
-                  </select>
+                    <SvgIcon paths={["M12 5v14M5 12h14"]} size={15} />
+                    Add Teacher
+                  </button>
                 </div>
-              </div>
 
-              {/* Database Table */}
-              <div className="card-navy rounded-[22px] overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">User</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Role</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Joined Date</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
-                      {filteredUsers.length === 0 ? (
-                        <tr>
-                          <td colSpan="4" className="px-6 py-10 text-center text-[0.85rem] text-mist">
-                            No users found matching the query.
-                          </td>
+                {/* Notifications */}
+                {crudSuccess && (
+                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                    ✓ {crudSuccess}
+                  </div>
+                )}
+                {crudError && (
+                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-red-400 bg-red-500/10 border border-red-500/20">
+                    ⚠ {crudError}
+                  </div>
+                )}
+
+                {/* Search Bar */}
+                <div className="flex p-4 rounded-2xl card-navy border border-white/[0.03]">
+                  <div className="relative w-full max-w-md">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-snow/30">
+                      <SvgIcon paths={["M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"]} size={15} />
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Search by instructor name, department or subject..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="neu-input w-full pl-10 pr-4 py-2.5 rounded-xl text-[0.85rem] outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Teachers Table */}
+                <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Instructor</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Department</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Subjects</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Actions</th>
                         </tr>
-                      ) : (
-                        filteredUsers.map((u) => (
-                          <tr key={u._id} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-snow text-xs"
-                                  style={{ background: "linear-gradient(135deg,#c47c3e,#152038)" }}>
-                                  {u.firstName && u.lastName ? (u.firstName[0] + u.lastName[0]).toUpperCase() : "U"}
-                                </div>
-                                <div>
-                                  <div className="text-[0.88rem] font-bold text-white">{u.firstName} {u.lastName}</div>
-                                  <div className="text-[0.74rem] text-mist">{u.email}</div>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`inline-block text-[0.68rem] font-extrabold px-2.5 py-0.5 rounded-full capitalize ${
-                                u.role === 'admin' 
-                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/25' 
-                                  : u.role === 'teacher' 
-                                    ? 'bg-teal-500/10 text-teal-400 border border-teal-500/25' 
-                                    : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/25'
-                              }`}>
-                                {u.role}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-[0.82rem] text-mist font-medium">
-                              {new Date(u.createdAt || "2026-05-26").toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric'
-                              })}
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <button
-                                  onClick={() => {
-                                    setSelectedUser(u);
-                                    setCrudForm({
-                                      firstName: u.firstName,
-                                      lastName: u.lastName,
-                                      email: u.email,
-                                      password: "",
-                                      role: u.role,
-                                    });
-                                    setCrudError("");
-                                    setCrudSuccess("");
-                                    setIsEditModalOpen(true);
-                                  }}
-                                  className="p-2 rounded-lg text-mist hover:text-snow hover:bg-white/5 transition-all"
-                                  title="Edit User"
-                                >
-                                  <SvgIcon paths={["M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7", "M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"]} size={15} />
-                                </button>
-                                
-                                <button
-                                  onClick={() => {
-                                    setSelectedUser(u);
-                                    setCrudError("");
-                                    setCrudSuccess("");
-                                    setIsDeleteModalOpen(true);
-                                  }}
-                                  className="p-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all"
-                                  title="Delete User"
-                                  disabled={u.email === userEmail}
-                                  style={{ opacity: u.email === userEmail ? 0.35 : 1, cursor: u.email === userEmail ? 'not-allowed' : 'pointer' }}
-                                >
-                                  <SvgIcon paths={["M3 6h18", "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"]} size={15} />
-                                </button>
-                              </div>
+                      </thead>
+                      <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
+                        {users.filter(u => u.role === 'teacher').filter(u => {
+                          const search = searchQuery.toLowerCase();
+                          return `${u.firstName} ${u.lastName} ${u.email} ${u.department || ''} ${u.subjects ? u.subjects.join(' ') : ''}`.toLowerCase().includes(search);
+                        }).length === 0 ? (
+                          <tr>
+                            <td colSpan="4" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
+                              No teacher accounts found matching your query.
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                        ) : (
+                          users.filter(u => u.role === 'teacher').filter(u => {
+                            const search = searchQuery.toLowerCase();
+                            return `${u.firstName} ${u.lastName} ${u.email} ${u.department || ''} ${u.subjects ? u.subjects.join(' ') : ''}`.toLowerCase().includes(search);
+                          }).map((u) => (
+                            <tr key={u._id} className="hover:bg-white/[0.02] transition-colors">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-snow text-xs"
+                                    style={{ background: "linear-gradient(135deg,#c47c3e,#152038)" }}>
+                                    {(u.firstName[0] + u.lastName[0]).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <div className="text-[0.88rem] font-bold text-white">{u.firstName} {u.lastName}</div>
+                                    <div className="text-[0.74rem] text-mist">{u.email}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-[0.85rem] font-semibold text-snow capitalize">
+                                {u.department || <span className="text-mist font-normal italic">None</span>}
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="flex flex-wrap gap-1">
+                                  {u.subjects && u.subjects.length > 0 ? (
+                                    u.subjects.map((sub, idx) => (
+                                      <span key={idx} className="px-2 py-0.5 rounded text-[0.7rem] font-extrabold text-teal-400 bg-teal-500/10 border border-teal-500/25">
+                                        {sub}
+                                      </span>
+                                    ))
+                                  ) : (
+                                    <span className="text-[0.74rem] text-mist italic">No subjects assigned</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedUser(u);
+                                      setCrudForm({
+                                        firstName: u.firstName,
+                                        lastName: u.lastName,
+                                        email: u.email,
+                                        password: "",
+                                        role: u.role,
+                                        department: u.department || "",
+                                        subjects: u.subjects ? u.subjects.join(", ") : "",
+                                        rollNumber: "",
+                                        degreeBatch: ""
+                                      });
+                                      setCrudError("");
+                                      setCrudSuccess("");
+                                      setIsEditModalOpen(true);
+                                    }}
+                                    className="p-2 rounded-lg text-mist hover:text-snow hover:bg-white/5 transition-all"
+                                    title="Edit Teacher Profile"
+                                  >
+                                    <SvgIcon paths={["M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7", "M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"]} size={15} />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedUser(u);
+                                      setCrudError("");
+                                      setCrudSuccess("");
+                                      setIsDeleteModalOpen(true);
+                                    }}
+                                    className="p-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all"
+                                    title="Delete Teacher"
+                                  >
+                                    <SvgIcon paths={["M3 6h18", "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"]} size={15} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : activeTab === 'nav-enrollment' ? (
+              <div className="flex flex-col gap-6 animate-fadeUp">
+                {/* Academic Enrollment Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-[1.25rem] font-black text-white">Academic Enrollment</h2>
+                    <p className="text-[0.8rem] text-mist font-medium">Enroll official students and assign unique academic IDs (roll numbers).</p>
+                  </div>
+                  
+                  <button
+                    onClick={() => {
+                      setCrudForm({ firstName: "", lastName: "", email: "", password: "", role: "student", department: "", subjects: "", rollNumber: "", degreeBatch: "" });
+                      setCrudError("");
+                      setCrudSuccess("");
+                      setIsCreateModalOpen(true);
+                    }}
+                    className="btn-primary px-5 py-3 rounded-xl font-bold text-[0.85rem] flex items-center gap-2"
+                  >
+                    <SvgIcon paths={["M12 5v14M5 12h14"]} size={15} />
+                    Register Student
+                  </button>
+                </div>
+
+                {/* Notifications */}
+                {crudSuccess && (
+                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                    ✓ {crudSuccess}
+                  </div>
+                )}
+                {crudError && (
+                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-red-400 bg-red-500/10 border border-red-500/20">
+                    ⚠ {crudError}
+                  </div>
+                )}
+
+                {/* Search Bar */}
+                <div className="flex p-4 rounded-2xl card-navy border border-white/[0.03]">
+                  <div className="relative w-full max-w-md">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-snow/30">
+                      <SvgIcon paths={["M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"]} size={15} />
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Search by student name, roll number, email, or batch..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="neu-input w-full pl-10 pr-4 py-2.5 rounded-xl text-[0.85rem] outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Students Table */}
+                <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Student</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Roll Number</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Degree Batch</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Mapping Status</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
+                        {users.filter(u => u.role === 'student').filter(u => {
+                          const search = searchQuery.toLowerCase();
+                          return `${u.firstName} ${u.lastName} ${u.email} ${u.rollNumber || ''} ${u.degreeBatch || ''}`.toLowerCase().includes(search);
+                        }).length === 0 ? (
+                          <tr>
+                            <td colSpan="5" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
+                              No student profiles found matching your query.
+                            </td>
+                          </tr>
+                        ) : (
+                          users.filter(u => u.role === 'student').filter(u => {
+                            const search = searchQuery.toLowerCase();
+                            return `${u.firstName} ${u.lastName} ${u.email} ${u.rollNumber || ''} ${u.degreeBatch || ''}`.toLowerCase().includes(search);
+                          }).map((u) => (
+                            <tr key={u._id} className="hover:bg-white/[0.02] transition-colors">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-snow text-xs"
+                                    style={{ background: "linear-gradient(135deg,#c47c3e,#152038)" }}>
+                                    {(u.firstName[0] + u.lastName[0]).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <div className="text-[0.88rem] font-bold text-white">{u.firstName} {u.lastName}</div>
+                                    <div className="text-[0.74rem] text-mist">{u.email}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 font-mono text-[0.8rem] font-bold text-snow">
+                                {u.rollNumber || <span className="text-mist font-normal italic">Unassigned</span>}
+                              </td>
+                              <td className="px-6 py-4 text-[0.85rem] font-semibold text-snow">{u.degreeBatch || <span className="text-mist font-normal italic">None</span>}</td>
+                              <td className="px-6 py-4">
+                                {u.teacher ? (
+                                  <div className="flex flex-col gap-0.5">
+                                    <span className="text-[0.78rem] font-bold text-snow">
+                                      Mapped to: {u.teacher.firstName} {u.teacher.lastName}
+                                    </span>
+                                    <span className="text-[0.66rem] text-mist">
+                                      Course: &quot;{u.mappedSubject}&quot;
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="inline-block text-[0.68rem] font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/25">
+                                    No Link Set
+                                  </span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedUser(u);
+                                      setCrudForm({
+                                        firstName: u.firstName,
+                                        lastName: u.lastName,
+                                        email: u.email,
+                                        password: "",
+                                        role: u.role,
+                                        department: "",
+                                        subjects: "",
+                                        rollNumber: u.rollNumber || "",
+                                        degreeBatch: u.degreeBatch || ""
+                                      });
+                                      setCrudError("");
+                                      setCrudSuccess("");
+                                      setIsEditModalOpen(true);
+                                    }}
+                                    className="p-2 rounded-lg text-mist hover:text-snow hover:bg-white/5 transition-all"
+                                    title="Edit Student Profile"
+                                  >
+                                    <SvgIcon paths={["M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7", "M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"]} size={15} />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setSelectedUser(u);
+                                      setCrudError("");
+                                      setCrudSuccess("");
+                                      setIsDeleteModalOpen(true);
+                                    }}
+                                    className="p-2 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all"
+                                    title="Delete Student"
+                                  >
+                                    <SvgIcon paths={["M3 6h18", "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"]} size={15} />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            ) : activeTab === 'nav-mapping' ? (
+              <div className="flex flex-col gap-6 animate-fadeUp">
+                {/* Relationship Mapping Engine */}
+                <div>
+                  <h2 className="text-[1.25rem] font-black text-white">Relationship Mapping Engine</h2>
+                  <p className="text-[0.8rem] text-mist font-medium">Link students to their respective teachers and current subjects.</p>
+                </div>
+
+                {/* Notifications */}
+                {crudSuccess && (
+                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                    ✓ {crudSuccess}
+                  </div>
+                )}
+                {crudError && (
+                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-red-400 bg-red-500/10 border border-red-500/20">
+                    ⚠ {crudError}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                  {/* Form section */}
+                  <div className="card-navy p-6 rounded-2xl border border-white/[0.03] lg:col-span-1">
+                    <h3 className="text-[0.98rem] font-extrabold text-snow mb-4">Establish Relational Link</h3>
+                    <form onSubmit={handleMapRelationship} className="flex flex-col gap-4">
+                      {/* Select Student */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[0.78rem] font-semibold text-snow/70">Select Student</label>
+                        <select
+                          value={selectedStudentId}
+                          onChange={(e) => setSelectedStudentId(e.target.value)}
+                          className="neu-input px-3.5 py-2.5 rounded-xl text-[0.88rem] outline-none cursor-pointer text-snow"
+                          style={{ background: "#152038" }}
+                        >
+                          <option value="">-- Choose Student --</option>
+                          {users.filter(u => u.role === 'student').map((s) => (
+                            <option key={s._id} value={s._id}>
+                              {s.firstName} {s.lastName} {s.rollNumber ? `(${s.rollNumber})` : `[${s.email}]`}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Select Teacher */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[0.78rem] font-semibold text-snow/70">Select Teacher</label>
+                        <select
+                          value={selectedTeacherId}
+                          onChange={(e) => {
+                            setSelectedTeacherId(e.target.value);
+                            setSelectedSubject(""); // reset subject when teacher changes
+                          }}
+                          className="neu-input px-3.5 py-2.5 rounded-xl text-[0.88rem] outline-none cursor-pointer text-snow"
+                          style={{ background: "#152038" }}
+                        >
+                          <option value="">-- Choose Instructor --</option>
+                          {users.filter(u => u.role === 'teacher').map((t) => (
+                            <option key={t._id} value={t._id}>
+                              {t.firstName} {t.lastName} {t.department ? `(${t.department})` : ''}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Select Course / Subject Input */}
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[0.78rem] font-semibold text-snow/70">Select Course / Subject</label>
+                        <select
+                          value={selectedSubject}
+                          onChange={(e) => setSelectedSubject(e.target.value)}
+                          disabled={!selectedTeacherId}
+                          className="neu-input px-3.5 py-2.5 rounded-xl text-[0.88rem] outline-none cursor-pointer text-snow disabled:opacity-40 disabled:cursor-not-allowed"
+                          style={{ background: "#152038" }}
+                        >
+                          <option value="">-- Choose Subject Tag --</option>
+                          {users.find(u => u._id === selectedTeacherId)?.subjects?.map((sub, idx) => (
+                            <option key={idx} value={sub}>
+                              {sub}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="btn-primary w-full py-3.5 rounded-xl font-bold text-[0.85rem] mt-3"
+                      >
+                        Create Mapped Connection
+                      </button>
+                    </form>
+                  </div>
+
+                  {/* Table registry section */}
+                  <div className="lg:col-span-2 flex flex-col gap-4">
+                    <h3 className="text-[0.98rem] font-extrabold text-snow">Active Link Schema Matrix</h3>
+                    <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                              <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Student Name</th>
+                              <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Roll Number</th>
+                              <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Assigned Instructor</th>
+                              <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Subject Tag</th>
+                              <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
+                            {relationships.length === 0 ? (
+                              <tr>
+                                <td colSpan="5" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
+                                  No relational links mapped yet. Use the link builder form on the left.
+                                </td>
+                              </tr>
+                            ) : (
+                              relationships.map((rel) => (
+                                <tr key={rel._id} className="hover:bg-white/[0.02] transition-colors">
+                                  <td className="px-6 py-4 text-[0.85rem] font-bold text-white">
+                                    {rel.firstName} {rel.lastName}
+                                  </td>
+                                  <td className="px-6 py-4 font-mono text-[0.78rem] text-snow">{rel.rollNumber || 'Unassigned'}</td>
+                                  <td className="px-6 py-4">
+                                    <div className="text-[0.85rem] font-semibold text-snow">
+                                      {rel.teacher ? `${rel.teacher.firstName} ${rel.teacher.lastName}` : 'N/A'}
+                                    </div>
+                                    <div className="text-[0.7rem] text-mist">
+                                      {rel.teacher?.department || ''}
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4">
+                                    <span className="px-2.5 py-0.5 rounded text-[0.7rem] font-extrabold text-amber-400 bg-amber-500/10 border border-amber-500/25">
+                                      {rel.mappedSubject}
+                                    </span>
+                                  </td>
+                                  <td className="px-6 py-4 text-right">
+                                    <button
+                                      onClick={() => handleUnmapRelationship(rel._id)}
+                                      className="text-red-400 hover:text-red-300 text-[0.78rem] font-bold hover:underline bg-transparent border-none cursor-pointer"
+                                    >
+                                      Unlink
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : activeTab === 'nav-logs' ? (
+              <div className="flex flex-col gap-6 animate-fadeUp">
+                {/* System Audit Logs */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h2 className="text-[1.25rem] font-black text-white">System Audit Logs</h2>
+                    <p className="text-[0.8rem] text-mist font-medium">Real-time sync logs documenting platform transactions and actions.</p>
+                  </div>
+                  
+                  <button
+                    onClick={fetchAuditLogs}
+                    className="btn-secondary px-4 py-2.5 rounded-xl font-bold text-[0.8rem] flex items-center gap-1.5 border border-white/10 text-snow"
+                  >
+                    🔄 Refresh Logs
+                  </button>
+                </div>
+
+                {/* Audit Logs Table */}
+                <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Timestamp</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Action Event</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Details</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Triggered By</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[rgba(196,124,62,0.08)] font-mono text-[0.78rem]">
+                        {auditLogs.length === 0 ? (
+                          <tr>
+                            <td colSpan="4" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium font-sans">
+                              No transaction logs have been recorded in the database yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          auditLogs.map((log) => (
+                            <tr key={log._id} className="hover:bg-white/[0.01] transition-colors">
+                              <td className="px-6 py-4 text-mist whitespace-nowrap">
+                                {new Date(log.createdAt).toLocaleString()}
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`inline-block text-[0.65rem] font-extrabold px-2.5 py-0.5 rounded-full capitalize ${
+                                  log.action.includes('PROVISIONED') || log.action.includes('MAPPED')
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25'
+                                    : log.action.includes('DELETED') || log.action.includes('UNMAPPED')
+                                      ? 'bg-red-500/10 text-red-400 border border-red-500/25'
+                                      : log.action.includes('CREATED')
+                                        ? 'bg-teal-500/10 text-teal-400 border border-teal-500/25'
+                                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/25'
+                                }`}>
+                                  {log.action}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-snow max-w-sm truncate" title={log.details}>
+                                {log.details}
+                              </td>
+                              <td className="px-6 py-4 text-mist">
+                                {log.performedBy}
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            ) : activeTab === 'nav-settings' ? (
+              <div className="card-navy rounded-[24px] p-8 border border-white/5 max-w-2xl animate-fadeUp">
+                <h2 className="text-[1.2rem] font-black text-white mb-2">System Configuration</h2>
+                <p className="text-[0.82rem] text-mist mb-6">Manage platform parameters and global administrative configurations.</p>
+                
+                <div className="flex flex-col gap-5">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-[rgba(196,124,62,0.12)]">
+                    <div>
+                      <h3 className="text-[0.88rem] font-bold text-white">Database Status</h3>
+                      <p className="text-[0.74rem] text-mist mt-0.5">MongoDB Atlas Connection Status</p>
+                    </div>
+                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      CONNECTED
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-[rgba(196,124,62,0.12)]">
+                    <div>
+                      <h3 className="text-[0.88rem] font-bold text-white">API Health</h3>
+                      <p className="text-[0.74rem] text-mist mt-0.5">Routes & Handlers Status</p>
+                    </div>
+                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      OPERATIONAL
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-[rgba(196,124,62,0.12)]">
+                    <div>
+                      <h3 className="text-[0.88rem] font-bold text-white">Platform Version</h3>
+                      <p className="text-[0.74rem] text-mist mt-0.5">Production Build Tag</p>
+                    </div>
+                    <span className="px-3 py-1 rounded-lg text-[0.75rem] font-bold text-snow bg-[rgba(196,124,62,0.15)] border border-[rgba(196,124,62,0.22)] font-mono">
+                      v1.0.0-release
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : null
           ) : activeTab === 'nav-settings' ? (
             <div className="card-navy rounded-[24px] p-8 border border-white/5 max-w-2xl">
               <h2 className="text-[1.2rem] font-black text-white mb-2">System Configuration</h2>
@@ -1775,6 +2413,60 @@ export default function DashboardPage() {
                 </select>
               </div>
 
+              {crudForm.role === "teacher" && (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[0.78rem] font-semibold text-snow/70">Department</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Computer Science"
+                      value={crudForm.department || ""}
+                      onChange={(e) => setCrudForm({ ...crudForm, department: e.target.value })}
+                      className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[0.78rem] font-semibold text-snow/70">Subjects / Courses (Comma-separated)</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Data Science Core, Deep Learning"
+                      value={crudForm.subjects || ""}
+                      onChange={(e) => setCrudForm({ ...crudForm, subjects: e.target.value })}
+                      className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                    />
+                  </div>
+                </>
+              )}
+
+              {crudForm.role === "student" && (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[0.78rem] font-semibold text-snow/70">Roll Number</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. cs-101"
+                      value={crudForm.rollNumber || ""}
+                      onChange={(e) => setCrudForm({ ...crudForm, rollNumber: e.target.value })}
+                      className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[0.78rem] font-semibold text-snow/70">Degree Batch</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. BSCS 2022-2026"
+                      value={crudForm.degreeBatch || ""}
+                      onChange={(e) => setCrudForm({ ...crudForm, degreeBatch: e.target.value })}
+                      className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="flex items-center gap-3 mt-4">
                 <button
                   type="button"
@@ -1863,6 +2555,60 @@ export default function DashboardPage() {
                   <option value="admin">Admin</option>
                 </select>
               </div>
+
+              {crudForm.role === "teacher" && (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[0.78rem] font-semibold text-snow/70">Department</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Computer Science"
+                      value={crudForm.department || ""}
+                      onChange={(e) => setCrudForm({ ...crudForm, department: e.target.value })}
+                      className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[0.78rem] font-semibold text-snow/70">Subjects / Courses (Comma-separated)</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Data Science Core, Deep Learning"
+                      value={crudForm.subjects || ""}
+                      onChange={(e) => setCrudForm({ ...crudForm, subjects: e.target.value })}
+                      className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                    />
+                  </div>
+                </>
+              )}
+
+              {crudForm.role === "student" && (
+                <>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[0.78rem] font-semibold text-snow/70">Roll Number</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. cs-101"
+                      value={crudForm.rollNumber || ""}
+                      onChange={(e) => setCrudForm({ ...crudForm, rollNumber: e.target.value })}
+                      className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[0.78rem] font-semibold text-snow/70">Degree Batch</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. BSCS 2022-2026"
+                      value={crudForm.degreeBatch || ""}
+                      onChange={(e) => setCrudForm({ ...crudForm, degreeBatch: e.target.value })}
+                      className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                    />
+                  </div>
+                </>
+              )}
 
               <div className="flex items-center gap-3 mt-4">
                 <button

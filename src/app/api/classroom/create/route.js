@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
 import Meeting from '@/models/Meeting';
+import AuditLog from '@/models/AuditLog';
 import { cookies } from 'next/headers';
 
 function generateUniqueCode() {
@@ -69,6 +70,13 @@ export async function POST(request) {
       }],
       messages: [],
       topicMarkers: []
+    });
+
+    // Write to audit log
+    await AuditLog.create({
+      action: 'CLASSROOM_CREATED',
+      details: `Teacher ${teacherName} (${user.email}) started live classroom "${title}" with code ${meeting.code}`,
+      performedBy: user.email,
     });
 
     return NextResponse.json({

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
 import Meeting from '@/models/Meeting';
+import AuditLog from '@/models/AuditLog';
 import { cookies } from 'next/headers';
 
 export async function GET(request, { params }) {
@@ -124,6 +125,13 @@ export async function POST(request, { params }) {
           camOff: false,
           muted: false
         });
+
+        // Write to audit log for new joiner
+        await AuditLog.create({
+          action: 'CLASSROOM_JOINED',
+          details: `${user.role === 'admin' ? 'Admin' : user.role === 'teacher' ? 'Teacher' : 'Student'} ${userName} (${user.email}) joined live classroom ${uppercaseCode}`,
+          performedBy: user.email,
+        });
       }
       await meeting.save();
       return NextResponse.json({ success: true, meeting });
@@ -182,6 +190,14 @@ export async function POST(request, { params }) {
     if (action === 'end') {
       meeting.active = false;
       await meeting.save();
+
+      // Write to audit log
+      await AuditLog.create({
+        action: 'CLASSROOM_ENDED',
+        details: `Live classroom ${uppercaseCode} was ended by ${userName} (${user.email})`,
+        performedBy: user.email,
+      });
+
       return NextResponse.json({ success: true, message: 'Meeting session ended successfully' });
     }
 

@@ -33,6 +33,39 @@ const UserSchema = new mongoose.Schema(
       enum: ['teacher', 'student', 'admin'],
       default: 'student',
     },
+    // Teacher specific fields
+    department: {
+      type: String,
+      trim: true,
+    },
+    subjects: {
+      type: [String],
+      default: [],
+    },
+    students: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
+    // Student specific fields
+    rollNumber: {
+      type: String,
+      trim: true,
+      index: { unique: true, sparse: true },
+    },
+    degreeBatch: {
+      type: String,
+      trim: true,
+    },
+    teacher: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    mappedSubject: {
+      type: String,
+      trim: true,
+    },
   },
   {
     timestamps: true,

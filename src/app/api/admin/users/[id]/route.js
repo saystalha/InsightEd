@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
+import AuditLog from '@/models/AuditLog';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 
@@ -32,11 +33,11 @@ export async function PUT(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
-    const { firstName, lastName, email, role, password } = body;
+    const { firstName, lastName, email, role, password, department, subjects, rollNumber, degreeBatch } = body;
 
     const userToUpdate = await User.findById(id);
     if (!userToUpdate) {
-      return NextResponse.json({ error: 'User not found' }, { status: 444 });
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     // Validate email format if provided
@@ -71,6 +72,31 @@ export async function PUT(request, { params }) {
       userToUpdate.role = role;
     }
 
+    // Update teacher specific fields
+    if (userToUpdate.role === 'teacher') {
+      if (department !== undefined) userToUpdate.department = department.trim();
+      if (subjects !== undefined) {
+        userToUpdate.subjects = Array.isArray(subjects)
+          ? subjects.map(s => s.trim())
+          : subjects.split(',').map(s => s.trim()).filter(Boolean);
+      }
+    }
+
+    // Update student specific fields
+    if (userToUpdate.role === 'student') {
+      if (rollNumber !== undefined) {
+        const trimmedRoll = rollNumber.trim();
+        if (trimmedRoll && trimmedRoll !== userToUpdate.rollNumber) {
+          const rollExists = await User.findOne({ rollNumber: trimmedRoll });
+          if (rollExists) {
+            return NextResponse.json({ error: 'This roll number is already in use' }, { status: 409 });
+          }
+        }
+        userToUpdate.rollNumber = trimmedRoll || undefined;
+      }
+      if (degreeBatch !== undefined) userToUpdate.degreeBatch = degreeBatch.trim();
+    }
+
     // Optional password reset
     if (password && password.trim() !== '') {
       if (password.length < 6) {
@@ -82,6 +108,13 @@ export async function PUT(request, { params }) {
 
     await userToUpdate.save();
 
+    // Audit Log
+    await AuditLog.create({
+      action: 'USER_UPDATED',
+      details: `Updated user details for: ${userToUpdate.firstName} ${userToUpdate.lastName} (${userToUpdate.email})`,
+      performedBy: auth.currentUser.email,
+    });
+
     return NextResponse.json({
       success: true,
       user: {
@@ -91,6 +124,10 @@ export async function PUT(request, { params }) {
         lastName: userToUpdate.lastName,
         role: userToUpdate.role,
         createdAt: userToUpdate.createdAt,
+        department: userToUpdate.department,
+        subjects: userToUpdate.subjects,
+        rollNumber: userToUpdate.rollNumber,
+        degreeBatch: userToUpdate.degreeBatch,
       }
     });
   } catch (error) {
@@ -114,10 +151,34 @@ export async function DELETE(request, { params }) {
       return NextResponse.json({ error: 'You cannot delete your own administrative account' }, { status: 400 });
     }
 
-    const deletedUser = await User.findByIdAndDelete(id);
-    if (!deletedUser) {
-      return NextResponse.json({ error: 'User not found' }, { status: 444 });
+    const userToDelete = await User.findById(id);
+    if (!userToDelete) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
+
+    // Relational cleanup
+    if (userToDelete.role === 'teacher') {
+      // Unset teacher reference on all students mapped to this teacher
+      await User.updateMany(
+        { teacher: id },
+        { $unset: { teacher: '', mappedSubject: '' } }
+      );
+    } else if (userToDelete.role === 'student') {
+      // Pull student ID from all teachers' student arrays
+      await User.updateMany(
+        { students: id },
+        { $pull: { students: id } }
+      );
+    }
+
+    await User.findByIdAndDelete(id);
+
+    // Audit Log
+    await AuditLog.create({
+      action: 'USER_DELETED',
+      details: `Deleted ${userToDelete.role}: ${userToDelete.firstName} ${userToDelete.lastName} (${userToDelete.email})`,
+      performedBy: auth.currentUser.email,
+    });
 
     return NextResponse.json({ success: true, message: 'User deleted successfully' });
   } catch (error) {

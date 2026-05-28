@@ -195,9 +195,8 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <p className="text-center text-[0.86rem] text-mist mt-6">
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="font-bold text-copper transition-all hover:brightness-110">Sign up free →</Link>
+            <p className="text-center text-[0.84rem] text-mist mt-6">
+              Need access? Contact your administrator to request portal credentials.
             </p>
             <p className="text-center text-[0.72rem] text-mist/50 mt-3">🔒 Your data is never stored or transmitted</p>
           </div>

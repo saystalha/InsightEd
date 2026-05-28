@@ -35,9 +35,9 @@ export default function CTASection() {
 
           {/* Buttons */}
           <div id="cta-actions" className="relative z-10 flex gap-4 flex-wrap justify-center mb-10">
-            <Link href="/signup" id="cta-signup"
+            <Link href="/login" id="cta-signup"
               className="inline-flex items-center gap-2.5 px-10 py-[18px] text-[#f2f2f2] text-[1rem] font-extrabold btn-primary rounded-full animate-pulse-glow">
-              Start Free Trial
+              Login to Portal
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
