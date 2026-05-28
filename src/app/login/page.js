@@ -15,22 +15,29 @@ export default function LoginPage() {
 
   const executeNavigationRoute = (userObj) => {
     try {
-      localStorage.setItem('userEmail', userObj.email);
-      localStorage.setItem('userRole', userObj.role);
-      localStorage.setItem('userName', `${userObj.firstName} ${userObj.lastName}`);
+      // SAFE BOUNDARY CHECK: Safeguards variables even if object properties names differ from server response
+      const storageEmail = userObj?.email || email;
+      const storageRole = userObj?.role || 'student';
+      const storageName = userObj?.name || `${userObj?.firstName || ''} ${userObj?.lastName || ''}`.trim() || 'Portal User';
+
+      localStorage.setItem('userEmail', storageEmail);
+      localStorage.setItem('userRole', storageRole);
+      localStorage.setItem('userName', storageName);
+      
+      console.log('🔄 LocalStorage configured. Launching dashboard routing pipelines...');
       
       // Preferred Next.js routing pathway
       router.push('/dashboard');
       
-      // Fallback pathway in case routing is delayed
+      // Fallback pathway in case virtual DOM routing is delayed
       setTimeout(() => {
         if (window.location.pathname !== '/dashboard') {
           window.location.replace('/dashboard');
         }
-      }, 300);
+      }, 200);
       
     } catch (e) {
-      console.warn('localStorage is unavailable:', e);
+      console.warn('localStorage is unavailable, executing hardware swap bypass:', e);
       window.location.replace('/dashboard');
     }
   };
@@ -70,8 +77,8 @@ export default function LoginPage() {
         return;
       }
 
-      setLoading(false);
-      executeNavigationRoute(data.user);
+      // We maintain the loading state active until routing navigation fully captures control
+      executeNavigationRoute(data.user || data);
     } catch (err) {
       console.error('Login submit error:', err);
       setError('An error occurred during sign-in. Please check your connection and try again.');
@@ -81,7 +88,6 @@ export default function LoginPage() {
 
   return (
     <>
-      {/* Full Navbar — same as homepage */}
       <Navbar />
 
       <div className="min-h-screen flex items-center justify-center p-4 pt-24 relative overflow-hidden hero-bg">
@@ -186,7 +192,7 @@ export default function LoginPage() {
                 className="btn-primary w-full py-4 rounded-2xl font-extrabold text-[1rem] flex items-center justify-center gap-2.5 mt-1 disabled:opacity-60 disabled:cursor-not-allowed transition-all active:scale-95"
               >
                 {loading ? (
-                  <><span className="w-4 h-4 border-2 border-[rgba(255,255,255,0.30)] border-t-white rounded-full animate-spin-slow" /> Verification processing…</>
+                  <><span className="w-4 h-4 border-2 border-[rgba(255,255,255,0.30)] border-t-white rounded-full animate-spin" /> Redirecting...</>
                 ) : (
                   <>Sign In <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg></>
                 )}

@@ -17,8 +17,11 @@ export async function GET() {
 
     await connectDB();
     
-    // Find the user by ID
-    const user = await User.findById(sessionCookie.value).select('-password');
+    // Find the user by ID and populate relational mappings
+    const user = await User.findById(sessionCookie.value)
+      .select('-password')
+      .populate('teacher', 'firstName lastName email department')
+      .populate('students', 'firstName lastName email rollNumber degreeBatch mappedSubject');
 
     if (!user) {
       // Clear invalid cookies if user is not found in database
@@ -33,10 +36,18 @@ export async function GET() {
     return NextResponse.json({
       authenticated: true,
       user: {
+        _id: user._id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        department: user.department,
+        subjects: user.subjects,
+        rollNumber: user.rollNumber,
+        degreeBatch: user.degreeBatch,
+        teacher: user.teacher,
+        mappedSubject: user.mappedSubject,
+        students: user.students,
       },
     });
   } catch (error) {

@@ -4,6 +4,7 @@ import User from '@/models/User';
 import AuditLog from '@/models/AuditLog';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
+import { sendProvisioningEmail } from '@/lib/mailer';
 
 // Helper function to verify admin status
 async function checkAdminAuth() {
@@ -52,7 +53,7 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { firstName, lastName, email, password, role, department, subjects, rollNumber, degreeBatch } = body;
+    const { firstName, lastName, email, password, role, department, subjects, rollNumber, degreeBatch, teacher, mappedSubject } = body;
 
     // Validation
     if (!firstName || !lastName || !email || !password || !role) {
@@ -109,10 +110,38 @@ export async function POST(request) {
     } else if (role === 'student') {
       userDoc.rollNumber = rollNumber ? rollNumber.trim() : undefined;
       userDoc.degreeBatch = degreeBatch ? degreeBatch.trim() : '';
+      if (teacher) {
+        // Verify teacher exists
+        const teacherObj = await User.findById(teacher);
+        if (!teacherObj || teacherObj.role !== 'teacher') {
+          return NextResponse.json({ error: 'Assigned teacher not found' }, { status: 404 });
+        }
+        if (mappedSubject) {
+          const subjectNormalized = mappedSubject.trim();
+          if (!teacherObj.subjects.includes(subjectNormalized)) {
+            return NextResponse.json({ error: `Selected teacher does not teach course: ${subjectNormalized}` }, { status: 400 });
+          }
+          userDoc.teacher = teacherObj._id;
+          userDoc.mappedSubject = subjectNormalized;
+        }
+      }
     }
 
     // Create user
     const newUser = await User.create(userDoc);
+
+    let teacherName = '';
+    // If student was mapped to teacher, establish reference back in teacher document
+    if (role === 'student' && newUser.teacher) {
+      const teacherObj = await User.findByIdAndUpdate(
+        newUser.teacher,
+        { $addToSet: { students: newUser._id } },
+        { new: true }
+      );
+      if (teacherObj) {
+        teacherName = `${teacherObj.firstName} ${teacherObj.lastName}`;
+      }
+    }
 
     // Audit Log
     let details = `Created ${role}: ${newUser.firstName} ${newUser.lastName} (${newUser.email})`;
@@ -121,11 +150,25 @@ export async function POST(request) {
     } else if (role === 'student' && newUser.rollNumber) {
       details += ` with roll number ${newUser.rollNumber}`;
     }
+    if (role === 'student' && newUser.teacher && newUser.mappedSubject) {
+      details += ` (Mapped to teacher ${teacherName} for subject "${newUser.mappedSubject}")`;
+    }
 
     await AuditLog.create({
       action: 'USER_PROVISIONED',
       details,
       performedBy: auth.currentUser.email,
+    });
+
+    // Send Provisioning Email
+    const emailResult = await sendProvisioningEmail({
+      email: newUser.email,
+      password: password, // Send plain text password
+      role: newUser.role,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      teacherName: teacherName || undefined,
+      mappedSubject: newUser.mappedSubject || undefined,
     });
 
     const userMetadata = {
@@ -139,9 +182,16 @@ export async function POST(request) {
       subjects: newUser.subjects,
       rollNumber: newUser.rollNumber,
       degreeBatch: newUser.degreeBatch,
+      teacher: newUser.teacher,
+      mappedSubject: newUser.mappedSubject,
     };
 
-    return NextResponse.json({ success: true, user: userMetadata });
+    return NextResponse.json({ 
+      success: true, 
+      user: userMetadata,
+      emailSent: emailResult ? emailResult.success : false,
+      emailError: emailResult && !emailResult.success ? emailResult.error : null
+    });
   } catch (error) {
     console.error('Admin POST user error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

@@ -73,13 +73,7 @@ const INITIAL_CHAT_MSGS = [
 function TeacherView({ sessionId }) {
   const router = useRouter();
   
-  // Safe state initialization from localStorage
-  const [userName, setUserName] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('userName') || 'Dr. Ahmed';
-    }
-    return 'Dr. Ahmed';
-  });
+  const [userName, setUserName] = useState('Dr. Ahmed');
 
   const [meetingTitle, setMeetingTitle] = useState('Advanced Mathematics');
   const [cfi, setCfi] = useState(75);
@@ -896,13 +890,7 @@ function TeacherView({ sessionId }) {
 function StudentView({ sessionId }) {
   const router = useRouter();
   
-  // Safe state initialization from localStorage
-  const [userName, setUserName] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('userName') || 'Carol Lee';
-    }
-    return 'Carol Lee';
-  });
+  const [userName, setUserName] = useState('Carol Lee');
 
   const [meetingTitle, setMeetingTitle] = useState('Advanced Mathematics');
   const [handRaised, setHandRaised] = useState(false);

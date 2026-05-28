@@ -455,6 +455,20 @@ export default function DashboardPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+  const [selectedTeacherForStudent, setSelectedTeacherForStudent] = useState(null);
+  const [addStudentForm, setAddStudentForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    rollNumber: "",
+    degreeBatch: "",
+    mappedSubject: "",
+  });
+  const [assignedTeacher, setAssignedTeacher] = useState(null);
+  const [assignedSubject, setAssignedSubject] = useState("");
+  const [myStudents, setMyStudents] = useState([]);
   const [crudForm, setCrudForm] = useState({
     firstName: "",
     lastName: "",
@@ -537,6 +551,9 @@ export default function DashboardPage() {
           setUserName(fullName);
           setUserEmail(user.email);
           setActualRole(user.role);
+          setAssignedTeacher(user.teacher || null);
+          setAssignedSubject(user.mappedSubject || "");
+          setMyStudents(user.students || []);
           
           const savedRole = localStorage.getItem('userRole');
           if (savedRole && (savedRole === 'teacher' || savedRole === 'student' || savedRole === 'admin')) {
@@ -612,10 +629,49 @@ export default function DashboardPage() {
         setCrudError(data.error || "Failed to create user");
         return;
       }
-      setCrudSuccess("User created successfully!");
+      if (data.emailSent === false) {
+        setCrudSuccess(`User created successfully, but credentials email failed to send: ${data.emailError || "SMTP connection issue"}`);
+      } else {
+        setCrudSuccess("User created successfully!");
+      }
       setIsCreateModalOpen(false);
       setCrudForm({ firstName: "", lastName: "", email: "", password: "", role: "student" });
       fetchUsers();
+    } catch (err) {
+      setCrudError("An error occurred. Please try again.");
+    }
+  };
+
+  const handleAddStudentSubmit = async (e) => {
+    e.preventDefault();
+    setCrudError("");
+    setCrudSuccess("");
+    
+    try {
+      const res = await fetch("/api/admin/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...addStudentForm,
+          role: "student",
+          teacher: selectedTeacherForStudent._id,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCrudError(data.error || "Failed to create and map student");
+        return;
+      }
+      if (data.emailSent === false) {
+        setCrudSuccess(`Student ${addStudentForm.firstName} ${addStudentForm.lastName} created and mapped to Teacher ${selectedTeacherForStudent.firstName} ${selectedTeacherForStudent.lastName} successfully, but credentials email failed to send: ${data.emailError || "SMTP connection issue"}`);
+      } else {
+        setCrudSuccess(`Student ${addStudentForm.firstName} ${addStudentForm.lastName} created and mapped to Teacher ${selectedTeacherForStudent.firstName} ${selectedTeacherForStudent.lastName} successfully!`);
+      }
+      setIsAddStudentModalOpen(false);
+      setAddStudentForm({ firstName: "", lastName: "", email: "", password: "", rollNumber: "", degreeBatch: "", mappedSubject: "" });
+      setSelectedTeacherForStudent(null);
+      fetchUsers();
+      fetchRelationships();
     } catch (err) {
       setCrudError("An error occurred. Please try again.");
     }
@@ -808,8 +864,8 @@ export default function DashboardPage() {
     {
       id: "stat-students",
       label: "Students Active",
-      value: "0",
-      delta: "No active students",
+      value: myStudents.length.toString(),
+      delta: myStudents.length === 1 ? "1 student assigned" : `${myStudents.length} students assigned`,
       icon: ["M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2", "M23 21v-2a4 4 0 0 0-3-3.87", "M16 3.13a4 4 0 0 1 0 7.75"],
     },
   ];
@@ -1245,6 +1301,29 @@ export default function DashboardPage() {
                               </td>
                               <td className="px-6 py-4 text-right">
                                 <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedTeacherForStudent(u);
+                                      const pregeneratedPassword = 'stud.' + Math.random().toString(36).substring(2, 7);
+                                      setAddStudentForm({
+                                        firstName: "",
+                                        lastName: "",
+                                        email: "",
+                                        password: pregeneratedPassword,
+                                        rollNumber: "",
+                                        degreeBatch: "",
+                                        mappedSubject: u.subjects && u.subjects.length > 0 ? u.subjects[0] : "",
+                                      });
+                                      setCrudError("");
+                                      setCrudSuccess("");
+                                      setIsAddStudentModalOpen(true);
+                                    }}
+                                    className="px-2.5 py-1.5 rounded-lg text-teal-400 hover:text-teal-300 hover:bg-teal-500/10 transition-all flex items-center gap-1"
+                                    title="Register student for this teacher"
+                                  >
+                                    <SvgIcon paths={["M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2", "M9 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", "M19 11v6", "M16 14h6"]} size={14} />
+                                    <span className="text-[0.72rem] font-extrabold uppercase tracking-wide">Add Student</span>
+                                  </button>
                                   <button
                                     onClick={() => {
                                       setSelectedUser(u);
@@ -2203,78 +2282,95 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Upcoming */}
-            <div
-              id="upcoming-classes-card"
-              className="rounded-[20px] overflow-hidden card-navy"
-            >
-              <div className="px-5 py-4 border-b border-[rgba(196,124,62,0.14)]">
-                <h2 className="text-[0.95rem] font-bold text-snow">
-                  Upcoming Classes
-                </h2>
-              </div>
-              <div className="divide-y divide-[rgba(196,124,62,0.12)]">
-                {UPCOMING.length === 0 ? (
-                  <div className="px-5 py-8 text-center text-[0.82rem] text-mist flex flex-col items-center gap-2">
-                    <span className="text-[1.3rem]">📅</span>
-                    No upcoming classes scheduled.
-                  </div>
-                ) : (
-                  UPCOMING.map((cls) => (
-                    <div
-                      key={cls.id}
-                      id={cls.id}
-                      className="flex items-start gap-3 px-5 py-4"
-                    >
-                      <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-snow text-[0.68rem] font-black flex-shrink-0 mt-0.5"
-                        style={{
-                          background: "rgba(196,124,62,0.15)",
-                          border: "1px solid rgba(196,124,62,0.30)",
-                        }}
-                      >
-                        {cls.subject.slice(0, 3)}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-[0.86rem] font-semibold text-snow">
-                          {cls.title}
-                        </p>
-                        <p className="text-[0.75rem] text-mist mt-0.5">
-                          {cls.time}
-                        </p>
-                      </div>
-                      <button className="text-[0.72rem] font-semibold text-mist hover:text-snow transition-colors mt-1 whitespace-nowrap">
-                        Remind
-                      </button>
+            {/* My Students Roster (Only for Teacher role) */}
+            {role === "teacher" && (
+              <div className="rounded-[20px] overflow-hidden card-navy flex flex-col">
+                <div className="px-5 py-4 border-b border-[rgba(196,124,62,0.14)] flex items-center justify-between">
+                  <h2 className="text-[0.95rem] font-bold text-snow">
+                    My Students
+                  </h2>
+                  <span className="text-[0.72rem] font-bold text-snow px-2 py-0.5 rounded-full badge-copper">
+                    {myStudents.length} mapped
+                  </span>
+                </div>
+                <div className="divide-y divide-[rgba(196,124,62,0.12)] overflow-y-auto max-h-[300px]">
+                  {myStudents.length === 0 ? (
+                    <div className="px-5 py-10 text-center text-[0.82rem] text-mist flex flex-col items-center gap-2">
+                      <span className="text-[1.3rem]">👨‍🎓</span>
+                      No students mapped to you yet.
                     </div>
-                  ))
-                )}
-                <div className="px-5 py-4">
-                  <Link
-                    href="/dashboard/create-meeting"
-                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-[0.82rem] font-bold text-snow transition-all hover:bg-[rgba(196,124,62,0.18)]"
-                    style={{
-                      background: "rgba(196,124,62,0.10)",
-                      border: "1px dashed rgba(196,124,62,0.40)",
-                    }}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M12 5v14M5 12h14" />
-                    </svg>
-                    Schedule Class
-                  </Link>
+                  ) : (
+                    myStudents.map((stud) => (
+                      <div key={stud._id} className="flex items-center gap-3 px-5 py-3 hover:bg-white/[0.01] transition-colors">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-snow text-xs flex-shrink-0"
+                          style={{ background: "linear-gradient(135deg,#c47c3e,#152038)" }}>
+                          {(stud.firstName[0] + stud.lastName[0]).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[0.82rem] font-bold text-snow truncate">
+                            {stud.firstName} {stud.lastName}
+                          </p>
+                          <p className="text-[0.7rem] text-mist truncate">
+                            {stud.rollNumber || 'No Roll #'} · {stud.degreeBatch || 'No Batch'}
+                          </p>
+                        </div>
+                        <span className="px-2 py-0.5 rounded text-[0.64rem] font-extrabold text-teal-400 bg-teal-500/10 border border-teal-500/25 flex-shrink-0">
+                          {stud.mappedSubject || 'Class'}
+                        </span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
-            </div>
+            )}
+
+            {/* Assigned Instructor Card (Only for Student role) */}
+            {role === "student" && (
+              <div className="rounded-[20px] overflow-hidden card-navy flex flex-col">
+                <div className="px-5 py-4 border-b border-[rgba(196,124,62,0.14)]">
+                  <h2 className="text-[0.95rem] font-bold text-snow">
+                    Assigned Instructor
+                  </h2>
+                </div>
+                <div className="p-5 flex flex-col gap-4">
+                  {assignedTeacher ? (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
+                          style={{ background: "linear-gradient(135deg,#c47c3e,#152038)" }}>
+                          {(assignedTeacher.firstName[0] + assignedTeacher.lastName[0]).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[0.88rem] font-bold text-snow truncate">
+                            Prof. {assignedTeacher.firstName} {assignedTeacher.lastName}
+                          </p>
+                          <p className="text-[0.74rem] text-mist truncate">
+                            {assignedTeacher.email}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                        <div className="flex justify-between text-[0.76rem]">
+                          <span className="text-mist">Department:</span>
+                          <span className="font-semibold text-snow">{assignedTeacher.department || 'General'}</span>
+                        </div>
+                        <div className="flex justify-between text-[0.76rem]">
+                          <span className="text-mist">Course Enrolled:</span>
+                          <span className="font-semibold text-teal-400">{assignedSubject || 'General class'}</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-6 text-[0.82rem] text-mist flex flex-col items-center gap-2">
+                      <span className="text-[1.3rem]">💼</span>
+                      No instructor assigned yet.
+                      <p className="text-[0.7rem] text-mist/60">Contact administration to register your academic mapping.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ── RECENT SESSIONS ──────────────────────── */}
@@ -2480,6 +2576,130 @@ export default function DashboardPage() {
                   className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow btn-primary transition-all"
                 >
                   Create User
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── ADD STUDENT DIRECT MODAL ─────────── */}
+      {isAddStudentModalOpen && selectedTeacherForStudent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0" onClick={() => { setIsAddStudentModalOpen(false); setSelectedTeacherForStudent(null); }} />
+          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(196,124,62,0.25)] shadow-2xl animate-modal-in">
+            <h3 className="text-[1.25rem] font-black text-snow mb-1">Add Student to Teacher</h3>
+            <p className="text-[0.8rem] text-mist mb-6">
+              Create a student account and link directly under <strong>Instructor {selectedTeacherForStudent.firstName} {selectedTeacherForStudent.lastName}</strong>.
+            </p>
+            
+            <form onSubmit={handleAddStudentSubmit} className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[0.78rem] font-semibold text-snow/70">First Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="First Name"
+                    value={addStudentForm.firstName}
+                    onChange={(e) => setAddStudentForm({ ...addStudentForm, firstName: e.target.value })}
+                    className="neu-input px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[0.78rem] font-semibold text-snow/70">Last Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Last Name"
+                    value={addStudentForm.lastName}
+                    onChange={(e) => setAddStudentForm({ ...addStudentForm, lastName: e.target.value })}
+                    className="neu-input px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.78rem] font-semibold text-snow/70">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="student@school.edu"
+                  value={addStudentForm.email}
+                  onChange={(e) => setAddStudentForm({ ...addStudentForm, email: e.target.value })}
+                  className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.78rem] font-semibold text-snow/70">Password</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Min 6 characters"
+                  value={addStudentForm.password}
+                  onChange={(e) => setAddStudentForm({ ...addStudentForm, password: e.target.value })}
+                  className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[0.78rem] font-semibold text-snow/70">Roll Number</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. cs-101"
+                    value={addStudentForm.rollNumber}
+                    onChange={(e) => setAddStudentForm({ ...addStudentForm, rollNumber: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[0.78rem] font-semibold text-snow/70">Degree Batch</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. BSCS 2022-2026"
+                    value={addStudentForm.degreeBatch}
+                    onChange={(e) => setAddStudentForm({ ...addStudentForm, degreeBatch: e.target.value })}
+                    className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.78rem] font-semibold text-snow/70">Select Assigned Subject</label>
+                <select
+                  required
+                  value={addStudentForm.mappedSubject}
+                  onChange={(e) => setAddStudentForm({ ...addStudentForm, mappedSubject: e.target.value })}
+                  className="neu-input px-3.5 py-2.5 rounded-xl text-[0.88rem] outline-none cursor-pointer text-snow"
+                  style={{ background: "#152038" }}
+                >
+                  {selectedTeacherForStudent.subjects && selectedTeacherForStudent.subjects.length > 0 ? (
+                    selectedTeacherForStudent.subjects.map((sub, idx) => (
+                      <option key={idx} value={sub}>{sub}</option>
+                    ))
+                  ) : (
+                    <option value="">No subjects assigned to this teacher</option>
+                  )}
+                </select>
+              </div>
+
+              <div className="flex items-center gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => { setIsAddStudentModalOpen(false); setSelectedTeacherForStudent(null); }}
+                  className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow/70 hover:bg-white/5 border border-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow btn-primary transition-all"
+                >
+                  Register & Link
                 </button>
               </div>
             </form>
