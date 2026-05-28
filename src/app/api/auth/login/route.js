@@ -49,10 +49,14 @@ export async function POST(request) {
       sameSite: 'lax',
     });
 
+    // Check if the connection is HTTPS
+    const url = new URL(request.url);
+    const isSecure = url.protocol === 'https:' || request.headers.get('x-forwarded-proto') === 'https';
+
     // Session token cookie (HttpOnly for security)
     cookieStore.set('insighted_session', user._id.toString(), {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 days
       sameSite: 'lax',
