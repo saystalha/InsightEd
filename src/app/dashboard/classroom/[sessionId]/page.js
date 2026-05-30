@@ -61,6 +61,8 @@ function MetricBar({ label, value }) {
   );
 }
 
+const formatTime = (s) => `${String(Math.floor(s / 3600)).padStart(2, '0')}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
 /* ─── Initial Data ─────────────────── */
 const INITIAL_CHAT_MSGS = [
   { id: 1, sender: 'Alice Johnson', msg: 'Can you explain the second step again?', time: '10:14', role: 'student' },
@@ -437,8 +439,6 @@ function TeacherView({ sessionId }) {
     const t = setInterval(() => setElapsed(s => s + 1), 1000);
     return () => clearInterval(t);
   }, []);
-
-  const formatTime = (s) => `${String(Math.floor(s / 3600)).padStart(2, '0')}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   const markTopic = async () => {
     if (!topicLabel.trim()) return;
