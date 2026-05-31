@@ -14,7 +14,7 @@ const TICKER = [
 const STATS = [
   { num: '0%', label: 'Data Uploaded' },
   { num: '<2s', label: 'Alert Latency' },
-  { num: '3×', label: 'Engagement Boost' },
+  { num: '3x', label: 'Engagement Boost' },
 ];
 
 export default function HeroSection() {
@@ -41,16 +41,17 @@ export default function HeroSection() {
           </div>
 
           {/* Heading */}
-          <h1 id="hero-heading" className="text-[clamp(1.8rem,4.5vw,3rem)] font-black leading-[1.15] text-[#f2f2f2] tracking-[-0.02em] mb-4">
-            Restore the&nbsp;
-            <span className="gradient-text">Teacher-Student</span>
+          <h1 id="hero-heading" className="text-[clamp(1.6rem,4vw,2.6rem)] font-black leading-[1.15] text-[#f2f2f2] tracking-[-0.02em] mb-4">
+            Restore the <span className="gradient-text">Teacher</span>
+            <br />
+            <span className="gradient-text">Student</span>
             <br />
             <span className="gradient-text">Engagement Loop</span>
           </h1>
 
           {/* Subheading */}
           <p id="hero-subheading" className="text-[0.88rem] sm:text-[0.94rem] text-[#f2f2f2]/70 max-w-[520px] leading-relaxed mb-6">
-            AI-powered facial expression analysis detects class fatigue in real-time — <strong className="text-[#f2f2f2] font-bold">without compromising student privacy</strong>. All processing happens locally on each student&apos;s machine via Edge AI.
+            AI-powered facial expression analysis detects class fatigue in real-time  <strong className="text-[#f2f2f2] font-bold">without compromising student privacy</strong>. All processing happens locally on each student&apos;s machine via Edge AI.
           </p>
 
           {/* Integrated Portal CTAs */}

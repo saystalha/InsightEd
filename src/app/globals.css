@@ -177,6 +177,12 @@
     background: #f8f4ee;
     border: 1px solid rgba(196,124,62,0.18);
     box-shadow: 0 4px 24px rgba(0,0,0,0.20);
+    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.25s, box-shadow 0.25s;
+  }
+  .card-cream:hover {
+    transform: translateY(-3px);
+    border-color: rgba(196,124,62,0.45);
+    box-shadow: 0 12px 28px rgba(196,124,62,0.12), 0 4px 16px rgba(0,0,0,0.15);
   }
 
   /* Dark navy card */
@@ -186,6 +192,13 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1), border-color 0.25s, box-shadow 0.25s, background-color 0.25s;
+  }
+  .card-navy:hover {
+    transform: translateY(-3px);
+    border-color: rgba(196,124,62,0.45);
+    box-shadow: 0 12px 32px rgba(196,124,62,0.15), 0 4px 20px rgba(0,0,0,0.30);
+    background: rgba(36, 58, 96, 0.75);
   }
 
   /* Glass dark — for nav, overlays */

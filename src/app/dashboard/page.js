@@ -180,7 +180,7 @@ const ADMIN_SIDEBAR = [
 ];
 
 /* ── Shared Sidebar ─────────────────────── */
-function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, onLogout, userName = "Jane Doe", userEmail = "jane.doe@insighted.com", initials = "JD" }) {
+function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, onLogout, onProfileClick, userName = "Jane Doe", userEmail = "jane.doe@insighted.com", initials = "JD" }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const items = role === "admin" ? ADMIN_SIDEBAR : role === "teacher" ? TEACHER_SIDEBAR : STUDENT_SIDEBAR;
 
@@ -245,13 +245,11 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
               key={item.id}
               id={item.id}
               onClick={() => setActive(item.id)}
-              className={`relative flex items-center gap-3 rounded-xl transition-all group text-left ${open ? "px-3 py-2.5" : "w-10 h-10 mx-auto justify-center"}`}
-              style={{
-                background: isActive ? "rgba(196,124,62,0.16)" : "transparent",
-                color: isActive ? "#f8f4ee" : "rgba(242,242,242,0.45)",
-              }}
-              onMouseEnter={e => { if(!isActive) { e.currentTarget.style.background="rgba(196,124,62,0.10)"; e.currentTarget.style.color="rgba(242,242,242,0.75)"; }}}
-              onMouseLeave={e => { if(!isActive) { e.currentTarget.style.background="transparent"; e.currentTarget.style.color="rgba(242,242,242,0.45)"; }}}
+              className={`relative flex items-center gap-3 rounded-xl transition-all duration-200 group text-left ${
+                isActive 
+                  ? "bg-[rgba(196,124,62,0.16)] text-snow font-bold" 
+                  : "text-mist hover:bg-[rgba(196,124,62,0.08)] hover:text-snow"
+              } ${open ? "px-3 py-2.5" : "w-10 h-10 mx-auto justify-center"}`}
             >
               <span className="flex-shrink-0" style={{color: isActive ? "#c47c3e" : "rgba(196,124,62,0.50)"}}>
                 <SvgIcon paths={item.icon} size={18} />
@@ -277,10 +275,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
         <button
           type="button"
           onClick={() => setDropdownOpen(!dropdownOpen)}
-          className={`w-full flex items-center gap-3 rounded-xl p-2.5 cursor-pointer text-left transition-all ${!open ? "justify-center" : ""}`}
-          style={{}} 
-          onMouseEnter={e => e.currentTarget.style.background = "rgba(196,124,62,0.10)"}
-          onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          className={`w-full flex items-center gap-3 rounded-xl p-2.5 cursor-pointer text-left transition-all duration-200 hover:bg-[rgba(196,124,62,0.08)] ${!open ? "justify-center" : ""}`}
         >
           <div
             className="w-8 h-8 rounded-full flex items-center justify-center text-[#f2f2f2] text-xs font-bold flex-shrink-0"
@@ -332,7 +327,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
               
               <button
                 onClick={() => {
-                  alert("Profile settings feature coming soon!");
+                  onProfileClick();
                   setDropdownOpen(false);
                 }}
                 className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
@@ -341,7 +336,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                 My Profile
               </button>
               
-              {actualRole === "admin" ? (
+              {actualRole === "admin" && (
                 <>
                   {role !== "admin" && (
                     <button
@@ -386,21 +381,6 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                     </button>
                   )}
                 </>
-              ) : (
-                <button
-                  onClick={() => {
-                    const nextRole = role === "teacher" ? "student" : "teacher";
-                    setRole(nextRole);
-                    try {
-                      localStorage.setItem('userRole', nextRole);
-                    } catch (e) {}
-                    setDropdownOpen(false);
-                  }}
-                  className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
-                >
-                  <SvgIcon paths={["M4 4h16v16H4z", "M12 8v8M8 12h8"]} size={13} />
-                  Switch to {role === "teacher" ? "Student" : "Teacher"} View
-                </button>
               )}
               
               <div className="h-px bg-[rgba(196,124,62,0.12)] my-1" />
@@ -442,6 +422,12 @@ export default function DashboardPage() {
   const [userName, setUserName] = useState("Jane Doe");
   const [userEmail, setUserEmail] = useState("jane.doe@insighted.com");
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [profileForm, setProfileForm] = useState({ firstName: "", lastName: "", email: "", currentPassword: "", password: "" });
+  const [profileSuccess, setProfileSuccess] = useState("");
+  const [profileError, setProfileError] = useState("");
+  const [profileUpdating, setProfileUpdating] = useState(false);
 
   // Admin Dashboard extra states
   const [activeTab, setActiveTab] = useState("nav-dashboard");
@@ -587,6 +573,7 @@ export default function DashboardPage() {
         const data = await response.json();
         if (data.authenticated && data.user) {
           const user = data.user;
+          setCurrentUser(user);
           const fullName = `${user.firstName} ${user.lastName}`;
           setUserName(fullName);
           setUserEmail(user.email);
@@ -596,7 +583,7 @@ export default function DashboardPage() {
           setMyStudents(user.students || []);
           
           const savedRole = localStorage.getItem('userRole');
-          if (savedRole && (savedRole === 'teacher' || savedRole === 'student' || savedRole === 'admin')) {
+          if (user.role === 'admin' && savedRole && (savedRole === 'teacher' || savedRole === 'student' || savedRole === 'admin')) {
             setRole(savedRole);
           } else {
             setRole(user.role);
@@ -617,6 +604,71 @@ export default function DashboardPage() {
     }
     checkSession();
   }, [router]);
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    setProfileError("");
+    setProfileSuccess("");
+    setProfileUpdating(true);
+
+    try {
+      const res = await fetch("/api/auth/me", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profileForm),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setProfileError(data.error || "Failed to update profile");
+        return;
+      }
+      
+      setProfileSuccess("Profile updated successfully!");
+      const user = data.user;
+      setCurrentUser(user);
+      const fullName = `${user.firstName} ${user.lastName}`;
+      setUserName(fullName);
+      setUserEmail(user.email);
+      localStorage.setItem('userName', fullName);
+      localStorage.setItem('userEmail', user.email);
+      setProfileForm(prev => ({ ...prev, password: "", currentPassword: "" }));
+      
+      setTimeout(() => {
+        setIsProfileModalOpen(false);
+      }, 1000);
+
+    } catch (err) {
+      console.error(err);
+      setProfileError("Network error updating profile");
+    } finally {
+      setProfileUpdating(false);
+    }
+  };
+
+  const handleProfileForgotPassword = async () => {
+    setProfileError("");
+    setProfileSuccess("");
+    if (!userEmail) {
+      setProfileError("No email address found in session.");
+      return;
+    }
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userEmail }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setProfileError(data.error || "Failed to trigger recovery email.");
+        return;
+      }
+      setProfileSuccess("A password reset link has been successfully sent to your email!");
+    } catch (err) {
+      console.error(err);
+      setProfileError("Network error triggering recovery email.");
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -1071,6 +1123,18 @@ export default function DashboardPage() {
         setRole={setRole}
         actualRole={actualRole}
         onLogout={handleLogout}
+        onProfileClick={() => {
+          setProfileForm({
+            firstName: currentUser?.firstName || userName.split(" ")[0] || "",
+            lastName: currentUser?.lastName || userName.split(" ").slice(1).join(" ") || "",
+            email: userEmail,
+            currentPassword: "",
+            password: ""
+          });
+          setProfileSuccess("");
+          setProfileError("");
+          setIsProfileModalOpen(true);
+        }}
         userName={userName}
         userEmail={userEmail}
         initials={initials}
@@ -1140,7 +1204,16 @@ export default function DashboardPage() {
                     
                     <button
                       onClick={() => {
-                        alert("Profile settings feature coming soon!");
+                        setProfileForm({
+                          firstName: currentUser?.firstName || userName.split(" ")[0] || "",
+                          lastName: currentUser?.lastName || userName.split(" ").slice(1).join(" ") || "",
+                          email: userEmail,
+                          currentPassword: "",
+                          password: ""
+                        });
+                        setProfileSuccess("");
+                        setProfileError("");
+                        setIsProfileModalOpen(true);
                         setUserDropdownOpen(false);
                       }}
                       className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
@@ -1149,7 +1222,7 @@ export default function DashboardPage() {
                       My Profile
                     </button>
                     
-                    {actualRole === "admin" ? (
+                    {actualRole === "admin" && (
                       <>
                         {role !== "admin" && (
                           <button
@@ -1191,21 +1264,6 @@ export default function DashboardPage() {
                           </button>
                         )}
                       </>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          const nextRole = role === "teacher" ? "student" : "teacher";
-                          setRole(nextRole);
-                          try {
-                            localStorage.setItem('userRole', nextRole);
-                          } catch (e) {}
-                          setUserDropdownOpen(false);
-                        }}
-                        className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
-                      >
-                        <SvgIcon paths={["M4 4h16v16H4z", "M12 8v8M8 12h8"]} size={13} />
-                        Switch to {role === "teacher" ? "Student" : "Teacher"} View
-                      </button>
                     )}
                     
                     <div className="h-px bg-[rgba(196,124,62,0.12)] my-1" />
@@ -3423,6 +3481,118 @@ export default function DashboardPage() {
           )}
         </div>
       </main>
+
+      {/* ── USER PROFILE MODAL ─────────────────── */}
+      {isProfileModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0" onClick={() => setIsProfileModalOpen(false)} />
+          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(196,124,62,0.25)] shadow-2xl animate-modal-in">
+            <h3 className="text-[1.25rem] font-black text-snow mb-1">My Profile & Settings</h3>
+            <p className="text-[0.8rem] text-mist mb-6">View and update your account details.</p>
+            
+            {profileSuccess && (
+              <div className="mb-4 px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                ✓ {profileSuccess}
+              </div>
+            )}
+            {profileError && (
+              <div className="mb-4 px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-red-400 bg-red-500/10 border border-red-500/20">
+                ⚠ {profileError}
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateProfile} className="flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[0.78rem] font-semibold text-snow/70">First Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="First Name"
+                    value={profileForm.firstName}
+                    onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                    className="neu-input px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[0.78rem] font-semibold text-snow/70">Last Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Last Name"
+                    value={profileForm.lastName}
+                    onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                    className="neu-input px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.78rem] font-semibold text-snow/70">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="name@insighted.com"
+                  value={profileForm.email}
+                  onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                  className="neu-input px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                />
+              </div>
+
+              <div className="h-px bg-[rgba(196,124,62,0.12)] my-1" />
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-[0.78rem] font-semibold text-snow/70">Change Password (leave empty to keep current)</label>
+                <input
+                  type="password"
+                  placeholder="•••••••• (Min. 6 chars)"
+                  value={profileForm.password}
+                  onChange={(e) => setProfileForm({ ...profileForm, password: e.target.value })}
+                  className="neu-input px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                />
+              </div>
+
+              {profileForm.password && profileForm.password.trim() !== "" && (
+                <div className="flex flex-col gap-1.5 animate-slide-down">
+                  <label className="text-[0.78rem] font-semibold text-snow/70">Current Password (Required to confirm changes)</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Enter current password"
+                    value={profileForm.currentPassword}
+                    onChange={(e) => setProfileForm({ ...profileForm, currentPassword: e.target.value })}
+                    className="neu-input px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleProfileForgotPassword}
+                    className="text-[0.72rem] text-left text-copper hover:text-snow/70 transition-colors mt-0.5"
+                  >
+                    Forgot your current password? Click here to email a recovery link.
+                  </button>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsProfileModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl text-[0.85rem] font-bold text-mist hover:text-snow hover:bg-white/5 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={profileUpdating}
+                  className="btn-primary px-5 py-2.5 rounded-xl text-[0.85rem] font-bold disabled:opacity-50"
+                >
+                  {profileUpdating ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ── CREATE USER MODAL ─────────────────── */}
       {isCreateModalOpen && (

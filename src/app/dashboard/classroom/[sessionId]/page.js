@@ -1,21 +1,20 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
-import { Suspense } from 'react';
 
 /* ─── SVG Icon ─────────────────────────── */
-function Icon({ d, size = 20, fill = 'none', ...rest }) {
+function Icon({ d, size = 20, fill = 'none', className = '', ...rest }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor"
-      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...rest}>
+      strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...rest}>
       {Array.isArray(d) ? d.map((p, i) => <path key={i} d={p} />) : <path d={d} />}
     </svg>
   );
 }
 
 /* ─── Circular Gauge (CFI) ─────────────── */
-function CircularGauge({ value = 72, size = 130 }) {
+function CircularGauge({ value = 72, size = 120 }) {
   const r = size / 2 - 12;
   const circ = 2 * Math.PI * r;
   const dash = (value / 100) * circ;
@@ -25,17 +24,17 @@ function CircularGauge({ value = 72, size = 130 }) {
     <div className="flex flex-col items-center gap-2">
       <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(196,124,62,0.12)" strokeWidth="10" />
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="10"
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(196,124,62,0.12)" strokeWidth="8" />
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="8"
             strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={circ / 4} strokeLinecap="round"
             style={{ transition: 'stroke-dasharray 0.8s ease, stroke 0.5s' }} />
         </svg>
         <div className="absolute text-center">
-          <p className="text-[1.5rem] font-black text-snow leading-none">{value}</p>
-          <p className="text-[0.6rem] text-mist font-semibold">CFI</p>
+          <p className="text-[1.35rem] font-black text-snow leading-none">{value}</p>
+          <p className="text-[0.55rem] text-mist font-semibold">CFI</p>
         </div>
       </div>
-      <p className="text-[0.75rem] font-bold text-copper">{label}</p>
+      <p className="text-[0.72rem] font-bold text-copper">{label}</p>
     </div>
   );
 }
@@ -49,10 +48,10 @@ function MetricBar({ label, value }) {
       : 'linear-gradient(90deg, #8c5828, #c47c3e)';
       
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 w-full">
       <div className="flex justify-between items-center">
-        <span className="text-[0.75rem] text-mist font-medium">{label}</span>
-        <span className="text-[0.78rem] font-bold text-snow">{Math.round(value * 100)}%</span>
+        <span className="text-[0.72rem] text-mist font-medium">{label}</span>
+        <span className="text-[0.75rem] font-bold text-snow">{Math.round(value * 100)}%</span>
       </div>
       <div className="h-1.5 rounded-full bg-[rgba(196,124,62,0.12)] overflow-hidden">
         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${value * 100}%`, background: gradient }} />
@@ -63,27 +62,18 @@ function MetricBar({ label, value }) {
 
 const formatTime = (s) => `${String(Math.floor(s / 3600)).padStart(2, '0')}:${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
-/* ─── Initial Data ─────────────────── */
-const INITIAL_CHAT_MSGS = [
-  { id: 1, sender: 'Alice Johnson', msg: 'Can you explain the second step again?', time: '10:14', role: 'student' },
-  { id: 2, sender: 'Dr. Ahmed', msg: 'Sure! The key is to apply the chain rule first.', time: '10:15', role: 'teacher' },
-  { id: 3, sender: 'Bob Martinez', msg: 'I have a question about the derivative formula', time: '10:16', role: 'student' },
-  { id: 4, sender: 'Carol Lee', msg: '✋ I raised my hand', time: '10:17', role: 'student' },
-];
-
 /* ─── Teacher View ────────────────────── */
 function TeacherView({ sessionId }) {
   const router = useRouter();
   
   const [userName, setUserName] = useState('Dr. Ahmed');
-
   const [meetingTitle, setMeetingTitle] = useState('Advanced Mathematics');
   const [cfi, setCfi] = useState(75);
   const [trend, setTrend] = useState('stable');
   const [metrics, setMetrics] = useState({ attention: 0.75, confusion: 0.20, energy: 0.70 });
   
-  const [chatOpen, setChatOpen] = useState(false);
-  const [participantsOpen, setParticipantsOpen] = useState(true);
+  // Tabbed sidebar state: 'analytics' | 'participants' | 'chat' | null
+  const [sidebarTab, setSidebarTab] = useState(null);
   const [breakAlert, setBreakAlert] = useState(false);
   const [announcement, setAnnouncement] = useState('');
   const [topicLabel, setTopicLabel] = useState('');
@@ -97,24 +87,23 @@ function TeacherView({ sessionId }) {
   const [camOff, setCamOff] = useState(false);
   const [handAlerts, setHandAlerts] = useState([]);
 
-  // Join Toast Notifications
+  // Toast notifications for connected users
   const [joinNotifications, setJoinNotifications] = useState([]);
   const prevStudentsRef = useRef([]);
 
-  // Voice Detection State
+  // Voice Equalizer meters
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Media Streams State
+  // Video Media streams
   const [stream, setStream] = useState(null);
   const [screenStream, setScreenStream] = useState(null);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
 
-  // References for live streams
   const localVideoRef = useRef(null);
   const localVideoRefSmall = useRef(null);
   const screenVideoRef = useRef(null);
 
-  // Retrieve actual authenticated teacher name
+  // Retrieve authenticated user info
   useEffect(() => {
     fetch('/api/auth/me')
       .then(res => res.json())
@@ -130,9 +119,9 @@ function TeacherView({ sessionId }) {
 
   const userInitials = userName
     ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : 'JD';
+    : 'TA';
 
-  // Poll classroom state from MongoDB
+  // Session state polling
   useEffect(() => {
     async function fetchSessionState() {
       try {
@@ -142,18 +131,16 @@ function TeacherView({ sessionId }) {
           const meeting = data.meeting;
           setMeetingTitle(meeting.title);
           
-          // Update participants & students list
           const activeParticipants = meeting.participants || [];
           const activeStudents = activeParticipants.filter(p => p.role === 'student');
           
-          // Detect joins
+          // Detect student join events for toast logs
           const prevIds = prevStudentsRef.current.map(s => s._id || s.userId);
           activeStudents.forEach(s => {
             const currentId = s._id || s.userId;
             if (prevIds.length > 0 && !prevIds.includes(currentId)) {
-              // Trigger a toast notification
               const nId = Date.now() + Math.random();
-              setJoinNotifications(prev => [...prev, { id: nId, message: `${s.name} joined the meeting` }]);
+              setJoinNotifications(prev => [...prev, { id: nId, message: `${s.name} joined the class` }]);
               setTimeout(() => {
                 setJoinNotifications(prev => prev.filter(n => n.id !== nId));
               }, 4000);
@@ -162,18 +149,15 @@ function TeacherView({ sessionId }) {
           prevStudentsRef.current = activeStudents;
           setStudents(activeStudents);
 
-          // Update alerts for raised hands
+          // Raise hand notifications
           setHandAlerts(
             activeStudents
               .filter(s => s.handRaised)
               .map(s => ({ id: s._id || s.userId, name: s.name }))
           );
 
-          // Sync chats & markers
           setMessages(meeting.messages || []);
           setTopicMarkers(meeting.topicMarkers || []);
-
-          // Sync classroom-wide telemetry
           setCfi(meeting.cfi);
           setMetrics({
             attention: meeting.attention,
@@ -185,7 +169,6 @@ function TeacherView({ sessionId }) {
             setBreakAlert(true);
           }
         } else if (data.active === false) {
-          // If session is terminated
           alert('Session has ended.');
           router.push('/dashboard');
         }
@@ -194,7 +177,7 @@ function TeacherView({ sessionId }) {
       }
     }
 
-    // Join meeting initially
+    // Join room endpoint
     fetch(`/api/classroom/${sessionId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -289,7 +272,7 @@ function TeacherView({ sessionId }) {
           sum += dataArray[i];
         }
         const average = sum / bufferLength;
-        setIsSpeaking(average > 8); // threshold level
+        setIsSpeaking(average > 8); // speech threshold
         rafId = requestAnimationFrame(checkSpeechVolume);
       };
       checkSpeechVolume();
@@ -306,7 +289,7 @@ function TeacherView({ sessionId }) {
     };
   }, [stream, muted]);
 
-  // Handle mute track updates
+  // Enable/disable audio track
   useEffect(() => {
     if (stream) {
       stream.getAudioTracks().forEach(track => {
@@ -315,7 +298,7 @@ function TeacherView({ sessionId }) {
     }
   }, [muted, stream]);
 
-  // Bind local video source
+  // Bind video element sources
   useEffect(() => {
     if (isScreenSharing) {
       if (localVideoRefSmall.current) {
@@ -328,14 +311,13 @@ function TeacherView({ sessionId }) {
     }
   }, [stream, camOff, isScreenSharing]);
 
-  // Bind screen video source
   useEffect(() => {
     if (screenVideoRef.current) {
       screenVideoRef.current.srcObject = screenStream || null;
     }
   }, [screenStream, isScreenSharing]);
 
-  // Screen sharing triggers
+  // Screen share handlers
   const startScreenShare = async () => {
     if (typeof window !== 'undefined' && navigator.mediaDevices) {
       try {
@@ -361,7 +343,7 @@ function TeacherView({ sessionId }) {
     setIsScreenSharing(false);
   };
 
-  // Student Canvas Animation Loop
+  // Student Mockup Feeds Canvas Loops
   useEffect(() => {
     let animationFrameId;
     const render = () => {
@@ -378,21 +360,21 @@ function TeacherView({ sessionId }) {
           const w = canvas.width = canvas.clientWidth || 160;
           const h = canvas.height = canvas.clientHeight || 120;
 
-          // Charcoal navy background
-          ctx.fillStyle = '#0a0e16';
+          // Background canvas body
+          ctx.fillStyle = '#10141e';
           ctx.fillRect(0, 0, w, h);
 
           const time = Date.now() * 0.001 + (s.score || 0) * 10;
 
-          // Ambient glowing gradient matching attention index
+          // Glowing background based on score
           const grad = ctx.createRadialGradient(w/2, h/2, 5, w/2, h/2, w/1.2);
           const colorHue = s.camOff ? 0 : s.handRaised ? 35 : (s.score >= 70 ? 120 : s.score >= 50 ? 38 : 10);
           grad.addColorStop(0, `hsla(${colorHue}, 45%, 15%, 0.35)`);
-          grad.addColorStop(1, '#0e1525');
+          grad.addColorStop(1, '#0c0f17');
           ctx.fillStyle = grad;
           ctx.fillRect(0, 0, w, h);
 
-          // Head & shoulders avatar silhouette
+          // Head / Body Avatar
           ctx.fillStyle = s.handRaised ? 'rgba(196, 124, 62, 0.22)' : 'rgba(196, 124, 62, 0.08)';
           ctx.beginPath();
           ctx.arc(w / 2, h / 2 - 10, h * 0.18, 0, Math.PI * 2);
@@ -402,17 +384,15 @@ function TeacherView({ sessionId }) {
           ctx.ellipse(w / 2, h / 2 + h * 0.25, h * 0.28, h * 0.18, 0, 0, Math.PI * 2);
           ctx.fill();
 
-          // Camera off overlay
           if (s.camOff) {
             ctx.fillStyle = 'rgba(15,24,36,0.65)';
             ctx.fillRect(0, 0, w, h);
             ctx.fillStyle = 'rgba(255,255,255,0.15)';
-            ctx.font = '10px Outfit, sans-serif';
+            ctx.font = '10px sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('Camera Off', w/2, h/2 + 25);
           }
 
-          // Action rings (Hand Raised vs Attention Level)
           if (s.handRaised) {
             ctx.strokeStyle = '#c47c3e';
             ctx.lineWidth = 2.5;
@@ -434,10 +414,10 @@ function TeacherView({ sessionId }) {
     return () => cancelAnimationFrame(animationFrameId);
   }, [students, isScreenSharing]);
 
-  // Elapsed timer
+  // Class timers
   useEffect(() => {
-    const t = setInterval(() => setElapsed(s => s + 1), 1000);
-    return () => clearInterval(t);
+    const timer = setInterval(() => setElapsed(s => s + 1), 1000);
+    return () => clearInterval(timer);
   }, []);
 
   const markTopic = async () => {
@@ -481,7 +461,7 @@ function TeacherView({ sessionId }) {
   };
 
   const endClass = async () => {
-    if (window.confirm('End this class session?')) {
+    if (window.confirm('Are you sure you want to end this class session?')) {
       try {
         await fetch(`/api/classroom/${sessionId}`, {
           method: 'POST',
@@ -497,8 +477,21 @@ function TeacherView({ sessionId }) {
 
   const scoreColor = (s) => s >= 75 ? '#d4924e' : s >= 50 ? '#c47c3e' : 'rgba(242,242,242,0.50)';
 
+  const toggleSidebar = (tab) => {
+    setSidebarTab(prev => prev === tab ? null : tab);
+  };
+
+  // Dynamically calculate grid columns based on connected users
+  const totalFeeds = students.length + 1; // +1 for the teacher
+  const getGridClass = () => {
+    if (isScreenSharing) return ''; // handles small previews row underneath
+    if (totalFeeds === 1) return 'max-w-[720px] aspect-video w-full mx-auto';
+    if (totalFeeds === 2) return 'grid-cols-2 max-w-[1000px] w-full mx-auto';
+    return 'grid-cols-2 md:grid-cols-3 max-w-[1250px] w-full mx-auto';
+  };
+
   return (
-    <div className="h-screen flex flex-col overflow-hidden dashboard-bg text-snow relative">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#111] text-snow relative">
       <style>{`
         @keyframes voiceRipple {
           0% { transform: scale(1); opacity: 0.7; }
@@ -508,7 +501,7 @@ function TeacherView({ sessionId }) {
       `}</style>
 
       {/* ── TOAST NOTIFICATIONS ────────────────── */}
-      <div className="fixed bottom-20 left-6 z-50 flex flex-col gap-2 pointer-events-none">
+      <div className="fixed bottom-24 left-6 z-50 flex flex-col gap-2 pointer-events-none">
         {joinNotifications.map(n => (
           <div key={n.id} className="flex items-center gap-2.5 px-4.5 py-3 rounded-xl shadow-2xl bg-copper border border-white/10 text-white font-extrabold text-xs animate-fadeUp">
             <span>👤</span>
@@ -519,22 +512,21 @@ function TeacherView({ sessionId }) {
 
       {/* ── BREAK ALERT BANNER ────────────────── */}
       {breakAlert && (
-        <div id="break-alert-banner" className="flex-shrink-0 flex items-center justify-between px-6 py-3 z-50 animate-fadeUp"
-          style={{ background: 'rgba(21,32,56,0.95)', borderBottom: '1px solid rgba(196,124,62,0.30)' }}>
+        <div id="break-alert-banner" className="flex-shrink-0 flex items-center justify-between px-6 py-3 z-50 bg-[#161a25] border-b border-copper/30 animate-fadeUp">
           <div className="flex items-center gap-3">
             <span className="w-2.5 h-2.5 rounded-full bg-copper animate-pulse" />
             <div>
-              <p className="text-[0.88rem] font-bold text-white">Engagement Alert — CFI dropped to {cfi}%</p>
-              <p className="text-[0.76rem] text-mist">Recommend a 5-minute break to restore attention</p>
+              <p className="text-[0.85rem] font-bold text-white">Engagement Alert — CFI dropped to {cfi}%</p>
+              <p className="text-[0.72rem] text-mist">Recommend a 5-minute break to restore attention</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button id="call-break-btn" onClick={() => setBreakAlert(false)}
-              className="px-4 py-2 rounded-xl text-[0.82rem] font-bold btn-primary">
+              className="px-4 py-1.5 rounded-full text-[0.78rem] font-bold btn-primary">
               Call Break
             </button>
             <button onClick={() => setBreakAlert(false)} className="text-mist hover:text-snow transition-colors">
-              <Icon d="M18 6 6 18M6 6l12 12" size={18} />
+              <Icon d="M18 6 6 18M6 6l12 12" size={16} />
             </button>
           </div>
         </div>
@@ -544,340 +536,357 @@ function TeacherView({ sessionId }) {
       {handAlerts.length > 0 && (
         <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
           {handAlerts.map(h => (
-            <div key={h.id} id={`hand-alert-${h.id}`} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-lg card-navy border border-copper/15">
+            <div key={h.id} id={`hand-alert-${h.id}`} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-lg bg-[#182030] border border-copper/30">
               <span>✋</span>
-              <p className="text-[0.82rem] font-semibold text-snow">{h.name} raised hand</p>
+              <p className="text-[0.8rem] font-semibold text-snow">{h.name} raised hand</p>
               <button onClick={() => setHandAlerts(prev => prev.filter(x => x.id !== h.id))}
-                className="text-copper/60 hover:text-copper ml-1 transition-colors">×</button>
+                className="text-copper/60 hover:text-copper ml-1.5 transition-colors font-bold text-sm">×</button>
             </div>
           ))}
         </div>
       )}
 
-      {/* ── TOP BAR ────────────────────────────── */}
-      <div id="teacher-topbar" className="flex-shrink-0 flex items-center justify-between px-5 py-3 glass-topbar">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-copper animate-pulse" />
-            <span className="text-[0.8rem] font-bold text-snow">LIVE ({sessionId})</span>
-          </div>
-          <div className="w-px h-4 bg-[rgba(196,124,62,0.25)]" />
-          <p className="text-[0.88rem] font-semibold text-snow">{meetingTitle}</p>
-          <div className="w-px h-4 bg-[rgba(196,124,62,0.25)]" />
-          <span className="text-[0.8rem] text-mist font-mono">{formatTime(elapsed)}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.75rem] font-semibold badge-copper">
-            <Icon d={['M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2', 'M23 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75']} size={13} />
-            {students.length} Student(s)
-          </div>
-          <button id="topbar-participants" onClick={() => setParticipantsOpen(!participantsOpen)}
-            className={`px-3 py-1.5 rounded-lg text-[0.75rem] font-semibold transition-colors ${participantsOpen ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            Participants
-          </button>
-          <button id="topbar-chat" onClick={() => setChatOpen(!chatOpen)}
-            className={`px-3 py-1.5 rounded-lg text-[0.75rem] font-semibold transition-colors ${chatOpen ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            Chat
-          </button>
-        </div>
-      </div>
-
-      {/* ── MAIN BODY ──────────────────────────── */}
-      <div className="flex-1 flex overflow-hidden">
-
-        {/* Left: Video Grid / Presentation Workspace */}
-        <div className="flex-1 flex flex-col overflow-hidden p-4 gap-4">
+      {/* ── MAIN VIEWWORKSPACE ─────────────────── */}
+      <div className="flex-1 flex overflow-hidden relative h-full">
+        
+        {/* Left: Responsive Video Grid Workspace */}
+        <div className="flex-1 flex flex-col justify-center overflow-hidden p-6 relative">
           
           {isScreenSharing ? (
-            /* Presentation Mode active layout */
-            <div className="flex-1 flex flex-col min-h-0">
-              <div id="screen-share-stage" className="flex-1 relative rounded-[16px] overflow-hidden card-navy border border-copper/25 bg-black flex items-center justify-center">
+            /* Presentation Mode stage layout */
+            <div className="flex-1 flex flex-col min-h-0 w-full">
+              <div id="screen-share-stage" className="flex-1 relative rounded-2xl overflow-hidden border border-white/5 bg-[#0a0a0a] flex items-center justify-center">
                 <video ref={screenVideoRef} autoPlay playsInline muted className="w-full h-full object-contain" />
-                <div className="absolute bottom-3 left-3 text-[0.75rem] font-bold text-snow px-3 py-1.5 rounded-lg" style={{ background: 'rgba(15,24,36,0.80)' }}>
+                <div className="absolute bottom-4 left-4 text-[0.75rem] font-bold text-snow px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-md">
                   Screen Sharing Active
                 </div>
-                <button onClick={() => stopScreenShare(null)} className="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg text-[0.75rem] font-bold bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-all">
-                  Stop Presentation
+                <button onClick={() => stopScreenShare(null)} className="absolute bottom-4 right-4 px-4 py-2 rounded-xl text-[0.75rem] font-bold bg-red-600/90 hover:bg-red-500 text-white transition-all shadow-lg active:scale-95">
+                  Stop Presenting
                 </button>
               </div>
 
-              {/* Row of small participant cameras underneath */}
+              {/* Row of feeds small previews underneath */}
               <div className="h-[110px] flex gap-3 mt-3 overflow-x-auto pb-1 flex-shrink-0">
                 {/* Teacher feed */}
-                <div className="w-[150px] h-full relative rounded-xl overflow-hidden card-navy border border-white/5 flex-shrink-0">
+                <div className="w-[150px] h-full relative rounded-xl overflow-hidden bg-[#1f1f1f] border border-white/5 flex-shrink-0 flex items-center justify-center">
                   {camOff ? (
-                    <div className="w-full h-full flex items-center justify-center text-sm font-black bg-gradient-to-br from-[rgba(196,124,62,0.15)] to-[rgba(21,32,56,0.80)]">{userInitials}</div>
+                    <div className="w-full h-full flex items-center justify-center text-sm font-black bg-gradient-to-br from-[#241a12] to-[#121824]">{userInitials}</div>
                   ) : (
                     <video ref={localVideoRefSmall} autoPlay playsInline muted className="w-full h-full object-cover" />
                   )}
-                  <div className="absolute bottom-1 left-1 text-[0.6rem] text-white px-1.5 py-0.5 rounded" style={{ background: 'rgba(15,24,36,0.65)' }}>You</div>
+                  <div className="absolute bottom-1.5 left-1.5 text-[0.58rem] text-white px-2 py-0.5 rounded bg-black/60 font-medium">You</div>
                 </div>
 
                 {/* Student feeds */}
                 {students.map(s => (
-                  <div key={s._id || s.userId} className="w-[150px] h-full relative rounded-xl overflow-hidden card-navy flex-shrink-0 flex items-center justify-center border border-white/5">
+                  <div key={s._id || s.userId} className="w-[150px] h-full relative rounded-xl overflow-hidden bg-[#1f1f1f] flex-shrink-0 flex items-center justify-center border border-white/5">
                     <canvas id={`student-canvas-small-${s._id || s.userId}`} className="absolute inset-0 w-full h-full object-cover opacity-85" />
-                    <div className="relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-black" style={{ background: 'linear-gradient(135deg, #c47c3e, #8c5828)' }}>{s.initials}</div>
-                    <div className="absolute bottom-1 left-1 right-1 flex items-center justify-between text-[0.58rem] text-white px-1 py-0.5 rounded" style={{ background: 'rgba(15,24,36,0.65)' }}>
-                      <span className="truncate max-w-[55px]">{s.name.split(' ')[0]}</span>
-                      <span style={{ color: scoreColor(s.score) }}>{s.score}%</span>
+                    <div className="relative z-10 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-black bg-gradient-to-br from-[#c47c3e] to-[#8c5828]">{s.initials}</div>
+                    <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[0.58rem] text-white px-1.5 py-0.5 rounded bg-black/60">
+                      <span className="truncate max-w-[55px] font-medium">{s.name.split(' ')[0]}</span>
+                      <span className="font-bold" style={{ color: scoreColor(s.score) }}>{s.score}%</span>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            /* Standard Grid Layout */
-            <>
-              {/* Teacher main self-camera card */}
-              <div id="teacher-self-view" className="relative rounded-[16px] overflow-hidden flex-shrink-0 card-navy border border-white/5"
-                style={{ height: 260 }}>
-                <div className="w-full h-full flex items-center justify-center">
-                  {camOff ? (
-                    <div className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-black"
-                      style={{ background: 'linear-gradient(135deg, #c47c3e, #8c5828)' }}>{userInitials}</div>
-                  ) : (
-                    <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-                  )}
+            /* Unified Tiled Responsive Grid */
+            <div className={`grid gap-4 items-center justify-center w-full min-h-0 ${getGridClass()}`}>
+              
+              {/* Teacher feed inside grid */}
+              <div id="teacher-self-view" className={`relative rounded-2xl overflow-hidden bg-[#1e1e1e] border flex items-center justify-center w-full aspect-video transition-all duration-300 ${
+                isSpeaking ? 'border-copper/70 ring-2 ring-copper/15' : 'border-white/5'
+              }`}>
+                {camOff ? (
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-black bg-gradient-to-br from-[#c47c3e] to-[#8c5828]">{userInitials}</div>
+                ) : (
+                  <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                )}
+                <div className="absolute bottom-3 left-3 text-[0.7rem] font-semibold text-white px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md">
+                  {userName} (Host)
                 </div>
-                <div className="absolute bottom-3 left-3 text-[0.72rem] font-semibold text-white px-2.5 py-1 rounded-md"
-                  style={{ background: 'rgba(15,24,36,0.65)' }}>{userName} (Teacher / Host)</div>
                 {muted && (
-                  <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-[rgba(15,24,36,0.70)] flex items-center justify-center">
-                    <Icon d="M1 1l22 22M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" size={14} />
+                  <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 flex items-center justify-center">
+                    <Icon d="m19 10-1.39 4.5M9 5a3 3 0 0 1 5.3 1.8M12 19v4M8 23h8M1 1l22 22" size={14} className="text-red-400" />
                   </div>
                 )}
               </div>
 
-              {/* Student video grids */}
-              <div id="student-video-grid" className="flex-1 grid grid-cols-3 gap-3 overflow-y-auto">
-                {students.length === 0 ? (
-                  <div className="col-span-3 flex flex-col items-center justify-center p-8 text-center text-mist/60 card-navy rounded-2xl border border-white/5">
-                    <span className="text-3xl mb-2 animate-bounce">👋</span>
-                    <p className="text-[0.88rem] font-bold text-snow">Classroom is Empty</p>
-                    <p className="text-xs text-mist/40 mt-0.5">Share access token code <strong className="text-copper">{sessionId}</strong> to let students join.</p>
+              {/* Student feeds inside grid */}
+              {students.map(s => (
+                <div key={s._id || s.userId} id={`student-video-${s._id || s.userId}`}
+                  className="relative rounded-2xl overflow-hidden aspect-video flex items-center justify-center bg-[#1e1e1e] border w-full transition-all duration-300"
+                  style={{
+                    borderColor: s.handRaised ? 'rgba(196,124,62,0.7)' : 'rgba(255, 255, 255, 0.05)',
+                    boxShadow: s.handRaised ? '0 0 16px rgba(196,124,62,0.2)' : 'none',
+                  }}>
+                  <canvas id={`student-canvas-${s._id || s.userId}`} className="absolute inset-0 w-full h-full object-cover opacity-85" />
+                  <div className="relative z-10 w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-black bg-gradient-to-br from-[#c47c3e] to-[#8c5828]">{s.initials}</div>
+                  
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between z-10">
+                    <span className="text-[0.7rem] font-semibold text-white px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md truncate max-w-[100px]">{s.name.split(' ')[0]}</span>
+                    <span className="text-[0.7rem] font-bold px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md"
+                      style={{ color: scoreColor(s.score) }}>{s.score}%</span>
                   </div>
-                ) : (
-                  students.map(s => (
-                    <div key={s._id || s.userId} id={`student-video-${s._id || s.userId}`}
-                      className="relative rounded-[14px] overflow-hidden aspect-video flex items-center justify-center card-navy border"
-                      style={{
-                        borderColor: s.handRaised ? 'rgba(196,124,62,0.70)' : 'rgba(196,124,62,0.14)',
-                        boxShadow: s.handRaised ? '0 0 16px rgba(196,124,62,0.30)' : 'none',
-                      }}>
-                      <canvas id={`student-canvas-${s._id || s.userId}`} className="absolute inset-0 w-full h-full object-cover opacity-85" />
-                      <div className="relative z-10 w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-black"
-                        style={{ background: 'linear-gradient(135deg, #c47c3e, #8c5828)' }}>{s.initials}</div>
-                      
-                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between z-10">
-                        <span className="text-[0.65rem] font-semibold text-white px-1.5 py-0.5 rounded-md truncate"
-                          style={{ background: 'rgba(15,24,36,0.65)', maxWidth: 85 }}>{s.name.split(' ')[0]}</span>
-                        <span className="text-[0.65rem] font-bold px-1.5 py-0.5 rounded-md"
-                          style={{ background: 'rgba(15,24,36,0.65)', color: scoreColor(s.score) }}>{s.score}%</span>
-                      </div>
-                      {s.handRaised && (
-                        <div className="absolute top-2 right-2 text-base z-10 animate-bounce">✋</div>
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-            </>
+                  {s.handRaised && (
+                    <div className="absolute top-3 right-3 text-lg z-10 animate-bounce">✋</div>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Right: Analytics Sidebar */}
-        <div id="analytics-sidebar" className="w-[280px] flex-shrink-0 flex flex-col glass-sidebar overflow-y-auto">
-
-          {/* CFI Gauge */}
-          <div className="p-5 border-b border-[rgba(196,124,62,0.12)] flex flex-col items-center gap-4">
-            <CircularGauge value={cfi} />
-            <div className="flex items-center gap-1.5">
-              {trend === 'improving'
-                ? <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c47c3e" strokeWidth="2.5"><path d="M7 17l9.2-9.2M17 17V7H7" /></svg><span className="text-[0.75rem] text-copper font-semibold">Improving</span></>
-                : <><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(196,124,62,0.50)" strokeWidth="2.5"><path d="M17 7l-9.2 9.2M7 7v10h10" /></svg><span className="text-[0.75rem] text-mist font-semibold">Declining</span></>
-              }
-            </div>
-          </div>
-
-          {/* Metrics */}
-          <div className="p-5 border-b border-[rgba(196,124,62,0.12)] flex flex-col gap-3">
-            <p className="text-[0.72rem] font-bold uppercase tracking-[0.10em] text-mist/40">Live Metrics</p>
-            <MetricBar label="Attention" value={metrics.attention} />
-            <MetricBar label="Confusion" value={metrics.confusion} />
-            <MetricBar label="Energy" value={metrics.energy} />
-            <div className="pt-1 text-[0.73rem] text-mist/40">
-              Active students: <strong className="text-mist">{students.length}</strong>
-            </div>
-          </div>
-
-          {/* Topic Marker */}
-          <div id="topic-marker-section" className="p-5 border-b border-[rgba(196,124,62,0.12)]">
-            <p className="text-[0.72rem] font-bold uppercase tracking-[0.10em] text-mist/40 mb-3">Topic Marker</p>
-            <div className="flex gap-2 mb-3">
-              <input id="topic-label-input" type="text" placeholder="e.g. Started Derivatives"
-                value={topicLabel} onChange={e => setTopicLabel(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && markTopic()}
-                className="flex-1 px-3 py-2 rounded-lg text-[0.82rem] text-snow placeholder:text-mist/30 outline-none neu-input" />
-              <button id="mark-topic-btn" onClick={markTopic}
-                className="px-3 py-2 rounded-lg text-[0.78rem] font-bold btn-primary">Mark</button>
-            </div>
-            {topicMarkers.length > 0 && (
-              <div className="flex flex-col gap-1.5 max-h-[120px] overflow-y-auto">
-                {topicMarkers.map((m, i) => (
-                  <div key={i} className="flex items-center gap-2 text-[0.73rem]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-copper flex-shrink-0" />
-                    <span className="text-snow/70 truncate flex-1">{m.label}</span>
-                    <span className="text-mist/40 flex-shrink-0">{m.time}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Broadcast */}
-          <div id="announcement-section" className="p-5">
-            <p className="text-[0.72rem] font-bold uppercase tracking-[0.10em] text-mist/40 mb-3">Announce to Class</p>
-            <div className="flex gap-2">
-              <input id="announcement-input" type="text" placeholder="Broadcast a message…"
-                value={announcement} onChange={e => setAnnouncement(e.target.value)}
-                className="flex-1 px-3 py-2 rounded-lg text-[0.82rem] text-snow placeholder:text-mist/30 outline-none neu-input" />
-              <button id="send-announcement-btn" onClick={() => setAnnouncement('')}
-                className="px-3 py-2 rounded-lg text-[0.78rem] font-bold btn-secondary">Send</button>
-            </div>
-          </div>
-        </div>
-
-        {/* Participants Panel */}
-        {participantsOpen && (
-          <div id="participants-panel-teacher" className="w-[260px] flex-shrink-0 flex flex-col card-navy border-y-0 border-r-0 border-l border-[rgba(196,124,62,0.15)] rounded-none">
-            <div className="px-4 py-3 border-b border-[rgba(196,124,62,0.12)] flex items-center justify-between">
-              <p className="text-[0.82rem] font-bold text-snow">Participants ({students.length + 1})</p>
-              <button onClick={() => setParticipantsOpen(false)} className="text-mist hover:text-snow transition-colors">
+        {/* Right: Unified Tabbed Sidebar Container */}
+        {sidebarTab !== null && (
+          <div id="unified-sidebar" className="w-[330px] flex-shrink-0 flex flex-col bg-[#171717] border-l border-[#262626] h-full z-30 animate-slide-down">
+            
+            {/* Sidebar Tab Header */}
+            <div className="flex items-center border-b border-[#262626] px-2 pt-2">
+              <button onClick={() => setSidebarTab('analytics')}
+                className={`flex-1 py-3 text-[0.76rem] font-extrabold border-b-2 text-center transition-colors ${
+                  sidebarTab === 'analytics' ? 'border-copper text-copper' : 'border-transparent text-mist hover:text-snow'
+                }`}>
+                Analytics
+              </button>
+              <button onClick={() => setSidebarTab('participants')}
+                className={`flex-1 py-3 text-[0.76rem] font-extrabold border-b-2 text-center transition-colors ${
+                  sidebarTab === 'participants' ? 'border-copper text-copper' : 'border-transparent text-mist hover:text-snow'
+                }`}>
+                Students ({students.length + 1})
+              </button>
+              <button onClick={() => setSidebarTab('chat')}
+                className={`flex-1 py-3 text-[0.76rem] font-extrabold border-b-2 text-center transition-colors ${
+                  sidebarTab === 'chat' ? 'border-copper text-copper' : 'border-transparent text-mist hover:text-snow'
+                }`}>
+                Chat
+              </button>
+              <button onClick={() => setSidebarTab(null)} className="p-2.5 text-mist hover:text-snow transition-colors">
                 <Icon d="M18 6 6 18M6 6l12 12" size={14} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
-              {/* Teacher */}
-              <div className="flex items-center gap-2.5 py-1">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[0.65rem] font-bold flex-shrink-0"
-                  style={{ background: 'linear-gradient(135deg, #c47c3e, #8c5828)' }}>{userInitials}</div>
-                <span className="text-[0.8rem] text-mist flex-1 truncate">{userName}</span>
-                <span className="text-[0.65rem] text-copper font-semibold">Host</span>
-              </div>
-              {/* Students */}
-              {students.length === 0 ? (
-                <p className="text-center text-mist/30 text-[0.72rem] mt-8">No students connected</p>
-              ) : (
-                students.map(s => (
-                  <div key={s._id || s.userId} className="flex items-center gap-2.5 py-1">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[0.65rem] font-bold flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg, #c47c3e, #8c5828)' }}>{s.initials}</div>
-                    <span className="text-[0.8rem] text-mist flex-1 truncate">{s.name}</span>
-                    <div className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ background: s.score >= 75 ? '#d4924e' : s.score >= 50 ? '#c47c3e' : '#8c5828' }} />
-                    {s.handRaised && <span className="text-xs">✋</span>}
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
 
-        {/* Chat Panel */}
-        {chatOpen && (
-          <div id="chat-panel-teacher" className="w-[260px] flex-shrink-0 flex flex-col card-navy border-y-0 border-r-0 border-l border-[rgba(196,124,62,0.15)] rounded-none">
-            <div className="px-4 py-3 border-b border-[rgba(196,124,62,0.12)] flex items-center justify-between">
-              <p className="text-[0.82rem] font-bold text-snow">Class Chat</p>
-              <button onClick={() => setChatOpen(false)} className="text-mist hover:text-snow transition-colors">
-                <Icon d="M18 6 6 18M6 6l12 12" size={14} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2.5">
-              {messages.length === 0 ? (
-                <p className="text-center text-mist/30 text-xs mt-8">No messages in chat</p>
-              ) : (
-                messages.map(m => (
-                  <div key={m._id || m.id} className={`flex flex-col gap-0.5 ${m.sender.includes('(You)') || m.role === 'teacher' ? 'items-end' : 'items-start'}`}>
-                    <span className="text-[0.67rem] text-mist/40">{m.sender}</span>
-                    <div className="px-3 py-2 rounded-[12px] max-w-[90%]"
-                      style={{ background: m.role === 'teacher' ? 'rgba(196,124,62,0.16)' : 'rgba(15,24,36,0.60)', border: '1px solid rgba(196,124,62,0.10)' }}>
-                      <p className="text-[0.8rem] text-snow/90 leading-[1.5]">{m.msg}</p>
+            {/* Sidebar Tab Contents */}
+            <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
+              
+              {/* Tab 1: Live Analytics */}
+              {sidebarTab === 'analytics' && (
+                <div className="flex-1 p-5 flex flex-col gap-5">
+                  <div className="flex flex-col items-center border-b border-[#262626] pb-5">
+                    <CircularGauge value={cfi} />
+                    <div className="flex items-center gap-1.5 mt-2">
+                      {trend === 'improving'
+                        ? <><Icon d="m17 17 9.2-9.2M17 17V7H7" size={12} className="text-copper" /><span className="text-[0.7rem] text-copper font-semibold">Improving</span></>
+                        : <><Icon d="M17 7l-9.2 9.2M7 7v10h10" size={12} className="text-mist" /><span className="text-[0.7rem] text-mist font-semibold">Declining</span></>
+                      }
                     </div>
-                    <span className="text-[0.64rem] text-mist/25">{m.time}</span>
                   </div>
-                ))
+
+                  <div className="flex flex-col gap-3 border-b border-[#262626] pb-5">
+                    <p className="text-[0.68rem] font-bold uppercase tracking-[0.10em] text-mist/40">Engagement Metrics</p>
+                    <MetricBar label="Attention" value={metrics.attention} />
+                    <MetricBar label="Confusion" value={metrics.confusion} />
+                    <MetricBar label="Energy" value={metrics.energy} />
+                  </div>
+
+                  <div id="topic-marker-section" className="border-b border-[#262626] pb-5">
+                    <p className="text-[0.68rem] font-bold uppercase tracking-[0.10em] text-mist/40 mb-3">Topic Marker</p>
+                    <div className="flex gap-2 mb-3">
+                      <input id="topic-label-input" type="text" placeholder="e.g., Started Derivatives"
+                        value={topicLabel} onChange={e => setTopicLabel(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && markTopic()}
+                        className="flex-1 px-3 py-2 rounded-lg text-[0.78rem] text-snow placeholder:text-mist/30 outline-none neu-input" />
+                      <button id="mark-topic-btn" onClick={markTopic}
+                        className="px-3 py-2 rounded-lg text-[0.75rem] font-bold btn-primary">Mark</button>
+                    </div>
+                    {topicMarkers.length > 0 && (
+                      <div className="flex flex-col gap-1.5 max-h-[120px] overflow-y-auto">
+                        {topicMarkers.map((m, i) => (
+                          <div key={i} className="flex items-center gap-2 text-[0.7rem]">
+                            <span className="w-1.5 h-1.5 rounded-full bg-copper flex-shrink-0" />
+                            <span className="text-snow/70 truncate flex-1">{m.label}</span>
+                            <span className="text-mist/40 flex-shrink-0 font-mono text-[0.64rem]">{m.time}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div id="announcement-section" className="pb-5">
+                    <p className="text-[0.68rem] font-bold uppercase tracking-[0.10em] text-mist/40 mb-3">Announce to Class</p>
+                    <div className="flex gap-2">
+                      <input id="announcement-input" type="text" placeholder="Broadcast a message…"
+                        value={announcement} onChange={e => setAnnouncement(e.target.value)}
+                        className="flex-1 px-3 py-2 rounded-lg text-[0.78rem] text-snow placeholder:text-mist/30 outline-none neu-input" />
+                      <button id="send-announcement-btn" onClick={() => setAnnouncement('')}
+                        className="px-3 py-2 rounded-lg text-[0.75rem] font-bold btn-secondary">Send</button>
+                    </div>
+                  </div>
+                </div>
               )}
-            </div>
-            <div className="p-3 border-t border-[rgba(196,124,62,0.12)] flex gap-2">
-              <input type="text" placeholder="Type a message…" value={chatMsg} onChange={e => setChatMsg(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && sendChat()}
-                className="flex-1 px-3 py-2 rounded-xl text-[0.8rem] text-white placeholder:text-mist/35 outline-none neu-input" />
-              <button onClick={sendChat} className="w-8 h-8 rounded-xl flex items-center justify-center btn-primary flex-shrink-0">
-                <Icon d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" size={13} />
-              </button>
+
+              {/* Tab 2: Connected Students */}
+              {sidebarTab === 'participants' && (
+                <div className="flex-1 p-4 flex flex-col gap-2.5">
+                  <div className="flex items-center gap-2.5 py-1 border-b border-[#262626] pb-3">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[0.65rem] font-bold bg-gradient-to-br from-[#c47c3e] to-[#8c5828] flex-shrink-0">{userInitials}</div>
+                    <span className="text-[0.78rem] text-snow font-bold flex-1 truncate">{userName}</span>
+                    <span className="text-[0.65rem] text-copper font-bold uppercase tracking-wider">Host</span>
+                  </div>
+                  {students.length === 0 ? (
+                    <p className="text-center text-mist/30 text-[0.72rem] mt-8">No students connected</p>
+                  ) : (
+                    students.map(s => (
+                      <div key={s._id || s.userId} className="flex items-center gap-2.5 py-1">
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[0.65rem] font-bold bg-[#1e293b] flex-shrink-0 border border-white/5">{s.initials}</div>
+                        <span className="text-[0.78rem] text-mist flex-1 truncate font-medium">{s.name}</span>
+                        <div className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ background: s.score >= 75 ? '#d4924e' : s.score >= 50 ? '#c47c3e' : '#8c5828' }} />
+                        {s.handRaised && <span className="text-xs">✋</span>}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {/* Tab 3: Class Chat Messages */}
+              {sidebarTab === 'chat' && (
+                <div className="flex-1 flex flex-col min-h-0 bg-transparent">
+                  <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+                    {messages.length === 0 ? (
+                      <p className="text-center text-mist/30 text-xs mt-8">No messages in chat</p>
+                    ) : (
+                      messages.map(m => (
+                        <div key={m._id || m.id} className={`flex flex-col gap-0.5 ${m.sender.includes('(You)') || m.role === 'teacher' ? 'items-end' : 'items-start'}`}>
+                          <span className="text-[0.64rem] text-mist/40">{m.sender}</span>
+                          <div className="px-3 py-2 rounded-[14px] max-w-[85%]"
+                            style={{ background: m.role === 'teacher' ? 'rgba(196,124,62,0.16)' : 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <p className="text-[0.78rem] text-snow/90 leading-relaxed font-medium">{m.msg}</p>
+                          </div>
+                          <span className="text-[0.62rem] text-mist/20 font-mono">{m.time}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <div className="p-3 border-t border-[#262626] flex gap-2">
+                    <input type="text" placeholder="Send a message…" value={chatMsg} onChange={e => setChatMsg(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && sendChat()}
+                      className="flex-1 px-3 py-2 rounded-xl text-[0.78rem] text-white placeholder:text-mist/30 outline-none neu-input" />
+                    <button onClick={sendChat} className="w-8 h-8 rounded-xl flex items-center justify-center btn-primary flex-shrink-0">
+                      <Icon d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" size={13} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* ── CONTROL BAR (Centered & Grouped) ── */}
-      <div id="teacher-control-bar" className="flex-shrink-0 flex items-center justify-center px-6 py-3 glass-topbar border-t border-b-0">
+      {/* ── GOOGLE MEET STYLE CONTROL BAR ─────── */}
+      <div id="teacher-control-bar" className="fixed bottom-0 left-0 right-0 h-20 bg-[#171717] border-t border-[#262626] flex items-center justify-between px-6 z-40">
+        
+        {/* Left Section: Time & Meeting details */}
         <div className="flex items-center gap-3">
-          
-          {/* Mute Button (With voice pulse ripple) */}
+          <span className="text-[0.82rem] text-mist font-bold uppercase tracking-wider">{formatTime(elapsed)}</span>
+          <span className="text-white/10">|</span>
+          <span className="text-[0.85rem] font-bold text-snow truncate max-w-[160px]">{meetingTitle}</span>
+          <span className="text-white/10">|</span>
+          <span className="text-[0.76rem] font-mono font-bold tracking-wider text-copper bg-white/5 border border-white/5 px-2.5 py-0.5 rounded-lg select-all cursor-pointer">{sessionId}</span>
+        </div>
+
+        {/* Center Section: Core Controls */}
+        <div className="flex items-center gap-3.5">
+          {/* Mute (Mic) Toggle */}
           <button id="ctrl-mute" onClick={() => setMuted(!muted)}
-            className={`relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${muted ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 relative ${
+              muted 
+                ? 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30' 
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+            }`}
+            title={muted ? "Unmute Microphone" : "Mute Microphone"}>
             {isSpeaking && (
-              <span className="absolute inset-0 rounded-xl bg-[#c47c3e]/30 pointer-events-none" style={{ animation: 'voiceRipple 1.2s infinite ease-out' }} />
+              <span className="absolute inset-0 rounded-full bg-[#c47c3e]/30 pointer-events-none animate-ping" style={{ animationDuration: '1.5s' }} />
             )}
-            <Icon d={muted ? 'M1 1l22 22M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23M12 19v4M8 23h8' : 'M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8'} size={18} stroke={muted ? '#d4924e' : 'rgba(255,255,255,0.60)'} />
-            <span className="text-[0.62rem]">{muted ? 'Unmute' : 'Mute'}</span>
+            <Icon d={muted ? 'm12 19 3-3 M19 10v1a7.9 7.9 0 0 1-3.07 6.27M12 2a3 3 0 0 0-3 3v1.17M1 1l22 22' : 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z M19 10v2a7 7 0 0 1-14 0v-2 M12 19v4 M8 23h8'} size={18} />
           </button>
 
-          {/* Camera Button */}
+          {/* Camera (Video) Toggle */}
           <button id="ctrl-cam" onClick={() => setCamOff(!camOff)}
-            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${camOff ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            <Icon d={camOff ? 'M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10M1 1l22 22' : 'M15 10l4.553-2.069A1 1 0 0 1 21 8.914V15.086a1 1 0 0 1-1.447.914L15 14M3 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z'} size={18} stroke={camOff ? '#d4924e' : 'rgba(255,255,255,0.60)'} />
-            <span className="text-[0.62rem]">{camOff ? 'Start Camera' : 'Stop Camera'}</span>
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
+              camOff 
+                ? 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30' 
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+            }`}
+            title={camOff ? "Start Camera" : "Stop Camera"}>
+            <Icon d={camOff ? 'm2 2 20 20M21 16V8a2 2 0 0 0-2-2h-9.83 M22 8l-6 4 6 4V8Z' : 'm22 8-6 4 6 4V8Z M2 6h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z'} size={18} />
           </button>
 
-          {/* Screen Share Button */}
+          {/* Screen Share Toggle */}
           <button id="ctrl-screen" onClick={isScreenSharing ? () => stopScreenShare(null) : startScreenShare}
-            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isScreenSharing ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            <Icon d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6zm6 14h4m-8 0h12" size={18} stroke={isScreenSharing ? '#d4924e' : 'rgba(255,255,255,0.60)'} />
-            <span className="text-[0.62rem]">{isScreenSharing ? 'Stop Present' : 'Share Screen'}</span>
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
+              isScreenSharing 
+                ? 'bg-copper/20 border border-copper/40 text-copper hover:bg-copper/30' 
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+            }`}
+            title={isScreenSharing ? "Stop Sharing Screen" : "Share Screen"}>
+            <Icon d="M2 3h20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z M12 17v4 M8 21h8" size={18} />
           </button>
-
-          {/* Divider */}
-          <div className="mx-2 w-px h-8 bg-[rgba(196,124,62,0.25)]" />
 
           {/* End Call Button */}
           <button id="end-class-btn" onClick={endClass}
-            className="px-6 py-2.5 rounded-xl text-[0.88rem] font-extrabold transition-all hover:opacity-90 active:scale-95"
-            style={{
-              background: 'rgba(239, 68, 68, 0.1)',
-              border: '1.5px solid rgba(239, 68, 68, 0.35)',
-              color: '#ef4444'
-            }}>
-            End Class
+            className="px-6 py-2.5 rounded-full bg-red-600 hover:bg-red-500 text-white font-extrabold text-[0.82rem] transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-red-600/10"
+            title="End Session for All">
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            End Session
+          </button>
+        </div>
+
+        {/* Right Section: Sidebar Toggles */}
+        <div className="flex items-center gap-3">
+          
+          {/* Live Telemetry Analytics Sidebar Toggle */}
+          <button onClick={() => toggleSidebar('analytics')}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+              sidebarTab === 'analytics'
+                ? 'bg-copper/20 border border-copper/40 text-copper'
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-[#f2f2f2]/60 hover:text-white hover:bg-[#363636]'
+            }`}
+            title="Live Focus Analytics">
+            <Icon d="M18 20V10 M12 20V4 M6 20V14" size={17} />
           </button>
 
-          {/* Divider */}
-          <div className="mx-2 w-px h-8 bg-[rgba(196,124,62,0.25)]" />
-
-          {/* Chat Toggle */}
-          <button id="ctrl-chat" onClick={() => setChatOpen(!chatOpen)}
-            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${chatOpen ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            <Icon d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" size={18} stroke={chatOpen ? '#d4924e' : 'rgba(255,255,255,0.60)'} />
-            <span className="text-[0.62rem]">Chat</span>
+          {/* Connected Students List Toggle */}
+          <button onClick={() => toggleSidebar('participants')}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 relative ${
+              sidebarTab === 'participants'
+                ? 'bg-copper/20 border border-copper/40 text-copper'
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-[#f2f2f2]/60 hover:text-white hover:bg-[#363636]'
+            }`}
+            title="Students List">
+            <Icon d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M16 3.13a4 4 0 0 1 0 7.75" size={17} />
+            {students.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-copper text-white text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#171717]">
+                {students.length}
+              </span>
+            )}
           </button>
 
-          {/* Participants Toggle */}
-          <button id="ctrl-participants" onClick={() => setParticipantsOpen(!participantsOpen)}
-            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${participantsOpen ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            <Icon d={['M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2', 'M23 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75']} size={18} stroke={participantsOpen ? '#d4924e' : 'rgba(255,255,255,0.60)'} />
-            <span className="text-[0.62rem]">Students</span>
+          {/* Class Chat Toggle */}
+          <button onClick={() => toggleSidebar('chat')}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 relative ${
+              sidebarTab === 'chat'
+                ? 'bg-copper/20 border border-copper/40 text-copper'
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-[#f2f2f2]/60 hover:text-white hover:bg-[#363636]'
+            }`}
+            title="Class Chat">
+            <Icon d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" size={17} />
+            {messages.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-copper text-white text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#171717]">
+                {messages.length}
+              </span>
+            )}
           </button>
 
         </div>
@@ -891,13 +900,13 @@ function StudentView({ sessionId }) {
   const router = useRouter();
   
   const [userName, setUserName] = useState('Carol Lee');
-
   const [meetingTitle, setMeetingTitle] = useState('Advanced Mathematics');
   const [handRaised, setHandRaised] = useState(false);
   const [muted, setMuted] = useState(false);
   const [camOff, setCamOff] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [participantsOpen, setParticipantsOpen] = useState(false);
+  
+  // Tabbed sidebar state: 'participants' | 'chat' | null
+  const [sidebarTab, setSidebarTab] = useState(null);
   const [chatMsg, setChatMsg] = useState('');
   
   const [messages, setMessages] = useState([]);
@@ -906,19 +915,17 @@ function StudentView({ sessionId }) {
   const [engScore, setEngScore] = useState(82);
   const [elapsed, setElapsed] = useState(0);
 
-  // Join notifications
+  // Connected notification
   const [joinNotifications, setJoinNotifications] = useState([]);
   const prevStudentsRef = useRef([]);
 
-  // Voice activity tracking
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  // Camera stream state
+  // Camera preview stream
   const [stream, setStream] = useState(null);
   const [screenStream, setScreenStream] = useState(null);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
 
-  // References for live streams
   const localVideoRef = useRef(null);
   const screenVideoRef = useRef(null);
 
@@ -938,9 +945,9 @@ function StudentView({ sessionId }) {
 
   const userInitials = userName
     ? userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-    : 'CL';
+    : 'JD';
 
-  // Poll classroom state from MongoDB
+  // Classroom state polling
   useEffect(() => {
     async function fetchSessionState() {
       try {
@@ -953,14 +960,13 @@ function StudentView({ sessionId }) {
           const activeParticipants = meeting.participants || [];
           const activeStudents = activeParticipants.filter(p => p.role === 'student');
           
-          // Detect joins
+          // Toast notifies connected students
           const prevIds = prevStudentsRef.current.map(s => s._id || s.userId);
           activeStudents.forEach(s => {
             const currentId = s._id || s.userId;
             if (prevIds.length > 0 && !prevIds.includes(currentId)) {
-              // Trigger toast notification
               const nId = Date.now() + Math.random();
-              setJoinNotifications(prev => [...prev, { id: nId, message: `${s.name} joined the meeting` }]);
+              setJoinNotifications(prev => [...prev, { id: nId, message: `${s.name} joined the class` }]);
               setTimeout(() => {
                 setJoinNotifications(prev => prev.filter(n => n.id !== nId));
               }, 4000);
@@ -969,7 +975,6 @@ function StudentView({ sessionId }) {
           prevStudentsRef.current = activeStudents;
           setStudents(activeStudents);
 
-          // Sync chats & markers
           setMessages(meeting.messages || []);
 
           if (meeting.cfi < 40) {
@@ -986,7 +991,7 @@ function StudentView({ sessionId }) {
       }
     }
 
-    // Join classroom
+    // Join classroom action
     fetch(`/api/classroom/${sessionId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1017,7 +1022,7 @@ function StudentView({ sessionId }) {
     return () => clearInterval(heartbeatInterval);
   }, [sessionId, engScore, handRaised, camOff, muted]);
 
-  // Local camera stream hooks
+  // Request camera stream
   useEffect(() => {
     let activeStream = null;
     async function initCamera() {
@@ -1047,7 +1052,7 @@ function StudentView({ sessionId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [camOff]);
 
-  // Microphone audio capture level analyzer
+  // Mic speech analyze loop
   useEffect(() => {
     if (!stream || muted) {
       setTimeout(() => setIsSpeaking(false), 0);
@@ -1081,7 +1086,7 @@ function StudentView({ sessionId }) {
           sum += dataArray[i];
         }
         const average = sum / bufferLength;
-        setIsSpeaking(average > 8); // threshold level
+        setIsSpeaking(average > 8); // threshold speech
         rafId = requestAnimationFrame(checkSpeechVolume);
       };
       checkSpeechVolume();
@@ -1098,7 +1103,7 @@ function StudentView({ sessionId }) {
     };
   }, [stream, muted]);
 
-  // Handle mute track updates
+  // Set audio enabled status
   useEffect(() => {
     if (stream) {
       stream.getAudioTracks().forEach(track => {
@@ -1107,21 +1112,20 @@ function StudentView({ sessionId }) {
     }
   }, [muted, stream]);
 
-  // Bind local webcam preview
+  // Bind local preview elements
   useEffect(() => {
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = stream || null;
     }
   }, [stream, camOff]);
 
-  // Bind screen share video
   useEffect(() => {
     if (screenVideoRef.current) {
       screenVideoRef.current.srcObject = screenStream || null;
     }
   }, [screenStream, isScreenSharing]);
 
-  // Screen sharing methods
+  // Student screen share trigger
   const startScreenShare = async () => {
     if (typeof window !== 'undefined' && navigator.mediaDevices) {
       try {
@@ -1147,7 +1151,7 @@ function StudentView({ sessionId }) {
     setIsScreenSharing(false);
   };
 
-  // Chalkboard derivatives graph simulator (Teacher feed)
+  // Blackboard simulator canvas rendering
   useEffect(() => {
     const canvas = document.getElementById('teacher-lecture-canvas');
     if (!canvas) return;
@@ -1159,11 +1163,11 @@ function StudentView({ sessionId }) {
       const w = canvas.width = canvas.clientWidth || 800;
       const h = canvas.height = canvas.clientHeight || 500;
 
-      // Dark blackboard board
+      // blackboard
       ctx.fillStyle = '#080d1a';
       ctx.fillRect(0, 0, w, h);
 
-      // Fine math grid
+      // grids
       ctx.strokeStyle = 'rgba(196, 124, 62, 0.035)';
       ctx.lineWidth = 1;
       const stepSize = 30;
@@ -1176,27 +1180,23 @@ function StudentView({ sessionId }) {
 
       const time = Date.now() * 0.001;
 
-      // Header board titles
+      // chalkboard title headers
       ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-      ctx.font = 'bold 15px Outfit, sans-serif';
+      ctx.font = 'bold 15px sans-serif';
       ctx.fillText("Lecture 04: Derivative Tangents & Live Wave Slopes", 40, 50);
 
-      // Coordinate axes
+      // axis grids
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
       ctx.lineWidth = 2;
       const oX = w / 2;
       const oY = h / 2 + 30;
       
-      // X-Axis
       ctx.beginPath();
-      ctx.moveTo(45, oY);
-      ctx.lineTo(w - 45, oY);
-      // Y-Axis
-      ctx.moveTo(oX, 85);
-      ctx.lineTo(oX, h - 75);
+      ctx.moveTo(45, oY); ctx.lineTo(w - 45, oY);
+      ctx.moveTo(oX, 85); ctx.lineTo(oX, h - 75);
       ctx.stroke();
 
-      // Continuous animated derivative curve: f(x)
+      // wave curve f(x)
       ctx.strokeStyle = '#c47c3e';
       ctx.lineWidth = 3;
       ctx.beginPath();
@@ -1208,39 +1208,30 @@ function StudentView({ sessionId }) {
         const dy = Math.sin(dx * sX + time) * Math.cos(dx * 0.004) * sY;
         const py = oY - dy;
         if (first) {
-          ctx.moveTo(px, py);
-          first = false;
+          ctx.moveTo(px, py); first = false;
         } else {
           ctx.lineTo(px, py);
         }
       }
       ctx.stroke();
 
-      // Tangent point coordinates
+      // tangent node coordinates
       const tDx = Math.sin(time * 0.4) * (w / 3.2);
       const tX = oX + tDx;
-      const tDy = Math.sin(tDx * sX + time) * Math.cos(tDx * 0.004) * sY;
-      const tY = oY - tDy;
+      const tY = oY - Math.sin(tDx * sX + time) * Math.cos(tDx * 0.004) * sY;
 
-      // Derivative slope f'(x) approximation
       const delta = 0.1;
       const dyLeft = Math.sin((tDx - delta) * sX + time) * Math.cos((tDx - delta) * 0.004) * sY;
       const dyRight = Math.sin((tDx + delta) * sX + time) * Math.cos((tDx + delta) * 0.004) * sY;
       const slope = (dyRight - dyLeft) / (2 * delta);
 
-      // Tangent line rendering
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
       ctx.lineWidth = 1.8;
       ctx.beginPath();
-      const lx1 = tX - 70;
-      const ly1 = tY + slope * 70;
-      const lx2 = tX + 70;
-      const ly2 = tY - slope * 70;
-      ctx.moveTo(lx1, ly1);
-      ctx.lineTo(lx2, ly2);
+      ctx.moveTo(tX - 70, tY + slope * 70);
+      ctx.lineTo(tX + 70, tY - slope * 70);
       ctx.stroke();
 
-      // Tangency node dot
       ctx.fillStyle = '#d4924e';
       ctx.beginPath();
       ctx.arc(tX, tY, 6.5, 0, Math.PI * 2);
@@ -1249,13 +1240,12 @@ function StudentView({ sessionId }) {
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Text data badges
       ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      ctx.font = '12px Courier New, monospace';
-      ctx.fillText(`P(x) = (${Math.round(tDx)}, ${Math.round(tDy)})`, tX + 15, tY - 15);
+      ctx.font = '12px monospace';
+      ctx.fillText(`P(x) = (${Math.round(tDx)}, ${Math.round(tY - oY)})`, tX + 15, tY - 15);
       ctx.fillText(`Slope f'(x) = ${slope.toFixed(3)}`, tX + 15, tY + 4);
 
-      // Embedded teacher avatar talking box
+      // Embedded instructor preview camera Box
       const bW = 145;
       const bH = 95;
       const bX = w - bW - 40;
@@ -1269,7 +1259,6 @@ function StudentView({ sessionId }) {
       ctx.fill();
       ctx.stroke();
 
-      // Talking micro equalizer bars
       ctx.fillStyle = '#c47c3e';
       const eqCount = 6;
       for (let i = 0; i < eqCount; i++) {
@@ -1277,7 +1266,6 @@ function StudentView({ sessionId }) {
         ctx.fillRect(bX + 18 + i * 8, bY + bH - 18 - hEq, 4, hEq);
       }
 
-      // Teacher silhouette head
       ctx.fillStyle = 'rgba(255,255,255,0.08)';
       ctx.beginPath();
       ctx.arc(bX + bW / 2 + 20, bY + bH / 2 - 8, 14, 0, Math.PI * 2);
@@ -1287,7 +1275,7 @@ function StudentView({ sessionId }) {
       ctx.fill();
 
       ctx.fillStyle = 'rgba(255,255,255,0.50)';
-      ctx.font = '9px Outfit, sans-serif';
+      ctx.font = '9px sans-serif';
       ctx.fillText("Dr. Ahmed (Lecturing)", bX + 15, bY + 16);
 
       animId = requestAnimationFrame(render);
@@ -1296,7 +1284,7 @@ function StudentView({ sessionId }) {
     return () => cancelAnimationFrame(animId);
   }, []);
 
-  // Engagement index updates
+  // Update engagement score locally
   useEffect(() => {
     const t = setInterval(() => {
       setElapsed(s => s + 1);
@@ -1324,8 +1312,12 @@ function StudentView({ sessionId }) {
     }
   };
 
+  const toggleSidebar = (tab) => {
+    setSidebarTab(prev => prev === tab ? null : tab);
+  };
+
   return (
-    <div className="h-screen flex flex-col overflow-hidden dashboard-bg text-snow relative">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#111] text-snow relative">
       <style>{`
         @keyframes voiceRipple {
           0% { transform: scale(1); opacity: 0.7; }
@@ -1335,7 +1327,7 @@ function StudentView({ sessionId }) {
       `}</style>
 
       {/* ── TOAST NOTIFICATIONS ────────────────── */}
-      <div className="fixed bottom-20 left-6 z-50 flex flex-col gap-2 pointer-events-none">
+      <div className="fixed bottom-24 left-6 z-50 flex flex-col gap-2 pointer-events-none">
         {joinNotifications.map(n => (
           <div key={n.id} className="flex items-center gap-2.5 px-4.5 py-3 rounded-xl shadow-2xl bg-copper border border-white/10 text-white font-extrabold text-xs animate-fadeUp">
             <span>👤</span>
@@ -1346,217 +1338,252 @@ function StudentView({ sessionId }) {
 
       {/* Break Banner */}
       {breakBanner && (
-        <div id="student-break-banner" className="flex-shrink-0 flex items-center justify-center gap-3 px-6 py-3 z-50 animate-fadeDown"
-          style={{ background: 'rgba(21,32,56,0.95)', borderBottom: '1px solid rgba(196,124,62,0.30)' }}>
+        <div id="student-break-banner" className="flex-shrink-0 flex items-center justify-center gap-3 px-6 py-3 z-50 bg-[#161a25] border-b border-copper/30 animate-fadeDown">
           <span className="text-white text-sm font-bold">☕ Teacher called a 5-minute break</span>
           <button onClick={() => setBreakBanner(false)} className="text-mist hover:text-snow transition-colors ml-3">×</button>
         </div>
       )}
 
-      {/* Top bar */}
-      <div id="student-topbar" className="flex-shrink-0 flex items-center justify-between px-5 py-3 glass-topbar">
-        <div className="flex items-center gap-4">
-          <span className="w-2 h-2 rounded-full bg-copper animate-pulse" />
-          <p className="text-[0.88rem] font-semibold text-snow">{meetingTitle}</p>
-          <span className="text-[0.8rem] text-mist font-mono">{formatTime(elapsed)}</span>
-        </div>
-
-        {/* AI Active badge */}
-        <div id="ai-active-badge" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full badge-copper">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#d4924e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          </svg>
-          <span className="text-[0.72rem] font-bold text-snow">AI Active — Analyzing Locally</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-copper animate-pulse" />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button id="student-participants" onClick={() => setParticipantsOpen(!participantsOpen)}
-            className={`px-3 py-1.5 rounded-lg text-[0.75rem] font-semibold transition-colors ${participantsOpen ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            Participants
-          </button>
-          <button id="student-chat" onClick={() => setChatOpen(!chatOpen)}
-            className={`px-3 py-1.5 rounded-lg text-[0.75rem] font-semibold transition-colors ${chatOpen ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            Chat
-          </button>
-        </div>
-      </div>
-
-      {/* Main area */}
-      <div className="flex-1 flex overflow-hidden relative">
-
-        {/* Teacher video (main stage / screen share) */}
-        <div id="teacher-main-video" className="flex-1 relative flex items-center justify-center bg-navy-dark/30">
+      {/* Main viewport workspace */}
+      <div className="flex-1 flex overflow-hidden relative h-full">
+        
+        {/* Main Blackboard lecture screen stage */}
+        <div id="teacher-main-video" className="flex-1 relative flex items-center justify-center bg-[#0c0d12]">
           
           {isScreenSharing ? (
-            /* Student screen share active content */
+            /* Student screen sharing mode screen layout */
             <div className="w-full h-full flex flex-col bg-black">
               <video ref={screenVideoRef} autoPlay playsInline muted className="w-full h-full object-contain" />
-              <div className="absolute bottom-3 left-3 text-[0.75rem] font-bold text-snow px-3 py-1.5 rounded-lg" style={{ background: 'rgba(15,24,36,0.80)' }}>
+              <div className="absolute bottom-4 left-4 text-[0.75rem] font-bold text-snow px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-md">
                 Presenting your screen to class
               </div>
-              <button onClick={() => stopScreenShare(null)} className="absolute bottom-3 right-3 px-3 py-1.5 rounded-lg text-[0.75rem] font-bold bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30 transition-all">
-                Stop Presentation
+              <button onClick={() => stopScreenShare(null)} className="absolute bottom-4 right-4 px-4 py-2 rounded-xl text-[0.75rem] font-bold bg-red-600/90 hover:bg-red-500 text-white transition-all shadow-lg active:scale-95">
+                Stop Presenting
               </button>
             </div>
           ) : (
-            /* Standard mathematical chalkboard presentation */
+            /* Chalkboard math canvas */
             <canvas id="teacher-lecture-canvas" className="w-full h-full object-cover" />
           )}
 
-          {/* Self camera video preview (bottom-left) */}
-          <div id="student-self-preview" className="absolute bottom-4 left-4 w-[160px] rounded-xl overflow-hidden card-navy border border-white/5 shadow-2xl"
-            style={{ aspectRatio: '4/3' }}>
+          {/* Floating Self Preview Box (Google Meet styled pip in corner) */}
+          <div id="student-self-preview" className="absolute bottom-6 right-6 w-[180px] rounded-2xl overflow-hidden bg-[#1e1e1e] border border-white/10 shadow-2xl z-20 aspect-video transition-all duration-300">
             <div className="w-full h-full flex items-center justify-center">
               {camOff ? (
-                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-black"
-                  style={{ background: 'linear-gradient(135deg, #c47c3e, #8c5828)' }}>
-                  {userInitials}
-                </div>
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-black bg-gradient-to-br from-[#c47c3e] to-[#8c5828]">{userInitials}</div>
               ) : (
                 <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
               )}
             </div>
-            <div className="absolute bottom-1 left-1.5 text-[0.6rem] font-semibold text-white px-1.5 py-0.5 rounded"
-              style={{ background: 'rgba(15,24,36,0.65)' }}>You</div>
+            <div className="absolute bottom-2 left-2 text-[0.58rem] font-semibold text-white px-2 py-0.5 rounded bg-black/60 font-medium">You</div>
             {muted && (
-              <div className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-[rgba(15,24,36,0.70)] flex items-center justify-center">
-                <Icon d="M1 1l22 22M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" size={10} />
+              <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center">
+                <Icon d="m19 10-1.39 4.5M9 5a3 3 0 0 1 5.3 1.8M12 19v4M8 23h8M1 1l22 22" size={10} className="text-red-400" />
               </div>
             )}
           </div>
 
-          {/* Personal engagement score (private) */}
-          <div id="personal-score" className="absolute top-4 left-4 flex items-center gap-2 px-3 py-2 rounded-xl card-navy border border-copper/15">
-            <span className="text-[0.7rem] text-mist">My Engagement</span>
-            <span className="text-[0.88rem] font-black text-copper">{Math.round(engScore)}%</span>
-            <span className="text-[0.62rem] text-mist/40">· local only</span>
+          {/* Private personal attention telemetry indicator */}
+          <div id="personal-score" className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/60 border border-copper/20 backdrop-blur-md">
+            <span className="text-[0.68rem] text-mist font-medium">My Attention</span>
+            <span className="text-[0.8rem] font-black text-copper">{Math.round(engScore)}%</span>
+            <span className="text-[0.58rem] text-mist/40 font-bold">· local</span>
+          </div>
+
+          {/* AI Security indicator */}
+          <div id="ai-active-badge" className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#161a25]/90 border border-copper/20 backdrop-blur-md">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#d4924e" strokeWidth="2.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <span className="text-[0.68rem] font-bold text-snow">AI Protected</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-copper animate-pulse" />
           </div>
         </div>
 
-        {/* Participants panel */}
-        {participantsOpen && (
-          <div id="student-participants-panel" className="w-[220px] flex-shrink-0 border-l border-[rgba(196,124,62,0.15)] flex flex-col card-navy border-y-0 border-r-0 rounded-none">
-            <div className="px-4 py-3 border-b border-[rgba(196,124,62,0.12)] flex items-center justify-between">
-              <p className="text-[0.82rem] font-bold text-snow">Participants ({students.length + 1})</p>
-              <button onClick={() => setParticipantsOpen(false)} className="text-mist hover:text-snow transition-colors">
-                <Icon d="M18 6 6 18M6 6l12 12" size={13} />
+        {/* Right: Unified Tabbed Sidebar Drawer */}
+        {sidebarTab !== null && (
+          <div id="unified-sidebar" className="w-[320px] flex-shrink-0 flex flex-col bg-[#171717] border-l border-[#262626] h-full z-30 animate-slide-down">
+            
+            {/* Sidebar Tab Header */}
+            <div className="flex items-center border-b border-[#262626] px-2 pt-2">
+              <button onClick={() => setSidebarTab('participants')}
+                className={`flex-1 py-3 text-[0.76rem] font-extrabold border-b-2 text-center transition-colors ${
+                  sidebarTab === 'participants' ? 'border-copper text-copper' : 'border-transparent text-mist hover:text-snow'
+                }`}>
+                Students ({students.length + 1})
+              </button>
+              <button onClick={() => setSidebarTab('chat')}
+                className={`flex-1 py-3 text-[0.76rem] font-extrabold border-b-2 text-center transition-colors ${
+                  sidebarTab === 'chat' ? 'border-copper text-copper' : 'border-transparent text-mist hover:text-snow'
+                }`}>
+                Chat
+              </button>
+              <button onClick={() => setSidebarTab(null)} className="p-2.5 text-mist hover:text-snow transition-colors">
+                <Icon d="M18 6 6 18M6 6l12 12" size={14} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
-              <div className="flex items-center gap-2.5 py-1">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[0.6rem] font-black"
-                  style={{ background: 'linear-gradient(135deg,#c47c3e,#8c5828)' }}>JD</div>
-                <span className="text-[0.8rem] text-mist">Teacher / Host</span>
-                <span className="ml-auto text-[0.65rem] text-copper font-semibold">Host</span>
-              </div>
-              {students.map(s => (
-                <div key={s._id || s.userId} className="flex items-center gap-2.5 py-1">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[0.6rem] font-black"
-                    style={{ background: 'linear-gradient(135deg,rgba(196,124,62,0.15),rgba(196,124,62,0.05))', border: '1px solid rgba(196,124,62,0.20)' }}>{s.initials}</div>
-                  <span className="text-[0.8rem] text-mist/85 truncate">{s.name}</span>
-                  {s.handRaised && <span className="text-xs ml-auto">✋</span>}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* Chat */}
-        {chatOpen && (
-          <div id="chat-panel-student" className="w-[240px] flex-shrink-0 flex flex-col border-l border-[rgba(196,124,62,0.15)] card-navy border-y-0 border-r-0 rounded-none">
-            <div className="px-4 py-3 border-b border-[rgba(196,124,62,0.12)] flex items-center justify-between">
-              <p className="text-[0.82rem] font-bold text-snow">Class Chat</p>
-              <button onClick={() => setChatOpen(false)} className="text-mist hover:text-snow transition-colors">
-                <Icon d="M18 6 6 18M6 6l12 12" size={13} />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2.5">
-              {messages.length === 0 ? (
-                <p className="text-center text-mist/30 text-xs mt-8">No messages in chat</p>
-              ) : (
-                messages.map(m => (
-                  <div key={m._id || m.id} className={`flex flex-col gap-0.5 ${m.sender === 'You' || m.sender.includes('(You)') || m.role === 'teacher' ? 'items-end' : 'items-start'}`}>
-                    <span className="text-[0.67rem] text-mist/40">{m.sender}</span>
-                    <div className="px-3 py-2 rounded-[12px] max-w-[90%]"
-                      style={{ background: m.role === 'teacher' ? 'rgba(196,124,62,0.16)' : 'rgba(15,24,36,0.60)', border: '1px solid rgba(196,124,62,0.10)' }}>
-                      <p className="text-[0.8rem] text-snow/90 leading-[1.5]">{m.msg}</p>
-                    </div>
+            {/* Sidebar Tab Contents */}
+            <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
+              
+              {/* Tab 1: Connected Users */}
+              {sidebarTab === 'participants' && (
+                <div className="flex-1 p-4 flex flex-col gap-2.5">
+                  <div className="flex items-center gap-2.5 py-1 border-b border-[#262626] pb-3">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[0.6rem] font-bold bg-[#1e293b] flex-shrink-0 border border-white/5">TA</div>
+                    <span className="text-[0.78rem] text-mist flex-1 truncate font-medium">Dr. Ahmed</span>
+                    <span className="text-[0.65rem] text-copper font-bold uppercase tracking-wider">Host</span>
                   </div>
-                ))
+                  {students.length === 0 ? (
+                    <p className="text-center text-mist/30 text-[0.72rem] mt-8">No students connected</p>
+                  ) : (
+                    students.map(s => (
+                      <div key={s._id || s.userId} className="flex items-center gap-2.5 py-1">
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[0.6rem] font-bold bg-[#1f293d] flex-shrink-0 border border-white/5">{s.initials}</div>
+                        <span className="text-[0.78rem] text-mist flex-1 truncate font-medium">{s.name}</span>
+                        {s.handRaised && <span className="text-xs">✋</span>}
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
-            </div>
-            <div className="p-3 border-t border-[rgba(196,124,62,0.12)] flex gap-2">
-              <input type="text" placeholder="Message…" value={chatMsg} onChange={e => setChatMsg(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && sendChat()}
-                className="flex-1 px-3 py-2 rounded-xl text-[0.8rem] text-white placeholder:text-mist/35 outline-none neu-input" />
-              <button onClick={sendChat} className="w-8 h-8 rounded-xl flex items-center justify-center btn-primary flex-shrink-0">
-                <Icon d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" size={13} />
-              </button>
+
+              {/* Tab 2: Class Chat messages */}
+              {sidebarTab === 'chat' && (
+                <div className="flex-1 flex flex-col min-h-0 bg-transparent">
+                  <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+                    {messages.length === 0 ? (
+                      <p className="text-center text-mist/30 text-xs mt-8">No messages in chat</p>
+                    ) : (
+                      messages.map(m => (
+                        <div key={m._id || m.id} className={`flex flex-col gap-0.5 ${m.sender === 'You' || m.sender.includes('(You)') || m.role === 'teacher' ? 'items-end' : 'items-start'}`}>
+                          <span className="text-[0.64rem] text-mist/40">{m.sender}</span>
+                          <div className="px-3 py-2 rounded-[14px] max-w-[85%]"
+                            style={{ background: m.role === 'teacher' ? 'rgba(196,124,62,0.16)' : 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <p className="text-[0.78rem] text-snow/90 leading-relaxed font-medium">{m.msg}</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <div className="p-3 border-t border-[#262626] flex gap-2">
+                    <input type="text" placeholder="Send a message…" value={chatMsg} onChange={e => setChatMsg(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && sendChat()}
+                      className="flex-1 px-3 py-2 rounded-xl text-[0.78rem] text-white placeholder:text-mist/30 outline-none neu-input" />
+                    <button onClick={sendChat} className="w-8 h-8 rounded-xl flex items-center justify-center btn-primary flex-shrink-0">
+                      <Icon d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" size={13} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
       </div>
 
-      {/* Student control bar (Centered & Grouped) */}
-      <div id="student-control-bar" className="flex-shrink-0 flex items-center justify-center px-6 py-3 glass-topbar border-t border-b-0">
+      {/* ── GOOGLE MEET STYLE CONTROL BAR ─────── */}
+      <div id="student-control-bar" className="fixed bottom-0 left-0 right-0 h-20 bg-[#171717] border-t border-[#262626] flex items-center justify-between px-6 z-40">
+        
+        {/* Left Section: Time & Details */}
         <div className="flex items-center gap-3">
+          <span className="text-[0.82rem] text-mist font-bold uppercase tracking-wider">{formatTime(elapsed)}</span>
+          <span className="text-white/10">|</span>
+          <span className="text-[0.85rem] font-bold text-snow truncate max-w-[160px]">{meetingTitle}</span>
+          <span className="text-white/10">|</span>
+          <span className="text-[0.76rem] font-mono font-bold tracking-wider text-copper bg-white/5 border border-white/5 px-2.5 py-0.5 rounded-lg select-all cursor-pointer">{sessionId}</span>
+        </div>
+
+        {/* Center Section: Core Controls */}
+        <div className="flex items-center gap-3.5">
           
-          {/* Mute Button */}
+          {/* Mute toggle */}
           <button id="student-ctrl-mute" onClick={() => setMuted(!muted)}
-            className={`relative flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${muted ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 relative ${
+              muted 
+                ? 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30' 
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+            }`}
+            title={muted ? "Unmute Microphone" : "Mute Microphone"}>
             {isSpeaking && (
-              <span className="absolute inset-0 rounded-xl bg-[#c47c3e]/30 pointer-events-none" style={{ animation: 'voiceRipple 1.2s infinite ease-out' }} />
+              <span className="absolute inset-0 rounded-full bg-[#c47c3e]/30 pointer-events-none animate-ping" style={{ animationDuration: '1.5s' }} />
             )}
-            <Icon d={muted ? 'M1 1l22 22M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23M12 19v4M8 23h8' : 'M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8'} size={18} stroke={muted ? '#d4924e' : 'rgba(255,255,255,0.60)'} />
-            <span className="text-[0.62rem]">{muted ? 'Unmute' : 'Mute'}</span>
+            <Icon d={muted ? 'm12 19 3-3 M19 10v1a7.9 7.9 0 0 1-3.07 6.27M12 2a3 3 0 0 0-3 3v1.17M1 1l22 22' : 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z M19 10v2a7 7 0 0 1-14 0v-2 M12 19v4 M8 23h8'} size={18} />
           </button>
 
-          {/* Camera Button */}
+          {/* Video Toggle */}
           <button id="student-ctrl-cam" onClick={() => setCamOff(!camOff)}
-            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${camOff ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            <Icon d={camOff ? 'M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2m5.66 0H14a2 2 0 0 1 2 2v3.34l1 1L23 7v10M1 1l22 22' : 'M15 10l4.553-2.069A1 1 0 0 1 21 8.914V15.086a1 1 0 0 1-1.447.914L15 14M3 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z'} size={18} stroke={camOff ? '#d4924e' : 'rgba(255,255,255,0.60)'} />
-            <span className="text-[0.62rem]">{camOff ? 'Start Video' : 'Stop Video'}</span>
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
+              camOff 
+                ? 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30' 
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+            }`}
+            title={camOff ? "Start Video" : "Stop Video"}>
+            <Icon d={camOff ? 'm2 2 20 20M21 16V8a2 2 0 0 0-2-2h-9.83 M22 8l-6 4 6 4V8Z' : 'm22 8-6 4 6 4V8Z M2 6h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z'} size={18} />
           </button>
 
-          {/* Screen Share Button */}
+          {/* Screen Share Toggle */}
           <button id="student-ctrl-screen" onClick={isScreenSharing ? () => stopScreenShare(null) : startScreenShare}
-            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${isScreenSharing ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            <Icon d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6zm6 14h4m-8 0h12" size={18} stroke={isScreenSharing ? '#d4924e' : 'rgba(255,255,255,0.60)'} />
-            <span className="text-[0.62rem]">{isScreenSharing ? 'Stop Present' : 'Share Screen'}</span>
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
+              isScreenSharing 
+                ? 'bg-copper/20 border border-copper/40 text-copper hover:bg-copper/30' 
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+            }`}
+            title={isScreenSharing ? "Stop Sharing Screen" : "Share Screen"}>
+            <Icon d="M2 3h20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z M12 17v4 M8 21h8" size={18} />
           </button>
 
-          {/* Hand Raise Button */}
+          {/* Hand Raise Toggle */}
           <button id="student-ctrl-hand" onClick={() => setHandRaised(!handRaised)}
-            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${handRaised ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            <Icon d="M18 11.5V8a2 2 0 0 0-2-2 2 2 0 0 0-2 2v4.5M14 8V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2M10 8V5a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7l-2-2a2 2 0 0 0-2.83 2.83L4 16c.87.87 3.07 3 4 4h6c2 0 4-2 4-4V11.5a2 2 0 0 0-2-2 2 2 0 0 0-2 2" size={18} stroke={handRaised ? '#d4924e' : 'rgba(255,255,255,0.60)'} />
-            <span className="text-[0.62rem]">{handRaised ? 'Lower Hand' : 'Raise Hand'}</span>
+            className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
+              handRaised 
+                ? 'bg-copper/20 border border-copper/40 text-copper hover:bg-copper/30' 
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+            }`}
+            title={handRaised ? "Lower Hand" : "Raise Hand"}>
+            <Icon d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5 M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6 M10 10.5V3a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8.5 M6 12V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v9c0 5 4 9 9 9h3a9 9 0 0 0 9-9v-3.5a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2" size={18} />
           </button>
 
-          {/* Divider */}
-          <div className="mx-2 w-px h-8 bg-[rgba(196,124,62,0.25)]" />
-
-          {/* Leave Button */}
+          {/* Leave Call Button */}
           <button id="student-ctrl-leave" onClick={() => router.push('/dashboard')}
-            className="px-5 py-2.5 rounded-xl text-[0.85rem] font-extrabold btn-secondary hover:bg-red-500/10 hover:border-red-500/40 hover:text-red-400 transition-all">
+            className="px-6 py-2.5 rounded-full bg-red-600 hover:bg-red-500 text-white font-extrabold text-[0.82rem] transition-all active:scale-95"
+            title="Leave Session">
             Leave Class
           </button>
+        </div>
 
-          {/* Divider */}
-          <div className="mx-2 w-px h-8 bg-[rgba(196,124,62,0.25)]" />
-
-          {/* Chat Toggle */}
-          <button id="student-ctrl-chat" onClick={() => setChatOpen(!chatOpen)}
-            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${chatOpen ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            <Icon d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" size={18} stroke={chatOpen ? '#d4924e' : 'rgba(255,255,255,0.60)'} />
-            <span className="text-[0.62rem]">Chat</span>
+        {/* Right Section: Sidebar Toggles */}
+        <div className="flex items-center gap-3">
+          
+          {/* Participants list toggle */}
+          <button onClick={() => toggleSidebar('participants')}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 relative ${
+              sidebarTab === 'participants'
+                ? 'bg-copper/20 border border-copper/40 text-copper'
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-[#f2f2f2]/60 hover:text-white hover:bg-[#363636]'
+            }`}
+            title="Class Participants">
+            <Icon d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M16 3.13a4 4 0 0 1 0 7.75" size={17} />
+            {students.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-copper text-white text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#171717]">
+                {students.length}
+              </span>
+            )}
           </button>
 
-          {/* Participants Toggle */}
-          <button id="student-ctrl-participants" onClick={() => setParticipantsOpen(!participantsOpen)}
-            className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${participantsOpen ? 'badge-copper' : 'btn-secondary border-none shadow-none text-mist'}`}>
-            <Icon d={['M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2', 'M23 21v-2a4 4 0 0 0-3-3.87', 'M16 3.13a4 4 0 0 1 0 7.75']} size={18} stroke={participantsOpen ? '#d4924e' : 'rgba(255,255,255,0.60)'} />
-            <span className="text-[0.62rem]">Students</span>
+          {/* Chat Toggle */}
+          <button onClick={() => toggleSidebar('chat')}
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 relative ${
+              sidebarTab === 'chat'
+                ? 'bg-copper/20 border border-copper/40 text-copper'
+                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-[#f2f2f2]/60 hover:text-white hover:bg-[#363636]'
+            }`}
+            title="Class Chat">
+            <Icon d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" size={17} />
+            {messages.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-copper text-white text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#171717]">
+                {messages.length}
+              </span>
+            )}
           </button>
 
         </div>
@@ -1576,10 +1603,10 @@ function ClassroomContent() {
 export default function ClassroomPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen dashboard-bg flex items-center justify-center">
+      <div className="min-h-screen bg-[#0f111a] flex items-center justify-center">
         <div className="text-center animate-fadeIn">
           <div className="w-12 h-12 border-2 border-[rgba(196,124,62,0.20)] border-t-copper rounded-full animate-spin-slow mx-auto mb-4" />
-          <p className="text-mist text-sm">Loading classroom…</p>
+          <p className="text-mist text-sm font-semibold">Loading classroom context…</p>
         </div>
       </div>
     }>

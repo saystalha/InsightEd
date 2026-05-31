@@ -97,7 +97,7 @@ export default function Navbar() {
           aria-label="Main navigation"
         >
           {links.map(({ label, href, id }) => {
-            const isActive = activeSection === id;
+            const isActive = pathname === "/" && activeSection === id;
             const isClicked = clickedId === id;
             return (
               <Link
@@ -146,16 +146,23 @@ export default function Navbar() {
             id="nav-login"
             className="px-5 py-2 text-[0.85rem] font-semibold rounded-full transition-all duration-200 active:scale-95"
             style={{
-              color: "rgba(242, 242, 242, 0.80)",
-              border: "1px solid rgba(196, 124, 62, 0.35)",
+              color: pathname === "/login" ? "#f2f2f2" : "rgba(242, 242, 242, 0.80)",
+              background: pathname === "/login" ? "rgba(196, 124, 62, 0.18)" : "transparent",
+              borderColor: pathname === "/login" ? "rgba(196, 124, 62, 0.60)" : "rgba(196, 124, 62, 0.35)",
+              borderStyle: "solid",
+              borderWidth: "1px",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(196, 124, 62, 0.12)";
-              e.currentTarget.style.color = "#f2f2f2";
+              if (pathname !== "/login") {
+                e.currentTarget.style.background = "rgba(196, 124, 62, 0.12)";
+                e.currentTarget.style.color = "#f2f2f2";
+              }
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = "rgba(242, 242, 242, 0.80)";
+              if (pathname !== "/login") {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "rgba(242, 242, 242, 0.80)";
+              }
             }}
           >
             Login
@@ -202,7 +209,7 @@ export default function Navbar() {
               className="py-3.5 text-[0.95rem] font-semibold border-b transition-colors flex items-center justify-between active:scale-95"
               style={{
                 color:
-                  activeSection === id
+                  pathname === "/" && activeSection === id
                     ? "#c47c3e"
                     : "rgba(242, 242, 242, 0.65)",
                 borderColor: "rgba(196, 124, 62, 0.10)",
@@ -213,7 +220,7 @@ export default function Navbar() {
               }}
             >
               {label}
-              {activeSection === id && (
+              {pathname === "/" && activeSection === id && (
                 <span className="w-1.5 h-1.5 rounded-full bg-[#c47c3e]" />
               )}
             </Link>
@@ -223,7 +230,11 @@ export default function Navbar() {
               href="/login"
               onClick={() => setMenuOpen(false)}
               className="flex-1 py-3 text-center text-[0.88rem] font-semibold rounded-xl text-[rgba(242,242,242,0.75)] active:scale-95 transition-transform"
-              style={{ border: "1px solid rgba(196, 124, 62, 0.35)" }}
+              style={{
+                border: "1px solid rgba(196, 124, 62, 0.35)",
+                background: pathname === "/login" ? "rgba(196, 124, 62, 0.20)" : "transparent",
+                borderColor: pathname === "/login" ? "rgba(196, 124, 62, 0.60)" : "rgba(196, 124, 62, 0.35)"
+              }}
             >
               Login
             </Link>

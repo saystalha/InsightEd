@@ -16,7 +16,7 @@ export default function HomePage() {
         This offsets the fixed navbar footprint precisely, pushing your hero tag line 
         out from underneath the matte panel into plain view.
       */}
-      <main id="main-content" className="pt-[64px] bg-[#141b27]">
+      <main id="main-content" className="bg-[#141b27]">
         <HeroSection />
         <FeaturesSection />
         <HowItWorksSection />

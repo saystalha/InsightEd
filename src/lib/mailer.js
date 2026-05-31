@@ -358,3 +358,199 @@ ${teacherName ? `TEACHER: ${teacherName} | SUBJECT: ${mappedSubject}` : ''}
   }
 }
 
+export async function sendResetPasswordEmail({ email, token, firstName, lastName }) {
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const port = parseInt(process.env.SMTP_PORT || '587', 10);
+  let user = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
+  if (user && user.toLowerCase().trim() === 'contact.talhabilal.com') {
+    user = 'contact@talhabilal.com';
+  }
+  const pass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
+  const from = process.env.SMTP_FROM || (user ? `"InsightEd Portal" <${user}>` : '"InsightEd Portal" <noreply@insighted.edu>');
+
+  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+  const subject = `Reset Your InsightEd Password`;
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Reset Your Password</title>
+        <style>
+          body {
+            background-color: #0b0f19;
+            color: #f2f2f2;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+          }
+          .wrapper {
+            background-color: #0b0f19;
+            width: 100%;
+            padding: 40px 0;
+          }
+          .container {
+            max-width: 580px;
+            margin: 0 auto;
+            padding: 0 20px;
+          }
+          .logo-container {
+            text-align: center;
+            margin-bottom: 24px;
+          }
+          .logo-text {
+            font-size: 26px;
+            font-weight: 900;
+            color: #ffffff;
+            text-decoration: none;
+          }
+          .logo-text span {
+            color: #c47c3e;
+          }
+          .card {
+            background-color: #121c2e;
+            border: 1px solid rgba(196, 124, 62, 0.22);
+            border-radius: 24px;
+            padding: 44px;
+            text-align: left;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+          }
+          .accent-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #c47c3e, #d4924e);
+            border-radius: 4px 4px 0 0;
+            margin: -44px -44px 35px -44px;
+          }
+          h1 {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 800;
+            margin-top: 0;
+            margin-bottom: 16px;
+          }
+          p {
+            color: #94a3b8;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 0;
+            margin-bottom: 24px;
+          }
+          .btn-container {
+            text-align: center;
+            margin: 30px 0;
+          }
+          .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #c47c3e, #d4924e);
+            color: #ffffff !important;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 800;
+            padding: 15px 36px;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(196, 124, 62, 0.3);
+          }
+          .link-text {
+            word-break: break-all;
+            font-size: 12px;
+            color: #64748b;
+            background-color: #090e17;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 20px;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 32px;
+            font-size: 11px;
+            color: #475569;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="wrapper">
+          <div class="container">
+            <div class="logo-container">
+              <span class="logo-text"><span>IN</span>sightEd</span>
+            </div>
+            <div class="card">
+              <div class="accent-bar"></div>
+              <h1>Password Reset Request</h1>
+              <p>Hello ${firstName || ''} ${lastName || ''},</p>
+              <p>We received a request to reset your password for your InsightEd account. Click the button below to set a new password. This reset link is valid for 1 hour.</p>
+              
+              <div class="btn-container">
+                <a href="${resetUrl}" class="btn" target="_blank">Reset Password</a>
+              </div>
+              
+              <p>If the button doesn't work, you can copy and paste the following link into your browser:</p>
+              <div class="link-text">${resetUrl}</div>
+              
+              <p style="margin-top: 20px; font-size: 12px; color: #64748b;">If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+            </div>
+            <div class="footer">
+              This is an automated operational email from the InsightEd Academic Portal.<br>
+              &copy; 2026 InsightEd. All rights reserved.
+            </div>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const textContent = `
+Reset Your InsightEd Password
+Hello ${firstName || ''} ${lastName || ''},
+
+We received a request to reset your password for your InsightEd account. 
+Please follow the link below to set a new password. This link is valid for 1 hour.
+
+${resetUrl}
+
+If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.
+  `.trim();
+
+  // Fallback to console printing if SMTP host is missing
+  if (!host || !user || !pass) {
+    console.warn(`
+=============================================================================
+⚠️  [SMTP NOT CONFIGURED] Simulation Mode: Password Reset Email
+To enable actual emails, configure SMTP_HOST, SMTP_USER, and SMTP_PASS in .env.local.
+-----------------------------------------------------------------------------
+TO: ${email}
+SUBJECT: ${subject}
+LINK: ${resetUrl}
+=============================================================================
+    `);
+    return { success: true, simulated: true };
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: {
+        user,
+        pass,
+      },
+    });
+
+    const info = await transporter.sendMail({
+      from,
+      to: email,
+      subject,
+      text: textContent,
+      html: htmlContent,
+    });
+
+    console.log(`Password reset email successfully sent: ${info.messageId}`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error('Failed to send password reset email via SMTP:', error);
+    return { success: false, error: error.message };
+  }
+}
+
