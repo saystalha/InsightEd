@@ -30,9 +30,9 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
     badgeTextColor = '#2dd4bf';
     badgeBorderColor = 'rgba(45, 212, 191, 0.3)';
   } else if (role === 'teacher') {
-    badgeBgColor = 'rgba(196, 124, 62, 0.12)';
-    badgeTextColor = '#e29755';
-    badgeBorderColor = 'rgba(196, 124, 62, 0.3)';
+    badgeBgColor = 'rgba(59, 130, 246, 0.12)';
+    badgeTextColor = '#ABE990';
+    badgeBorderColor = 'rgba(59, 130, 246, 0.3)';
   } else {
     badgeBgColor = 'rgba(251, 191, 36, 0.12)';
     badgeTextColor = '#fbbf24';
@@ -49,7 +49,7 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
         <title>Welcome to InsightEd</title>
         <style>
           body {
-            background-color: #0b0f19;
+            background-color: #FFFFFF;
             color: #f2f2f2;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
@@ -58,7 +58,7 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
             -ms-text-size-adjust: none;
           }
           .wrapper {
-            background-color: #0b0f19;
+            background-color: #FFFFFF;
             width: 100%;
             table-layout: fixed;
             padding: 40px 0;
@@ -81,11 +81,11 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
             text-decoration: none;
           }
           .logo-text span {
-            color: #c47c3e;
+            color: #3B82F6;
           }
           .card {
-            background-color: #121c2e;
-            border: 1px solid rgba(196, 124, 62, 0.22);
+            background-color: #FFFFFF;
+            border: 1px solid rgba(59, 130, 246, 0.22);
             border-radius: 24px;
             padding: 44px;
             text-align: left;
@@ -93,7 +93,7 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
           }
           .accent-bar {
             height: 4px;
-            background: linear-gradient(90deg, #c47c3e, #d4924e);
+            background: linear-gradient(90deg, #3B82F6, #60A5FA);
             border-radius: 4px 4px 0 0;
             margin: -44px -44px 35px -44px;
           }
@@ -141,8 +141,8 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
             margin-top: 24px;
           }
           .credentials-box {
-            background-color: #090e17;
-            border-left: 4px solid #c47c3e;
+            background-color: #FFFFFF;
+            border-left: 4px solid #3B82F6;
             border-radius: 12px;
             padding: 22px;
             margin-bottom: 24px;
@@ -175,8 +175,8 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
             letter-spacing: 0.3px;
           }
           .association-box {
-            background-color: rgba(196, 124, 62, 0.05);
-            border: 1px dashed rgba(196, 124, 62, 0.25);
+            background-color: rgba(59, 130, 246, 0.05);
+            border: 1px dashed rgba(59, 130, 246, 0.25);
             border-radius: 12px;
             padding: 18px 22px;
             margin-bottom: 24px;
@@ -189,7 +189,7 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
             margin-bottom: 0;
           }
           .association-label {
-            color: rgba(196, 124, 62, 0.75);
+            color: rgba(59, 130, 246, 0.75);
             font-weight: 600;
             display: inline-block;
             width: 100px;
@@ -204,14 +204,14 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
           }
           .btn {
             display: inline-block;
-            background: linear-gradient(135deg, #c47c3e, #d4924e);
+            background: linear-gradient(135deg, #3B82F6, #60A5FA);
             color: #ffffff !important;
             text-decoration: none;
             font-size: 15px;
             font-weight: 800;
             padding: 15px 36px;
             border-radius: 14px;
-            box-shadow: 0 8px 20px rgba(196, 124, 62, 0.3);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
             transition: all 0.2s ease;
           }
           .security-note {
@@ -265,7 +265,7 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
               <div class="credentials-box">
                 <div class="credential-item">
                   <span class="label">Access Link:</span>
-                  <span class="value" style="color: #c47c3e; font-weight: 800;">${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login</span>
+                  <span class="value" style="color: #3B82F6; font-weight: 800;">${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login</span>
                 </div>
                 <div class="credential-item">
                   <span class="label">Username:</span>
@@ -380,14 +380,14 @@ export async function sendResetPasswordEmail({ email, token, firstName, lastName
         <title>Reset Your Password</title>
         <style>
           body {
-            background-color: #0b0f19;
+            background-color: #FFFFFF;
             color: #f2f2f2;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
           }
           .wrapper {
-            background-color: #0b0f19;
+            background-color: #FFFFFF;
             width: 100%;
             padding: 40px 0;
           }
@@ -407,11 +407,11 @@ export async function sendResetPasswordEmail({ email, token, firstName, lastName
             text-decoration: none;
           }
           .logo-text span {
-            color: #c47c3e;
+            color: #3B82F6;
           }
           .card {
-            background-color: #121c2e;
-            border: 1px solid rgba(196, 124, 62, 0.22);
+            background-color: #FFFFFF;
+            border: 1px solid rgba(59, 130, 246, 0.22);
             border-radius: 24px;
             padding: 44px;
             text-align: left;
@@ -419,7 +419,7 @@ export async function sendResetPasswordEmail({ email, token, firstName, lastName
           }
           .accent-bar {
             height: 4px;
-            background: linear-gradient(90deg, #c47c3e, #d4924e);
+            background: linear-gradient(90deg, #3B82F6, #60A5FA);
             border-radius: 4px 4px 0 0;
             margin: -44px -44px 35px -44px;
           }
@@ -443,20 +443,20 @@ export async function sendResetPasswordEmail({ email, token, firstName, lastName
           }
           .btn {
             display: inline-block;
-            background: linear-gradient(135deg, #c47c3e, #d4924e);
+            background: linear-gradient(135deg, #3B82F6, #60A5FA);
             color: #ffffff !important;
             text-decoration: none;
             font-size: 15px;
             font-weight: 800;
             padding: 15px 36px;
             border-radius: 14px;
-            box-shadow: 0 8px 20px rgba(196, 124, 62, 0.3);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
           }
           .link-text {
             word-break: break-all;
             font-size: 12px;
             color: #64748b;
-            background-color: #090e17;
+            background-color: #FFFFFF;
             padding: 12px;
             border-radius: 8px;
             margin-top: 20px;

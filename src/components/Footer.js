@@ -49,7 +49,7 @@ export default function Footer() {
       id="footer"
       className="relative overflow-hidden py-16 pb-8 footer-bg"
       style={{
-        borderTop: "1px solid rgba(196,124,62,0.12)",
+        borderTop: "1px solid rgba(59, 130, 246,0.12)",
       }}
     >
       {/* Subtle copper glow at bottom */}
@@ -57,7 +57,7 @@ export default function Footer() {
         className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] rounded-full pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse, rgba(196,124,62,0.10) 0%, transparent 70%)",
+            "radial-gradient(ellipse, rgba(59, 130, 246,0.10) 0%, transparent 70%)",
         }}
       />
       {/* Top accent line */}
@@ -65,7 +65,7 @@ export default function Footer() {
         className="absolute top-0 left-0 right-0 h-px"
         style={{
           background:
-            "linear-gradient(90deg, transparent, rgba(196,124,62,0.25), transparent)",
+            "linear-gradient(90deg, transparent, rgba(59, 130, 246,0.25), transparent)",
         }}
       />
 
@@ -73,7 +73,7 @@ export default function Footer() {
         {/* Top section */}
         <div
           className="flex flex-wrap gap-16 pb-12 border-b"
-          style={{ borderColor: "rgba(196,124,62,0.12)" }}
+          style={{ borderColor: "rgba(59, 130, 246,0.12)" }}
         >
           {/* Brand */}
           <div className="flex-1 min-w-[220px]">
@@ -84,8 +84,8 @@ export default function Footer() {
               <div
                 className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center transition-all group-hover:scale-105"
                 style={{
-                  background: "rgba(196,124,62,0.16)",
-                  border: "1px solid rgba(196,124,62,0.28)",
+                  background: "rgba(59, 130, 246,0.16)",
+                  border: "1px solid rgba(59, 130, 246,0.28)",
                 }}
               >
                 <svg
@@ -93,25 +93,25 @@ export default function Footer() {
                   height="17"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#c47c3e"
+                  stroke="#3B82F6"
                   strokeWidth="1.8"
                 >
                   <circle cx="12" cy="12" r="10" />
                   <path
                     d="M8 9.5C8 8.12 9.12 7 10.5 7h3C14.88 7 16 8.12 16 9.5c0 .93-.52 1.73-1.28 2.16C15.46 12.13 16 13.05 16 14H8c0-.95.54-1.87 1.28-2.34C8.52 11.23 8 10.43 8 9.5z"
-                    fill="#c47c3e"
+                    fill="#3B82F6"
                     stroke="none"
                   />
                 </svg>
               </div>
               <span className="font-bold text-[1.05rem]">
-                <span style={{ color: "#c47c3e" }}>IN</span>
-                <span style={{ color: "#f2f2f2" }}>sightEd</span>
+                <span style={{ color: "#3B82F6" }}>IN</span>
+                <span style={{ color: "#111827" }}>sightEd</span>
               </span>
             </a>
             <p
               className="text-[0.86rem] leading-[1.65] max-w-[260px] mb-5"
-              style={{ color: "rgba(242,242,242,0.42)" }}
+              style={{ color: "rgba(17, 24, 39,0.42)" }}
             >
               Restoring the teacher-student feedback loop through privacy-first
               AI.
@@ -122,11 +122,11 @@ export default function Footer() {
                   key={label}
                   href="#"
                   aria-label={label}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:-translate-y-[2px] hover:text-[#c47c3e]"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:-translate-y-[2px] hover:text-[#3B82F6]"
                   style={{
                     background: "rgba(255,255,255,0.05)",
                     border: "1px solid rgba(255,255,255,0.08)",
-                    color: "rgba(242,242,242,0.35)",
+                    color: "rgba(17, 24, 39,0.35)",
                   }}
                 >
                   <Icon />
@@ -144,7 +144,7 @@ export default function Footer() {
               >
                 <span
                   className="text-[0.72rem] font-bold tracking-[0.12em] uppercase mb-1"
-                  style={{ color: "rgba(242,242,242,0.55)" }}
+                  style={{ color: "rgba(17, 24, 39,0.55)" }}
                 >
                   {col.title}
                 </span>
@@ -153,12 +153,12 @@ export default function Footer() {
                     key={label}
                     href={href}
                     className="text-[0.86rem] transition-colors"
-                    style={{ color: "rgba(242,242,242,0.42)" }}
+                    style={{ color: "rgba(17, 24, 39,0.42)" }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = "#c47c3e")
+                      (e.currentTarget.style.color = "#3B82F6")
                     }
                     onMouseLeave={(e) =>
-                      (e.currentTarget.style.color = "rgba(242,242,242,0.42)")
+                      (e.currentTarget.style.color = "rgba(17, 24, 39,0.42)")
                     }
                   >
                     {label}
@@ -172,7 +172,7 @@ export default function Footer() {
           <div className="min-w-[220px]">
             <p
               className="text-[0.72rem] font-bold tracking-[0.12em] uppercase mb-4"
-              style={{ color: "rgba(242,242,242,0.55)" }}
+              style={{ color: "rgba(17, 24, 39,0.55)" }}
             >
               Stay Updated
             </p>
@@ -182,9 +182,9 @@ export default function Footer() {
                 placeholder="your@email.com"
                 className="flex-1 px-3.5 py-2.5 rounded-xl text-[0.84rem] outline-none"
                 style={{
-                  background: "rgba(15,24,36,0.60)",
-                  border: "1.5px solid rgba(196,124,62,0.22)",
-                  color: "#f2f2f2",
+                  background: "rgba(255, 255, 255,0.60)",
+                  border: "1.5px solid rgba(59, 130, 246,0.22)",
+                  color: "#111827",
                 }}
               />
               <button className="px-4 py-2.5 rounded-xl text-[0.82rem] font-bold btn-primary flex-shrink-0">
@@ -193,7 +193,7 @@ export default function Footer() {
             </div>
             <p
               className="text-[0.71rem] mt-2"
-              style={{ color: "rgba(242,242,242,0.35)" }}
+              style={{ color: "rgba(17, 24, 39,0.35)" }}
             >
               No spam. Unsubscribe anytime.
             </p>
@@ -204,7 +204,7 @@ export default function Footer() {
         <div className="flex flex-wrap items-center justify-between gap-4 pt-6">
           <p
             className="text-[0.78rem]"
-            style={{ color: "rgba(242,242,242,0.25)" }}
+            style={{ color: "rgba(17, 24, 39,0.25)" }}
           >
             © {new Date().getFullYear()} InsightEd. All rights reserved.
           </p>
@@ -213,7 +213,7 @@ export default function Footer() {
           >
             <span
               className="w-1.5 h-1.5 rounded-full animate-pulse"
-              style={{ backgroundColor: "#c47c3e" }}
+              style={{ backgroundColor: "#3B82F6" }}
             />
             Privacy-First by Design
           </div>

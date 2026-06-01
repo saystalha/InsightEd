@@ -35,6 +35,10 @@ const ParticipantSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isSpeaking: {
+    type: Boolean,
+    default: false
+  },
   lastSeen: {
     type: Date,
     default: Date.now

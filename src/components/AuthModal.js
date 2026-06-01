@@ -2,12 +2,7 @@
 
 import { useState } from 'react';
 
-const LogoIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-    <circle cx="12" cy="12" r="10"/>
-    <path d="M8 9.5C8 8.12 9.12 7 10.5 7h3C14.88 7 16 8.12 16 9.5c0 .93-.52 1.73-1.28 2.16C15.46 12.13 16 13.05 16 14H8c0-.95.54-1.87 1.28-2.34C8.52 11.23 8 10.43 8 9.5z" fill="currentColor" stroke="none"/>
-  </svg>
-);
+
 
 const EyeIcon = ({ open }) =>
   open ? (
@@ -121,7 +116,7 @@ export default function AuthModal({ type, onClose, onSwitch }) {
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-[rgba(15,24,36,0.60)] backdrop-blur-sm"
+        className="absolute inset-0 bg-[rgba(255, 255, 255,0.60)] backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -131,13 +126,13 @@ export default function AuthModal({ type, onClose, onSwitch }) {
         className="relative z-10 w-full max-w-[460px] rounded-[28px] p-9 shadow-[0_24px_64px_rgba(0,0,0,0.45)] animate-modal-in overflow-hidden max-h-[90vh] overflow-y-auto card-navy"
       >
         {/* Top glow */}
-        <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(196,124,62,0.18) 0%, transparent 70%)' }} aria-hidden="true" />
+        <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(59, 130, 246,0.18) 0%, transparent 70%)' }} aria-hidden="true" />
 
         {/* Close */}
         <button
           onClick={onClose}
           id="modal-close"
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-snow/40 hover:text-snow hover:bg-white/10 transition-all"
+          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-snow/40 hover:text-snow hover:bg-black/5 transition-all"
           aria-label="Close"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -146,13 +141,12 @@ export default function AuthModal({ type, onClose, onSwitch }) {
           </svg>
         </button>
 
-        {/* Logo */}
         <div className="flex items-center gap-2.5 mb-6 relative z-10">
-          <div className="w-9 h-9 rounded-[10px] flex items-center justify-center text-copper" style={{ background: 'rgba(196,124,62,0.16)', border: '1.5px solid rgba(196,124,62,0.28)' }}>
-            <LogoIcon />
+          <div className="w-9 h-9 rounded-[10px] flex items-center justify-center overflow-hidden" style={{ border: '1.5px solid rgba(59, 130, 246, 0.28)' }}>
+            <img src="/logo.jpeg" alt="InsightEd Logo" className="w-full h-full object-cover" />
           </div>
           <span className="text-snow font-bold text-[1.05rem]">
-            <span style={{ color: '#c47c3e' }}>IN</span>sightEd
+            <span style={{ color: '#3B82F6' }}>IN</span>sightEd
           </span>
         </div>
 
@@ -166,7 +160,7 @@ export default function AuthModal({ type, onClose, onSwitch }) {
 
           {/* Role Selector (signup only) */}
           {!isLogin && (
-            <div className="flex gap-2 mb-5 p-1 rounded-2xl bg-[rgba(15,24,36,0.60)] border border-[rgba(196,124,62,0.22)]" id="signup-role">
+            <div className="flex gap-2 mb-5 p-1 rounded-2xl bg-[rgba(255, 255, 255,0.60)] border border-[rgba(59, 130, 246,0.22)]" id="signup-role">
               {['teacher', 'student'].map(r => (
                 <button
                   key={r}
@@ -175,9 +169,9 @@ export default function AuthModal({ type, onClose, onSwitch }) {
                   id={`signup-role-${r}`}
                   className="flex-1 py-2.5 text-[0.85rem] font-semibold rounded-xl capitalize transition-all"
                   style={{
-                    background: role === r ? 'rgba(196,124,62,0.20)' : 'transparent',
-                    color: role === r ? '#f2f2f2' : 'rgba(242,242,242,0.40)',
-                    border: role === r ? '1.5px solid rgba(196,124,62,0.35)' : '1.5px solid transparent',
+                    background: role === r ? 'rgba(59, 130, 246,0.20)' : 'transparent',
+                    color: role === r ? '#111827' : 'rgba(17, 24, 39,0.40)',
+                    border: role === r ? '1.5px solid rgba(59, 130, 246,0.35)' : '1.5px solid transparent',
                   }}
                 >
                   {r === 'teacher' ? '👩‍🏫 Teacher' : '🎓 Student'}
@@ -254,12 +248,12 @@ export default function AuthModal({ type, onClose, onSwitch }) {
             {/* Terms */}
             {!isLogin && (
               <label htmlFor="signup-terms" className="flex items-start gap-2.5 cursor-pointer mt-1 select-none">
-                <input id="signup-terms" type="checkbox" required className="w-4 h-4 mt-0.5 rounded cursor-pointer accent-copper flex-shrink-0" style={{ accentColor: '#c47c3e' }} />
+                <input id="signup-terms" type="checkbox" required className="w-4 h-4 mt-0.5 rounded cursor-pointer accent-copper flex-shrink-0" style={{ accentColor: '#3B82F6' }} />
                 <span className="text-[0.79rem] text-mist leading-[1.55]">
                   I agree to the{' '}
-                  <button type="button" className="font-semibold text-copper hover:brightness-110">Terms</button>
+                  <button type="button" className="font-semibold text-blue-500 hover:brightness-110">Terms</button>
                   {' '}and{' '}
-                  <button type="button" className="font-semibold text-copper hover:brightness-110">Privacy Policy</button>
+                  <button type="button" className="font-semibold text-blue-500 hover:brightness-110">Privacy Policy</button>
                 </span>
               </label>
             )}
@@ -289,16 +283,16 @@ export default function AuthModal({ type, onClose, onSwitch }) {
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-[rgba(196,124,62,0.14)]" />
+            <div className="flex-1 h-px bg-[rgba(59, 130, 246,0.14)]" />
             <span className="text-[0.74rem] text-mist font-medium">OR</span>
-            <div className="flex-1 h-px bg-[rgba(196,124,62,0.14)]" />
+            <div className="flex-1 h-px bg-[rgba(59, 130, 246,0.14)]" />
           </div>
 
           {/* Google */}
           <button
             id={isLogin ? 'login-google' : 'signup-google'}
             onClick={handleGoogleClick}
-            className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl font-semibold text-[0.9rem] text-snow mb-5 transition-all hover:bg-white/5 border border-[rgba(196,124,62,0.25)] bg-[rgba(196,124,62,0.05)]"
+            className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl font-semibold text-[0.9rem] text-snow mb-5 transition-all hover:bg-black/5 border border-[rgba(59, 130, 246,0.25)] bg-[rgba(59, 130, 246,0.05)]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -314,7 +308,7 @@ export default function AuthModal({ type, onClose, onSwitch }) {
             <button
               onClick={onSwitch}
               id={isLogin ? 'login-to-signup' : 'signup-to-login'}
-              className="font-bold text-copper transition-all hover:brightness-110"
+              className="font-bold text-blue-500 transition-all hover:brightness-110"
             >
               {isLogin ? 'Sign up free →' : 'Sign in →'}
             </button>

@@ -24,23 +24,7 @@ function SvgIcon({ paths, size = 20 }) {
     </svg>
   );
 }
-const LogoIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.8"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <path
-      d="M8 9.5C8 8.12 9.12 7 10.5 7h3C14.88 7 16 8.12 16 9.5c0 .93-.52 1.73-1.28 2.16C15.46 12.13 16 13.05 16 14H8c0-.95.54-1.87 1.28-2.34C8.52 11.23 8 10.43 8 9.5z"
-      fill="currentColor"
-      stroke="none"
-    />
-  </svg>
-);
+
 
 /* ── Mock data ──────────────────────────── */
 const LIVE_CLASSES = [];
@@ -191,20 +175,23 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
     >
       {/* Logo */}
       <div
-        className={`flex items-center gap-3 border-b border-[rgba(196,124,62,0.16)] flex-shrink-0 ${open ? "px-5 py-5" : "justify-center px-3 py-5"}`}
+        className={`flex items-center gap-3 border-b border-[rgba(59, 130, 246,0.16)] flex-shrink-0 ${open ? "px-5 py-5" : "justify-center px-3 py-5"}`}
       >
         <div
-          className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0"
+          className="w-9 h-9 rounded-[10px] flex items-center justify-center flex-shrink-0 overflow-hidden"
           style={{
-            background: "rgba(196,124,62,0.15)",
-            border: "1px solid rgba(196,124,62,0.30)",
+            border: "1px solid rgba(59, 130, 246,0.30)",
           }}
         >
-          <LogoIcon />
+          <img
+            src="/logo.jpeg"
+            alt="InsightEd Logo"
+            className="w-full h-full object-cover"
+          />
         </div>
         {open && (
-          <span className="font-black text-[1.05rem] tracking-tight whitespace-nowrap">
-            <span style={{color:'#c47c3e'}}>IN</span><span style={{color:'#f2f2f2'}}>sightEd</span>
+          <span className="font-black text-[1.05rem] tracking-tight whitespace-nowrap text-white">
+            <span style={{color:'#3B82F6'}}>IN</span><span>sightEd</span>
           </span>
         )}
       </div>
@@ -215,10 +202,10 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
         onClick={() => setOpen(!open)}
         className="absolute -right-3.5 top-[72px] w-7 h-7 rounded-full flex items-center justify-center z-10"
         style={{
-          background: "#152038",
-          border: "1.5px solid rgba(196,124,62,0.35)",
+          background: "#FFFFFF",
+          border: "1.5px solid rgba(59, 130, 246,0.35)",
           boxShadow: "0 2px 10px rgba(0,0,0,0.40)",
-          color: "#c47c3e",
+          color: "#3B82F6",
         }}
       >
         <svg
@@ -245,22 +232,22 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
               key={item.id}
               id={item.id}
               onClick={() => setActive(item.id)}
-              className={`relative flex items-center gap-3 rounded-xl transition-all duration-200 group text-left ${
+              className={`relative flex items-center gap-3 rounded-xl transition-all duration-200 group text-left border active:scale-[0.96] ${
                 isActive 
-                  ? "bg-[rgba(196,124,62,0.16)] text-snow font-bold" 
-                  : "text-mist hover:bg-[rgba(196,124,62,0.08)] hover:text-snow"
+                  ? "bg-[#3B82F6] border-transparent text-white font-bold shadow-[0_2px_8px_rgba(59,130,246,0.15)]" 
+                  : "border-transparent text-white/70 hover:bg-white/10 hover:text-white"
               } ${open ? "px-3 py-2.5" : "w-10 h-10 mx-auto justify-center"}`}
             >
-              <span className="flex-shrink-0" style={{color: isActive ? "#c47c3e" : "rgba(196,124,62,0.50)"}}>
+              <span className="flex-shrink-0" style={{color: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.60)"}}>
                 <SvgIcon paths={item.icon} size={18} />
               </span>
               {open && (
-                <span className="text-[0.87rem] font-semibold whitespace-nowrap" style={{color: isActive ? "#f2f2f2" : "rgba(242,242,242,0.50)"}}>  
+                <span className="text-[0.87rem] font-semibold whitespace-nowrap transition-transform duration-200 group-hover:translate-x-0.5" style={{color: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.75)"}}>  
                   {item.label}
                 </span>
               )}
               {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-r-full" style={{background:"#c47c3e"}} />
+                <span className="absolute left-0 top-[20%] w-[3.5px] h-[60%] rounded-r bg-[#FFFFFF] animate-scale-in" />
               )}
             </button>
           );
@@ -270,30 +257,30 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
       {/* User */}
       <div
         className="relative px-2.5 py-3 flex-shrink-0"
-        style={{ borderTop: "1px solid rgba(196,124,62,0.12)" }}
+        style={{ borderTop: "1px solid rgba(255, 255, 255, 0.08)" }}
       >
         <button
           type="button"
           onClick={() => setDropdownOpen(!dropdownOpen)}
-          className={`w-full flex items-center gap-3 rounded-xl p-2.5 cursor-pointer text-left transition-all duration-200 hover:bg-[rgba(196,124,62,0.08)] ${!open ? "justify-center" : ""}`}
+          className={`w-full flex items-center gap-3 rounded-xl p-2.5 cursor-pointer text-left transition-all duration-200 hover:bg-white/10 ${!open ? "justify-center" : ""}`}
         >
           <div
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[#f2f2f2] text-xs font-bold flex-shrink-0"
-            style={{ background: "linear-gradient(135deg,#c47c3e,#152038)" }}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+            style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}
           >
             {initials}
           </div>
           {open && (
             <>
               <div className="flex-1 min-w-0">
-                <p className="text-[0.83rem] font-bold truncate text-[#f2f2f2]">
+                <p className="text-[0.83rem] font-bold truncate text-white">
                   {userName}
                 </p>
-                <p className="text-[0.72rem] truncate capitalize text-[rgba(196,124,62,0.70)]">
+                <p className="text-[0.72rem] truncate capitalize text-white/60">
                   {role} · Active
                 </p>
               </div>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-mist flex-shrink-0">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-white/70 flex-shrink-0">
                 <path d="M18 15l-6-6-6 6" />
               </svg>
             </>
@@ -310,14 +297,14 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                   : "bottom-3 left-[72px] w-52"
               }`}
               style={{
-                background: "rgba(21, 32, 56, 0.98)",
+                background: "rgba(255, 255, 255, 0.98)",
                 backdropFilter: "blur(20px)",
-                border: "1.5px solid rgba(196, 124, 62, 0.25)",
-                boxShadow: "0 10px 32px rgba(0,0,0,0.50)",
+                border: "1.5px solid rgba(255, 255, 255, 0.15)",
+                boxShadow: "0 10px 32px rgba(0,0,0,0.15)",
                 borderRadius: "14px"
               }}
             >
-              <div className="px-3 py-2 border-b border-[rgba(196,124,62,0.12)] mb-1">
+              <div className="px-3 py-2 border-b border-[rgba(59, 130, 246,0.12)] mb-1">
                 <p className="text-[0.82rem] font-bold text-snow">{userName}</p>
                 <p className="text-[0.72rem] text-mist truncate">{userEmail}</p>
                 <span className="inline-block mt-1 text-[0.62rem] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded badge-copper capitalize">
@@ -330,7 +317,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                   onProfileClick();
                   setDropdownOpen(false);
                 }}
-                className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
+                className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(59, 130, 246,0.12)] rounded-lg transition-all"
               >
                 <SvgIcon paths={["M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2", "M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]} size={13} />
                 My Profile
@@ -346,7 +333,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                         setActive("nav-overview");
                         setDropdownOpen(false);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
+                      className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(59, 130, 246,0.12)] rounded-lg transition-all"
                     >
                       <SvgIcon paths={["M12 2L2 7l10 5 10-5-10-5z", "M2 17l10 5 10-5", "M2 12l10 5 10-5"]} size={13} />
                       Switch to Admin View
@@ -360,7 +347,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                         setActive("nav-dashboard");
                         setDropdownOpen(false);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
+                      className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(59, 130, 246,0.12)] rounded-lg transition-all"
                     >
                       <SvgIcon paths={["M4 4h16v16H4z", "M12 8v8M8 12h8"]} size={13} />
                       Switch to Teacher View
@@ -374,7 +361,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                         setActive("nav-dashboard");
                         setDropdownOpen(false);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
+                      className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(59, 130, 246,0.12)] rounded-lg transition-all"
                     >
                       <SvgIcon paths={["M22 10v6M2 10l10-5 10 5-10 5z", "M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"]} size={13} />
                       Switch to Student View
@@ -383,7 +370,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                 </>
               )}
               
-              <div className="h-px bg-[rgba(196,124,62,0.12)] my-1" />
+              <div className="h-px bg-[rgba(59, 130, 246,0.12)] my-1" />
               
               <button
                 onClick={onLogout}
@@ -402,7 +389,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
 
 /* ── Score Badge ────────────────────────── */
 function ScoreBadge({ score }) {
-  const color = score >= 80 ? "#d4924e" : score >= 65 ? "#c47c3e" : "#8c5828";
+  const color = score >= 80 ? "#60A5FA" : score >= 65 ? "#3B82F6" : "#1D4ED8";
   return (
     <span
       className="text-[0.78rem] font-bold px-2 py-0.5 rounded-full badge-copper"
@@ -478,6 +465,17 @@ export default function DashboardPage() {
   const [studentSearchQuery, setStudentSearchQuery] = useState("");
   const [studentPage, setStudentPage] = useState(1);
   const [selectedAttendanceMeetingId, setSelectedAttendanceMeetingId] = useState("");
+
+  const [teacherSearchQuery, setTeacherSearchQuery] = useState("");
+  const [teacherStatusFilter, setTeacherStatusFilter] = useState("all");
+  const [teacherDateFilter, setTeacherDateFilter] = useState("all");
+  const [teacherCfiFilter, setTeacherCfiFilter] = useState("all");
+  const [teacherCurrentPage, setTeacherCurrentPage] = useState(1);
+
+  const [studentReportSearch, setStudentReportSearch] = useState("");
+  const [studentReportCfiFilter, setStudentReportCfiFilter] = useState("all");
+  const [studentReportDateFilter, setStudentReportDateFilter] = useState("all");
+  const [studentReportCurrentPage, setStudentReportCurrentPage] = useState(1);
 
   const fetchActiveMeetings = async () => {
     try {
@@ -585,9 +583,19 @@ export default function DashboardPage() {
           const savedRole = localStorage.getItem('userRole');
           if (user.role === 'admin' && savedRole && (savedRole === 'teacher' || savedRole === 'student' || savedRole === 'admin')) {
             setRole(savedRole);
+            if (savedRole === 'admin') {
+              setActiveTab('nav-overview');
+            } else {
+              setActiveTab('nav-dashboard');
+            }
           } else {
             setRole(user.role);
             localStorage.setItem('userRole', user.role);
+            if (user.role === 'admin') {
+              setActiveTab('nav-overview');
+            } else {
+              setActiveTab('nav-dashboard');
+            }
           }
           
           localStorage.setItem('userName', fullName);
@@ -944,11 +952,11 @@ export default function DashboardPage() {
     return (
       <div className="min-h-screen flex items-center justify-center dashboard-bg text-snow relative overflow-hidden">
         {/* Background Orbs */}
-        <div className="fixed -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none orb-copper" />
+        <div className="fixed -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none orb-navy" />
         <div className="fixed -bottom-40 -left-40 w-[400px] h-[400px] rounded-full pointer-events-none orb-navy" />
         
         <div className="relative z-10 flex flex-col items-center gap-4 animate-pulse">
-          <div className="w-12 h-12 rounded-full border-[3px] border-[rgba(196,124,62,0.15)] border-t-[#c47c3e] animate-spin" />
+          <div className="w-12 h-12 rounded-full border-[3px] border-[rgba(59, 130, 246,0.15)] border-t-[#3B82F6] animate-spin" />
           <p className="text-[0.9rem] font-semibold text-mist tracking-wide">
             Verifying session...
           </p>
@@ -1102,13 +1110,172 @@ export default function DashboardPage() {
     },
   ];
 
+  // ── TEACHER MEETINGS FILTER & PAGINATION CALCULATIONS ──
+  const filteredTeacherMeetings = teacherMeetings.filter((m) => {
+    const searchLower = teacherSearchQuery.toLowerCase();
+    const titleMatch = m.title.toLowerCase().includes(searchLower);
+    const codeMatch = m.code.toLowerCase().includes(searchLower);
+    const matchesSearch = titleMatch || codeMatch;
+
+    let matchesStatus = true;
+    if (teacherStatusFilter === "active") {
+      matchesStatus = m.active === true;
+    } else if (teacherStatusFilter === "ended") {
+      matchesStatus = m.active === false;
+    }
+
+    let matchesCfi = true;
+    const cfiScore = m.cfi || 75;
+    if (teacherCfiFilter === "excellent") {
+      matchesCfi = cfiScore >= 85;
+    } else if (teacherCfiFilter === "good") {
+      matchesCfi = cfiScore >= 70 && cfiScore < 85;
+    } else if (teacherCfiFilter === "low") {
+      matchesCfi = cfiScore < 70;
+    }
+
+    let matchesDate = true;
+    if (teacherDateFilter !== "all") {
+      const meetDate = new Date(m.createdAt);
+      const now = new Date();
+      const diffTime = Math.abs(now - meetDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (teacherDateFilter === "today") {
+        matchesDate = meetDate.toDateString() === now.toDateString();
+      } else if (teacherDateFilter === "7days") {
+        matchesDate = diffDays <= 7;
+      } else if (teacherDateFilter === "30days") {
+        matchesDate = diffDays <= 30;
+      }
+    }
+
+    return matchesSearch && matchesStatus && matchesCfi && matchesDate;
+  });
+
+  const teacherItemsPerPage = 5;
+  const teacherTotalPages = Math.max(
+    1,
+    Math.ceil(filteredTeacherMeetings.length / teacherItemsPerPage)
+  );
+  const teacherStartIndex = (teacherCurrentPage - 1) * teacherItemsPerPage;
+  const paginatedTeacherMeetings = filteredTeacherMeetings.slice(
+    teacherStartIndex,
+    teacherStartIndex + teacherItemsPerPage
+  );
+
+  const reachedStudentsSet = new Set();
+  teacherMeetings.forEach((m) => {
+    m.participants.forEach((p) => {
+      if (p.role === "student") reachedStudentsSet.add(p.name);
+    });
+  });
+  const reachedStudentsCount = reachedStudentsSet.size;
+
+  const compiledTeacherAlerts = [];
+  teacherMeetings.forEach((m) => {
+    m.participants.forEach((p) => {
+      if (p.role === "student" && p.score < 65) {
+        compiledTeacherAlerts.push({
+          id: `${m._id}-${p.name}`,
+          type: p.score < 55 ? "Attention Required" : "Low Engagement",
+          studentName: p.name,
+          time: new Date(m.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          dateStr:
+            new Date(m.createdAt).toDateString() === new Date().toDateString()
+              ? "Today"
+              : new Date(m.createdAt).toLocaleDateString(),
+          meetingTitle: m.title,
+        });
+      }
+    });
+  });
+
+  if (compiledTeacherAlerts.length === 0 && teacherMeetings.length > 0) {
+    compiledTeacherAlerts.push({
+      id: "mock-alert-1",
+      type: "Low Engagement",
+      studentName: "Talha Bilal",
+      time: "11:43 AM",
+      dateStr: "Today",
+      meetingTitle: "Data Structures",
+    });
+    compiledTeacherAlerts.push({
+      id: "mock-alert-2",
+      type: "Attention Required",
+      studentName: "Talha Bilal",
+      time: "11:32 AM",
+      dateStr: "Today",
+      meetingTitle: "Algorithms",
+    });
+    compiledTeacherAlerts.push({
+      id: "mock-alert-3",
+      type: "Low Engagement",
+      studentName: "Talha Bilal",
+      time: "11:20 AM",
+      dateStr: "Today",
+      meetingTitle: "OOP Concepts",
+    });
+  }
+
+  // ── STUDENT REPORTS FILTER & PAGINATION CALCULATIONS ──
+  const filteredStudentMeetings = teacherMeetings.filter((m) => {
+    const searchLower = studentReportSearch.toLowerCase();
+    const titleMatch = m.title.toLowerCase().includes(searchLower);
+    const codeMatch = m.code.toLowerCase().includes(searchLower);
+    const teacherMatch = m.teacherName.toLowerCase().includes(searchLower);
+    const matchesSearch = titleMatch || codeMatch || teacherMatch;
+
+    let matchesCfi = true;
+    const myParticipant = m.participants.find((p) => p.name === userName);
+    const personalScore = myParticipant ? myParticipant.score : 75;
+    if (studentReportCfiFilter === "excellent") {
+      matchesCfi = personalScore >= 85;
+    } else if (studentReportCfiFilter === "good") {
+      matchesCfi = personalScore >= 70 && personalScore < 85;
+    } else if (studentReportCfiFilter === "low") {
+      matchesCfi = personalScore < 70;
+    }
+
+    let matchesDate = true;
+    if (studentReportDateFilter !== "all") {
+      const meetDate = new Date(m.createdAt);
+      const now = new Date();
+      const diffTime = Math.abs(now - meetDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (studentReportDateFilter === "today") {
+        matchesDate = meetDate.toDateString() === now.toDateString();
+      } else if (studentReportDateFilter === "7days") {
+        matchesDate = diffDays <= 7;
+      } else if (studentReportDateFilter === "30days") {
+        matchesDate = diffDays <= 30;
+      }
+    }
+
+    return matchesSearch && matchesCfi && matchesDate;
+  });
+
+  const studentReportItemsPerPage = 5;
+  const studentReportTotalPages = Math.max(
+    1,
+    Math.ceil(filteredStudentMeetings.length / studentReportItemsPerPage)
+  );
+  const studentReportStartIndex =
+    (studentReportCurrentPage - 1) * studentReportItemsPerPage;
+  const paginatedStudentMeetings = filteredStudentMeetings.slice(
+    studentReportStartIndex,
+    studentReportStartIndex + studentReportItemsPerPage
+  );
+
   return (
     <div
       className="min-h-screen flex dashboard-bg text-snow"
     >
       {/* Orbs */}
       <div
-        className="fixed -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none orb-copper"
+        className="fixed -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none orb-navy"
       />
       <div
         className="fixed -bottom-40 -left-40 w-[400px] h-[400px] rounded-full pointer-events-none orb-navy"
@@ -1157,8 +1324,8 @@ export default function DashboardPage() {
           </div>
           <div className="flex items-center gap-3">
             <button
-              className="relative w-9 h-9 rounded-xl flex items-center justify-center text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.16)] transition-all"
-              style={{ border: "1px solid rgba(196,124,62,0.26)" }}
+              className="relative w-9 h-9 rounded-xl flex items-center justify-center text-mist hover:text-snow hover:bg-[rgba(59, 130, 246,0.16)] transition-all"
+              style={{ border: "1px solid rgba(59, 130, 246,0.26)" }}
             >
               <SvgIcon
                 paths={[
@@ -1167,16 +1334,16 @@ export default function DashboardPage() {
                 ]}
                 size={17}
               />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#c47c3e]" />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
             </button>
             <div className="relative">
               <button
                 id="header-profile-btn"
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="w-9 h-9 rounded-full flex items-center justify-center text-[#f2f2f2] text-xs font-bold cursor-pointer transition-all duration-200 active:scale-95 hover:shadow-[0_0_12px_rgba(196,124,62,0.4)] focus:outline-none"
+                className="w-9 h-9 rounded-full flex items-center justify-center text-[#111827] text-xs font-bold cursor-pointer transition-all duration-200 active:scale-95 hover:shadow-[0_0_12px_rgba(59,130,246,0.15)] focus:outline-none"
                 style={{
-                  background: "linear-gradient(135deg,#c47c3e,#152038)",
-                  border: userDropdownOpen ? "2.5px solid #c47c3e" : "1.5px solid rgba(196,124,62,0.3)",
+                  background: "linear-gradient(135deg,#3B82F6,#FFFFFF)",
+                  border: userDropdownOpen ? "2.5px solid #3B82F6" : "1.5px solid rgba(59, 130, 246,0.3)",
                 }}
               >
                 {initials}
@@ -1188,13 +1355,13 @@ export default function DashboardPage() {
                   <div 
                     className="absolute right-0 mt-2.5 w-56 rounded-[16px] z-50 p-1.5 flex flex-col gap-0.5 animate-modal-in"
                     style={{
-                      background: "rgba(21, 32, 56, 0.98)",
+                      background: "rgba(255, 255, 255, 0.98)",
                       backdropFilter: "blur(20px)",
-                      border: "1.5px solid rgba(196, 124, 62, 0.25)",
+                      border: "1.5px solid rgba(59, 130, 246, 0.25)",
                       boxShadow: "0 10px 40px rgba(0,0,0,0.60)"
                     }}
                   >
-                    <div className="px-3 py-2 border-b border-[rgba(196,124,62,0.12)] mb-1">
+                    <div className="px-3 py-2 border-b border-[rgba(59, 130, 246,0.12)] mb-1">
                       <p className="text-[0.82rem] font-bold text-snow">{userName}</p>
                       <p className="text-[0.72rem] text-mist truncate">{userEmail}</p>
                       <span className="inline-block mt-1 text-[0.62rem] font-extrabold tracking-wide uppercase px-2 py-0.5 rounded badge-copper capitalize">
@@ -1216,7 +1383,7 @@ export default function DashboardPage() {
                         setIsProfileModalOpen(true);
                         setUserDropdownOpen(false);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
+                      className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(59, 130, 246,0.12)] rounded-lg transition-all"
                     >
                       <SvgIcon paths={["M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2", "M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]} size={13} />
                       My Profile
@@ -1229,9 +1396,10 @@ export default function DashboardPage() {
                             onClick={() => {
                               setRole("admin");
                               try { localStorage.setItem('userRole', 'admin'); } catch (e) {}
+                              setActiveTab("nav-overview");
                               setUserDropdownOpen(false);
                             }}
-                            className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
+                            className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(59, 130, 246,0.12)] rounded-lg transition-all"
                           >
                             <SvgIcon paths={["M12 2L2 7l10 5 10-5-10-5z", "M2 17l10 5 10-5", "M2 12l10 5 10-5"]} size={13} />
                             Switch to Admin View
@@ -1242,9 +1410,10 @@ export default function DashboardPage() {
                             onClick={() => {
                               setRole("teacher");
                               try { localStorage.setItem('userRole', 'teacher'); } catch (e) {}
+                              setActiveTab("nav-dashboard");
                               setUserDropdownOpen(false);
                             }}
-                            className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
+                            className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(59, 130, 246,0.12)] rounded-lg transition-all"
                           >
                             <SvgIcon paths={["M4 4h16v16H4z", "M12 8v8M8 12h8"]} size={13} />
                             Switch to Teacher View
@@ -1255,9 +1424,10 @@ export default function DashboardPage() {
                             onClick={() => {
                               setRole("student");
                               try { localStorage.setItem('userRole', 'student'); } catch (e) {}
+                              setActiveTab("nav-dashboard");
                               setUserDropdownOpen(false);
                             }}
-                            className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(196,124,62,0.12)] rounded-lg transition-all"
+                            className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-mist hover:text-snow hover:bg-[rgba(59, 130, 246,0.12)] rounded-lg transition-all"
                           >
                             <SvgIcon paths={["M22 10v6M2 10l10-5 10 5-10 5z", "M6 12v5c0 2 3 3 6 3s6-1 6-3v-5"]} size={13} />
                             Switch to Student View
@@ -1266,7 +1436,7 @@ export default function DashboardPage() {
                       </>
                     )}
                     
-                    <div className="h-px bg-[rgba(196,124,62,0.12)] my-1" />
+                    <div className="h-px bg-[rgba(59, 130, 246,0.12)] my-1" />
                     
                     <button
                       onClick={handleLogout}
@@ -1286,46 +1456,40 @@ export default function DashboardPage() {
           {role === 'admin' ? (
             activeTab === 'nav-overview' ? (
               <div className="flex flex-col gap-6 animate-fadeUp">
-                {/* Header */}
-                <div>
-                  <h2 className="text-[1.25rem] font-black text-white">IT Super-Admin Overview</h2>
-                  <p className="text-[0.8rem] text-mist font-medium">Platform-wide statistics and live academic channels.</p>
-                </div>
-
-                {/* Admin Stats Grid */}
+                          {/* Admin Stats Grid - Spans Full Width */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                   {adminStats.map((st) => (
-                    <div key={st.id} className="relative overflow-hidden rounded-[22px] p-6 card-navy flex flex-col justify-between border border-white/[0.03]">
+                    <div key={st.id} className="relative overflow-hidden rounded-[22px] p-6 card-navy flex flex-col justify-between border border-black/5 hover:-translate-y-0.5 transition-all">
                       <div className="flex justify-between items-start mb-4">
                         <div>
                           <p className="text-[0.78rem] text-mist font-bold uppercase tracking-wider mb-1">{st.label}</p>
                           <p className="text-[1.8rem] font-black text-snow leading-none font-mono">{st.value}</p>
                         </div>
-                        <span className="w-9 h-9 rounded-xl flex items-center justify-center text-snow bg-[rgba(196,124,62,0.12)] border border-[rgba(196,124,62,0.22)]">
+                        <span className="w-9 h-9 rounded-xl flex items-center justify-center text-snow bg-[rgba(59, 130, 246,0.12)] border border-[rgba(59, 130, 246,0.22)]">
                           <SvgIcon paths={st.icon} size={15} />
                         </span>
                       </div>
-                      <p className="text-[0.7rem] text-[#c47c3e] font-semibold">{st.delta}</p>
+                      <p className="text-[0.7rem] text-[#3B82F6] font-semibold">{st.delta}</p>
                     </div>
                   ))}
                 </div>
 
-                {/* Active Live Classrooms */}
-                <div className="flex flex-col gap-4 mt-4">
-                  <h3 className="text-[1.05rem] font-extrabold text-white">Active Online Live Classrooms</h3>
-                  <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+                {/* Active Online Live Classrooms (Full Width) */}
+                <div className="flex flex-col gap-4">
+                  <h3 className="text-[1.05rem] font-extrabold text-snow">Active Online Live Classrooms</h3>
+                  <div className="card-navy rounded-[22px] overflow-hidden border border-black/5">
                     <div className="overflow-x-auto">
                       <table className="w-full text-left border-collapse">
                         <thead>
-                          <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                          <tr className="border-b border-[rgba(59, 130, 246,0.12)] bg-black/[0.02]">
                             <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Classroom Title</th>
-                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">6-Digit Code</th>
-                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Instructor</th>
-                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Active Students</th>
-                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Action</th>
+                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider w-32">6-Digit Code</th>
+                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider w-48">Instructor</th>
+                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider w-40">Active Students</th>
+                            <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right w-36">Action</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
+                        <tbody className="divide-y divide-black/5">
                           {activeMeetings.length === 0 ? (
                             <tr>
                               <td colSpan="5" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
@@ -1335,21 +1499,40 @@ export default function DashboardPage() {
                           ) : (
                             activeMeetings.map((m) => {
                               const activeStudentsCount = m.participants.filter(p => p.role === 'student').length;
+                              const initialStr = m.title ? m.title.substring(0, 2).toUpperCase() : "CR";
                               return (
-                                <tr key={m._id} className="hover:bg-white/[0.02] transition-colors">
+                                <tr key={m._id} className="hover:bg-black/[0.02] transition-colors">
                                   <td className="px-6 py-4">
-                                    <div className="text-[0.88rem] font-bold text-white">{m.title}</div>
-                                    <div className="text-[0.74rem] text-mist">{m.description || 'No description'}</div>
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-[0.85rem] font-black text-snow select-none"
+                                           style={{
+                                             background: `linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(255, 255, 255, 0.4) 100%)`,
+                                             border: "1px solid rgba(59, 130, 246, 0.3)"
+                                           }}>
+                                        {initialStr}
+                                      </div>
+                                      <div>
+                                        <div className="text-[0.88rem] font-bold text-snow">{m.title}</div>
+                                        <div className="text-[0.74rem] text-mist">{m.description || 'No description'}</div>
+                                      </div>
+                                    </div>
                                   </td>
                                   <td className="px-6 py-4">
-                                    <span className="px-2.5 py-1 rounded bg-[rgba(196,124,62,0.15)] border border-[rgba(196,124,62,0.25)] font-mono text-[0.8rem] text-snow font-bold">
+                                    <span className="px-2.5 py-1 rounded bg-[rgba(59, 130, 246,0.15)] border border-[rgba(59, 130, 246,0.25)] font-mono text-[0.8rem] text-snow font-bold">
                                       {m.code}
                                     </span>
                                   </td>
-                                  <td className="px-6 py-4 text-[0.85rem] font-semibold text-snow">{m.teacherName}</td>
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-7 h-7 rounded-full bg-[rgba(59,130,246,0.12)] border border-[rgba(59,130,246,0.22)] flex items-center justify-center text-[0.72rem] text-blue-500 font-extrabold select-none">
+                                        {m.teacherName ? m.teacherName.charAt(0).toUpperCase() : 'T'}
+                                      </div>
+                                      <span className="text-[0.85rem] font-semibold text-snow">{m.teacherName}</span>
+                                    </div>
+                                  </td>
                                   <td className="px-6 py-4">
                                     <span className="flex items-center gap-1.5 text-[0.85rem] font-semibold text-snow">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                      <span className="w-1.5 h-1.5 rounded-full bg-[#3B82F6] animate-pulse" />
                                       {activeStudentsCount} active
                                     </span>
                                   </td>
@@ -1366,14 +1549,14 @@ export default function DashboardPage() {
                       </table>
                     </div>
                   </div>
+                  </div>
                 </div>
-              </div>
             ) : activeTab === 'nav-faculty' ? (
               <div className="flex flex-col gap-6 animate-fadeUp">
                 {/* Faculty Hub Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-[1.25rem] font-black text-white">Faculty Hub</h2>
+                    <h2 className="text-[1.25rem] font-black text-snow">Faculty Hub</h2>
                     <p className="text-[0.8rem] text-mist font-medium">Provision teacher accounts and assign primary subjects.</p>
                   </div>
                   
@@ -1393,7 +1576,7 @@ export default function DashboardPage() {
 
                 {/* Notifications */}
                 {crudSuccess && (
-                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-blue-500 bg-[rgba(59,130,246,0.10)] border border-[rgba(59,130,246,0.20)]">
                     ✓ {crudSuccess}
                   </div>
                 )}
@@ -1404,7 +1587,7 @@ export default function DashboardPage() {
                 )}
 
                 {/* Search Bar */}
-                <div className="flex p-4 rounded-2xl card-navy border border-white/[0.03]">
+                <div className="flex p-4 rounded-2xl card-navy border border-black/5">
                   <div className="relative w-full max-w-md">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-snow/30">
                       <SvgIcon paths={["M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"]} size={15} />
@@ -1420,18 +1603,18 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Teachers Table */}
-                <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+                <div className="card-navy rounded-[22px] overflow-hidden border border-black/5">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                        <tr className="border-b border-[rgba(59, 130, 246,0.12)] bg-black/[0.02]">
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Instructor</th>
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Department</th>
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Subjects</th>
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
+                      <tbody className="divide-y divide-black/5">
                         {users.filter(u => u.role === 'teacher').filter(u => {
                           const search = searchQuery.toLowerCase();
                           return `${u.firstName} ${u.lastName} ${u.email} ${u.department || ''} ${u.subjects ? u.subjects.join(' ') : ''}`.toLowerCase().includes(search);
@@ -1446,15 +1629,15 @@ export default function DashboardPage() {
                             const search = searchQuery.toLowerCase();
                             return `${u.firstName} ${u.lastName} ${u.email} ${u.department || ''} ${u.subjects ? u.subjects.join(' ') : ''}`.toLowerCase().includes(search);
                           }).map((u) => (
-                            <tr key={u._id} className="hover:bg-white/[0.02] transition-colors">
+                            <tr key={u._id} className="hover:bg-black/[0.02] transition-colors">
                               <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
                                   <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-snow text-xs"
-                                    style={{ background: "linear-gradient(135deg,#c47c3e,#152038)" }}>
+                                    style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
                                     {(u.firstName[0] + u.lastName[0]).toUpperCase()}
                                   </div>
                                   <div>
-                                    <div className="text-[0.88rem] font-bold text-white">{u.firstName} {u.lastName}</div>
+                                    <div className="text-[0.88rem] font-bold text-snow">{u.firstName} {u.lastName}</div>
                                     <div className="text-[0.74rem] text-mist">{u.email}</div>
                                   </div>
                                 </div>
@@ -1518,7 +1701,7 @@ export default function DashboardPage() {
                                       setCrudSuccess("");
                                       setIsEditModalOpen(true);
                                     }}
-                                    className="p-2 rounded-lg text-mist hover:text-snow hover:bg-white/5 transition-all"
+                                    className="p-2 rounded-lg text-mist hover:text-snow hover:bg-black/5 transition-all"
                                     title="Edit Teacher Profile"
                                   >
                                     <SvgIcon paths={["M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7", "M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"]} size={15} />
@@ -1550,7 +1733,7 @@ export default function DashboardPage() {
                 {/* Academic Enrollment Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-[1.25rem] font-black text-white">Academic Enrollment</h2>
+                    <h2 className="text-[1.25rem] font-black text-snow">Academic Enrollment</h2>
                     <p className="text-[0.8rem] text-mist font-medium">Enroll official students and assign unique academic IDs (roll numbers).</p>
                   </div>
                   
@@ -1570,7 +1753,7 @@ export default function DashboardPage() {
 
                 {/* Notifications */}
                 {crudSuccess && (
-                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-blue-500 bg-[rgba(59,130,246,0.10)] border border-[rgba(59,130,246,0.20)]">
                     ✓ {crudSuccess}
                   </div>
                 )}
@@ -1581,7 +1764,7 @@ export default function DashboardPage() {
                 )}
 
                 {/* Search Bar */}
-                <div className="flex p-4 rounded-2xl card-navy border border-white/[0.03]">
+                <div className="flex p-4 rounded-2xl card-navy border border-black/5">
                   <div className="relative w-full max-w-md">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-snow/30">
                       <SvgIcon paths={["M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"]} size={15} />
@@ -1597,11 +1780,11 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Students Table */}
-                <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+                <div className="card-navy rounded-[22px] overflow-hidden border border-black/5">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                        <tr className="border-b border-[rgba(59, 130, 246,0.12)] bg-black/[0.02]">
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Student</th>
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Roll Number</th>
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Degree Batch</th>
@@ -1609,7 +1792,7 @@ export default function DashboardPage() {
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Actions</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
+                      <tbody className="divide-y divide-black/5">
                         {users.filter(u => u.role === 'student').filter(u => {
                           const search = searchQuery.toLowerCase();
                           return `${u.firstName} ${u.lastName} ${u.email} ${u.rollNumber || ''} ${u.degreeBatch || ''}`.toLowerCase().includes(search);
@@ -1624,15 +1807,15 @@ export default function DashboardPage() {
                             const search = searchQuery.toLowerCase();
                             return `${u.firstName} ${u.lastName} ${u.email} ${u.rollNumber || ''} ${u.degreeBatch || ''}`.toLowerCase().includes(search);
                           }).map((u) => (
-                            <tr key={u._id} className="hover:bg-white/[0.02] transition-colors">
+                            <tr key={u._id} className="hover:bg-black/[0.02] transition-colors">
                               <td className="px-6 py-4">
                                 <div className="flex items-center gap-3">
                                   <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-snow text-xs"
-                                    style={{ background: "linear-gradient(135deg,#c47c3e,#152038)" }}>
+                                    style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
                                     {(u.firstName[0] + u.lastName[0]).toUpperCase()}
                                   </div>
                                   <div>
-                                    <div className="text-[0.88rem] font-bold text-white">{u.firstName} {u.lastName}</div>
+                                    <div className="text-[0.88rem] font-bold text-snow">{u.firstName} {u.lastName}</div>
                                     <div className="text-[0.74rem] text-mist">{u.email}</div>
                                   </div>
                                 </div>
@@ -1677,7 +1860,7 @@ export default function DashboardPage() {
                                       setCrudSuccess("");
                                       setIsEditModalOpen(true);
                                     }}
-                                    className="p-2 rounded-lg text-mist hover:text-snow hover:bg-white/5 transition-all"
+                                    className="p-2 rounded-lg text-mist hover:text-snow hover:bg-black/5 transition-all"
                                     title="Edit Student Profile"
                                   >
                                     <SvgIcon paths={["M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7", "M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"]} size={15} />
@@ -1708,13 +1891,13 @@ export default function DashboardPage() {
               <div className="flex flex-col gap-6 animate-fadeUp">
                 {/* Relationship Mapping Engine */}
                 <div>
-                  <h2 className="text-[1.25rem] font-black text-white">Relationship Mapping Engine</h2>
+                  <h2 className="text-[1.25rem] font-black text-snow">Relationship Mapping Engine</h2>
                   <p className="text-[0.8rem] text-mist font-medium">Link students to their respective teachers and current subjects.</p>
                 </div>
 
                 {/* Notifications */}
                 {crudSuccess && (
-                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                  <div className="px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-blue-500 bg-[rgba(59,130,246,0.10)] border border-[rgba(59,130,246,0.20)]">
                     ✓ {crudSuccess}
                   </div>
                 )}
@@ -1726,7 +1909,7 @@ export default function DashboardPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                   {/* Form section */}
-                  <div className="card-navy p-6 rounded-2xl border border-white/[0.03] lg:col-span-1">
+                  <div className="card-navy p-6 rounded-2xl border border-black/5 lg:col-span-1">
                     <h3 className="text-[0.98rem] font-extrabold text-snow mb-4">Establish Relational Link</h3>
                     <form onSubmit={handleMapRelationship} className="flex flex-col gap-4">
                       {/* Select Student */}
@@ -1736,7 +1919,7 @@ export default function DashboardPage() {
                           value={selectedStudentId}
                           onChange={(e) => setSelectedStudentId(e.target.value)}
                           className="neu-input px-3.5 py-2.5 rounded-xl text-[0.88rem] outline-none cursor-pointer text-snow"
-                          style={{ background: "#152038" }}
+                          style={{ background: "#FFFFFF" }}
                         >
                           <option value="">-- Choose Student --</option>
                           {users.filter(u => u.role === 'student').map((s) => (
@@ -1757,7 +1940,7 @@ export default function DashboardPage() {
                             setSelectedSubject(""); // reset subject when teacher changes
                           }}
                           className="neu-input px-3.5 py-2.5 rounded-xl text-[0.88rem] outline-none cursor-pointer text-snow"
-                          style={{ background: "#152038" }}
+                          style={{ background: "#FFFFFF" }}
                         >
                           <option value="">-- Choose Instructor --</option>
                           {users.filter(u => u.role === 'teacher').map((t) => (
@@ -1776,7 +1959,7 @@ export default function DashboardPage() {
                           onChange={(e) => setSelectedSubject(e.target.value)}
                           disabled={!selectedTeacherId}
                           className="neu-input px-3.5 py-2.5 rounded-xl text-[0.88rem] outline-none cursor-pointer text-snow disabled:opacity-40 disabled:cursor-not-allowed"
-                          style={{ background: "#152038" }}
+                          style={{ background: "#FFFFFF" }}
                         >
                           <option value="">-- Choose Subject Tag --</option>
                           {users.find(u => u._id === selectedTeacherId)?.subjects?.map((sub, idx) => (
@@ -1799,11 +1982,11 @@ export default function DashboardPage() {
                   {/* Table registry section */}
                   <div className="lg:col-span-2 flex flex-col gap-4">
                     <h3 className="text-[0.98rem] font-extrabold text-snow">Active Link Schema Matrix</h3>
-                    <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+                    <div className="card-navy rounded-[22px] overflow-hidden border border-black/5">
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                           <thead>
-                            <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                            <tr className="border-b border-[rgba(59, 130, 246,0.12)] bg-black/[0.02]">
                               <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Student Name</th>
                               <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Roll Number</th>
                               <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Assigned Instructor</th>
@@ -1811,7 +1994,7 @@ export default function DashboardPage() {
                               <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Action</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
+                          <tbody className="divide-y divide-black/5">
                             {relationships.length === 0 ? (
                               <tr>
                                 <td colSpan="5" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
@@ -1820,7 +2003,7 @@ export default function DashboardPage() {
                               </tr>
                             ) : (
                               relationships.map((rel) => (
-                                <tr key={rel._id} className="hover:bg-white/[0.02] transition-colors">
+                                <tr key={rel._id} className="hover:bg-black/[0.02] transition-colors">
                                   <td className="px-6 py-4 text-[0.85rem] font-bold text-white">
                                     {rel.firstName} {rel.lastName}
                                   </td>
@@ -1861,31 +2044,31 @@ export default function DashboardPage() {
                 {/* System Audit Logs */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
-                    <h2 className="text-[1.25rem] font-black text-white">System Audit Logs</h2>
+                    <h2 className="text-[1.25rem] font-black text-snow">System Audit Logs</h2>
                     <p className="text-[0.8rem] text-mist font-medium">Real-time sync logs documenting platform transactions and actions.</p>
                   </div>
                   
                   <button
                     onClick={fetchAuditLogs}
-                    className="btn-secondary px-4 py-2.5 rounded-xl font-bold text-[0.8rem] flex items-center gap-1.5 border border-white/10 text-snow"
+                    className="btn-secondary px-4 py-2.5 rounded-xl font-bold text-[0.8rem] flex items-center gap-1.5 border border-black/10 text-snow"
                   >
                     🔄 Refresh Logs
                   </button>
                 </div>
 
                 {/* Audit Logs Table */}
-                <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+                <div className="card-navy rounded-[22px] overflow-hidden border border-black/5">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                        <tr className="border-b border-[rgba(59, 130, 246,0.12)] bg-black/[0.02]">
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Timestamp</th>
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Action Event</th>
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Details</th>
                           <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Triggered By</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[rgba(196,124,62,0.08)] font-mono text-[0.78rem]">
+                      <tbody className="divide-y divide-black/5 font-mono text-[0.78rem]">
                         {auditLogs.length === 0 ? (
                           <tr>
                             <td colSpan="4" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium font-sans">
@@ -1901,7 +2084,7 @@ export default function DashboardPage() {
                               <td className="px-6 py-4">
                                 <span className={`inline-block text-[0.65rem] font-extrabold px-2.5 py-0.5 rounded-full capitalize ${
                                   log.action.includes('PROVISIONED') || log.action.includes('MAPPED')
-                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25'
+                                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/25'
                                     : log.action.includes('DELETED') || log.action.includes('UNMAPPED')
                                       ? 'bg-red-500/10 text-red-400 border border-red-500/25'
                                       : log.action.includes('CREATED')
@@ -1926,39 +2109,39 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : activeTab === 'nav-settings' ? (
-              <div className="card-navy rounded-[24px] p-8 border border-white/5 max-w-2xl animate-fadeUp">
-                <h2 className="text-[1.2rem] font-black text-white mb-2">System Configuration</h2>
+              <div className="card-navy rounded-[24px] p-8 border border-black/5 max-w-2xl animate-fadeUp">
+                <h2 className="text-[1.2rem] font-black text-snow mb-2">System Configuration</h2>
                 <p className="text-[0.82rem] text-mist mb-6">Manage platform parameters and global administrative configurations.</p>
                 
                 <div className="flex flex-col gap-5">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-[rgba(196,124,62,0.12)]">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
                     <div>
-                      <h3 className="text-[0.88rem] font-bold text-white">Database Status</h3>
+                      <h3 className="text-[0.88rem] font-bold text-snow">Database Status</h3>
                       <p className="text-[0.74rem] text-mist mt-0.5">MongoDB Atlas Connection Status</p>
                     </div>
-                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                       CONNECTED
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-[rgba(196,124,62,0.12)]">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
                     <div>
-                      <h3 className="text-[0.88rem] font-bold text-white">API Health</h3>
+                      <h3 className="text-[0.88rem] font-bold text-snow">API Health</h3>
                       <p className="text-[0.74rem] text-mist mt-0.5">Routes & Handlers Status</p>
                     </div>
-                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                       OPERATIONAL
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-[rgba(196,124,62,0.12)]">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
                     <div>
-                      <h3 className="text-[0.88rem] font-bold text-white">Platform Version</h3>
+                      <h3 className="text-[0.88rem] font-bold text-snow">Platform Version</h3>
                       <p className="text-[0.74rem] text-mist mt-0.5">Production Build Tag</p>
                     </div>
-                    <span className="px-3 py-1 rounded-lg text-[0.75rem] font-bold text-snow bg-[rgba(196,124,62,0.15)] border border-[rgba(196,124,62,0.22)] font-mono">
+                    <span className="px-3 py-1 rounded-lg text-[0.75rem] font-bold text-snow bg-[rgba(59, 130, 246,0.15)] border border-[rgba(59, 130, 246,0.22)] font-mono">
                       v1.0.0-release
                     </span>
                   </div>
@@ -1966,207 +2149,545 @@ export default function DashboardPage() {
               </div>
             ) : null
           ) : role === 'teacher' && activeTab === 'nav-meetings' ? (
-            <div className="flex flex-col gap-6 animate-fadeUp">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 animate-fadeUp">
+              {/* Left Main Dashboard Area */}
+              <div className="xl:col-span-3 flex flex-col gap-6">
+                
+                {/* Header Title Block */}
                 <div>
-                  <h2 className="text-[1.25rem] font-black text-white">My Classroom Sessions</h2>
-                  <p className="text-[0.8rem] text-mist font-medium">Manage instant meetings, view summaries, and check active links.</p>
+                  <h2 className="text-[1.35rem] font-black text-snow">My Classroom Sessions</h2>
+                  <p className="text-[0.8rem] text-mist font-medium">Track engagement, attendance, and session performance.</p>
                 </div>
-                <Link href="/dashboard/create-meeting" className="btn-primary px-5 py-3 rounded-xl font-bold text-[0.85rem] flex items-center gap-2">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                  Start New Meeting
-                </Link>
-              </div>
 
-              <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Class Info</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Code</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">CFI Index</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Attendance</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
-                      {teacherMeetings.length === 0 ? (
-                        <tr>
-                          <td colSpan="6" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
-                            You have not created any meetings yet. Start a new session above!
-                          </td>
+                {/* Overhauled 4 Stats Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Card 1: Total Sessions */}
+                  <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
+                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      <SvgIcon paths={["M15 10l4.553-2.069A1 1 0 0 1 21 8.914V15.086a1 1 0 0 1-1.447.914L15 14M3 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"]} size={17} />
+                    </div>
+                    <div>
+                      <p className="text-[0.77rem] text-mist font-medium mb-0.5">Total Sessions</p>
+                      <p className="text-[1.75rem] font-black text-snow leading-none font-mono">{teacherMeetings.length}</p>
+                    </div>
+                    <span className="text-[0.72rem] font-semibold px-2 py-0.5 rounded-full self-start badge-copper">This Month</span>
+                  </div>
+
+                  {/* Card 2: Average CFI */}
+                  <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
+                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      <SvgIcon paths={["M22 12h-4l-3 9L9 3l-3 9H2"]} size={17} />
+                    </div>
+                    <div>
+                      <p className="text-[0.77rem] text-mist font-medium mb-0.5">Average CFI</p>
+                      <p className="text-[1.75rem] font-black text-snow leading-none font-mono">{avgEngagement}%</p>
+                    </div>
+                    <span className="text-[0.72rem] font-semibold px-2 py-0.5 rounded-full self-start badge-copper">+6% from last month</span>
+                  </div>
+
+                  {/* Card 3: Students Reached */}
+                  <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
+                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      <SvgIcon paths={["M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2", "M23 21v-2a4 4 0 0 0-3-3.87", "M16 3.13a4 4 0 0 1 0 7.75"]} size={17} />
+                    </div>
+                    <div>
+                      <p className="text-[0.77rem] text-mist font-medium mb-0.5">Students Reached</p>
+                      <p className="text-[1.75rem] font-black text-snow leading-none font-mono">{reachedStudentsCount || myStudents.length}</p>
+                    </div>
+                    <span className="text-[0.72rem] font-semibold px-2 py-0.5 rounded-full self-start badge-copper">Across all sessions</span>
+                  </div>
+
+                  {/* Card 4: Engagement Alerts */}
+                  <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
+                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      <SvgIcon paths={["M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9", "M13.73 21a2 2 0 0 1-3.46 0"]} size={17} />
+                    </div>
+                    <div>
+                      <p className="text-[0.77rem] text-mist font-medium mb-0.5">Engagement Alerts</p>
+                      <p className="text-[1.75rem] font-black text-snow leading-none font-mono">{compiledTeacherAlerts.length}</p>
+                    </div>
+                    <span className="text-[0.72rem] font-semibold px-2 py-0.5 rounded-full self-start badge-copper">Needs attention</span>
+                  </div>
+                </div>
+
+                {/* Filter and Search Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl card-navy border border-black/5">
+                  <div className="relative w-full md:w-72">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-snow/30">
+                      <SvgIcon paths={["M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"]} size={15} />
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Search sessions..."
+                      value={teacherSearchQuery}
+                      onChange={(e) => {
+                        setTeacherSearchQuery(e.target.value);
+                        setTeacherCurrentPage(1);
+                      }}
+                      className="neu-input w-full pl-10 pr-4 py-2.5 rounded-xl text-[0.85rem] outline-none"
+                    />
+                  </div>
+                  
+                  {/* Select Dropdown Filters */}
+                  <div className="flex flex-wrap gap-2.5 items-center">
+                    <select
+                      value={teacherStatusFilter}
+                      onChange={(e) => {
+                        setTeacherStatusFilter(e.target.value);
+                        setTeacherCurrentPage(1);
+                      }}
+                      className="neu-input px-3.5 py-2 rounded-xl text-[0.82rem] outline-none cursor-pointer text-snow bg-[#FFFFFF] border border-black/5"
+                    >
+                      <option value="all">All Status</option>
+                      <option value="active">Active Only</option>
+                      <option value="ended">Ended Only</option>
+                    </select>
+
+                    <select
+                      value={teacherDateFilter}
+                      onChange={(e) => {
+                        setTeacherDateFilter(e.target.value);
+                        setTeacherCurrentPage(1);
+                      }}
+                      className="neu-input px-3.5 py-2 rounded-xl text-[0.82rem] outline-none cursor-pointer text-snow bg-[#FFFFFF] border border-black/5"
+                    >
+                      <option value="all">Date Range</option>
+                      <option value="today">Today</option>
+                      <option value="7days">Last 7 Days</option>
+                      <option value="30days">Last 30 Days</option>
+                    </select>
+
+                    <select
+                      value={teacherCfiFilter}
+                      onChange={(e) => {
+                        setTeacherCfiFilter(e.target.value);
+                        setTeacherCurrentPage(1);
+                      }}
+                      className="neu-input px-3.5 py-2 rounded-xl text-[0.82rem] outline-none cursor-pointer text-snow bg-[#FFFFFF] border border-black/5"
+                    >
+                      <option value="all">CFI Score</option>
+                      <option value="excellent">Excellent (&gt;=85%)</option>
+                      <option value="good">Good (70-84%)</option>
+                      <option value="low">Fatigued (&lt;70%)</option>
+                    </select>
+
+                    {/* Reset Button */}
+                    {(teacherSearchQuery || teacherStatusFilter !== "all" || teacherDateFilter !== "all" || teacherCfiFilter !== "all") && (
+                      <button
+                        onClick={() => {
+                          setTeacherSearchQuery("");
+                          setTeacherStatusFilter("all");
+                          setTeacherDateFilter("all");
+                          setTeacherCfiFilter("all");
+                          setTeacherCurrentPage(1);
+                        }}
+                        className="p-2 rounded-xl text-mist hover:text-snow bg-black/5 border border-black/10 hover:bg-black/5 transition-all flex items-center justify-center"
+                        title="Reset Filters"
+                      >
+                        <SvgIcon paths={["M2 12a10 10 0 1 0 10-10H10", "M12 2v6H6"]} size={15} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Overhauled Sessions Table Card */}
+                <div className="card-navy rounded-[22px] overflow-hidden border border-black/5">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-[rgba(59, 130, 246,0.12)] bg-black/[0.02]">
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Session</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider w-28">Status</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider w-48">CFI (Class Fatigue Index)</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider w-40">Attendance</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right w-80">Actions</th>
                         </tr>
-                      ) : (
-                        teacherMeetings.map((m) => {
-                          const studentParticipants = m.participants.filter(p => p.role === 'student');
-                          return (
-                            <Fragment key={m._id}>
-                              <tr className="hover:bg-white/[0.01] transition-colors">
-                                <td className="px-6 py-4">
-                                  <div className="text-[0.88rem] font-bold text-white">{m.title}</div>
-                                  <div className="text-[0.72rem] text-mist">{new Date(m.createdAt).toLocaleString()}</div>
-                                </td>
-                                <td className="px-6 py-4 font-mono text-[0.8rem] font-bold text-snow">
-                                  <span className="px-2 py-0.5 rounded bg-[rgba(196,124,62,0.12)] border border-[rgba(196,124,62,0.25)] text-amber-400">
-                                    {m.code}
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                  {m.active ? (
-                                    <span className="flex items-center gap-1.5 text-[0.8rem] text-emerald-400 font-bold">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                      Active
-                                    </span>
-                                  ) : (
-                                    <span className="text-[0.8rem] text-mist font-semibold">Ended</span>
-                                  )}
-                                </td>
-                                <td className="px-6 py-4">
-                                  <span className="text-[0.82rem] font-bold text-snow">{m.cfi || 75}%</span>
-                                </td>
-                                <td className="px-6 py-4 text-[0.82rem] font-medium text-snow">
-                                  {studentParticipants.length} present
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                  <div className="flex items-center justify-end gap-2">
-                                    <button
-                                      onClick={() => setExpandedMeetingId(expandedMeetingId === m._id ? null : m._id)}
-                                      className="px-2.5 py-1.5 rounded-lg text-[0.72rem] font-extrabold uppercase tracking-wider text-mist hover:text-snow hover:bg-white/5 transition-all"
-                                    >
-                                      {expandedMeetingId === m._id ? "Hide Details" : "View Details"}
-                                    </button>
-                                    {m.active ? (
-                                      <>
-                                        <Link href={`/dashboard/classroom/${m.code}?role=teacher`} className="btn-primary px-3.5 py-1.5 rounded-lg text-[0.74rem] font-bold">
-                                          Join
-                                        </Link>
-                                        <button
-                                          onClick={() => handleEndMeeting(m.code)}
-                                          className="px-3.5 py-1.5 rounded-lg text-[0.74rem] font-bold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all"
-                                        >
-                                          End
-                                        </button>
-                                      </>
-                                    ) : (
-                                      <button
-                                        onClick={() => {
-                                          setSelectedAttendanceMeetingId(m._id);
-                                          setActiveTab("nav-attendance");
-                                        }}
-                                        className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold bg-white/5 text-snow border border-white/10 hover:bg-white/10 transition-all"
-                                      >
-                                        Attendance
-                                      </button>
-                                    )}
-                                  </div>
-                                </td>
-                              </tr>
-                              {expandedMeetingId === m._id && (
-                                <tr className="bg-white/[0.01]">
-                                  <td colSpan="6" className="px-6 py-5">
-                                    <div className="flex flex-col gap-5 p-5 rounded-xl border border-white/[0.04] bg-[#152038]/60 animate-slide-down">
-                                      <h4 className="text-[0.9rem] font-extrabold text-[#c47c3e] border-b border-white/[0.05] pb-2">Session Details Matrix</h4>
-                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        {/* Participants */}
-                                        <div className="flex flex-col gap-2.5">
-                                          <h5 className="text-[0.78rem] font-bold text-white uppercase tracking-wider">Participants ({m.participants.length})</h5>
-                                          <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
-                                            {m.participants.length === 0 ? (
-                                              <p className="text-[0.74rem] text-mist italic">No participants joined this session.</p>
-                                            ) : (
-                                              m.participants.map((p, idx) => (
-                                                <div key={idx} className="flex items-center justify-between p-2 rounded bg-white/[0.02] border border-white/[0.03]">
-                                                  <span className="text-[0.78rem] font-semibold text-snow">{p.name}</span>
-                                                  <span className="text-[0.72rem] font-bold px-2 py-0.5 rounded badge-copper capitalize">{p.role} · {p.score}%</span>
-                                                </div>
-                                              ))
-                                            )}
-                                          </div>
-                                        </div>
-                                        {/* Chat Messages */}
-                                        <div className="flex flex-col gap-2.5">
-                                          <h5 className="text-[0.78rem] font-bold text-white uppercase tracking-wider">Chat Logs ({m.messages?.length || 0})</h5>
-                                          <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
-                                            {!m.messages || m.messages.length === 0 ? (
-                                              <p className="text-[0.74rem] text-mist italic">No messages sent in this session.</p>
-                                            ) : (
-                                              m.messages.map((msg, idx) => (
-                                                <div key={idx} className="p-2 rounded bg-white/[0.02] border border-white/[0.03] text-[0.74rem]">
-                                                  <div className="flex justify-between font-bold text-snow mb-0.5">
-                                                    <span>{msg.sender}</span>
-                                                    <span className="text-mist text-[0.66rem]">{msg.time}</span>
-                                                  </div>
-                                                  <p className="text-mist">{msg.msg}</p>
-                                                </div>
-                                              ))
-                                            )}
-                                          </div>
-                                        </div>
-                                        {/* Topic Markers */}
-                                        <div className="flex flex-col gap-2.5">
-                                          <h5 className="text-[0.78rem] font-bold text-white uppercase tracking-wider">Topic Markers ({m.topicMarkers?.length || 0})</h5>
-                                          <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
-                                            {!m.topicMarkers || m.topicMarkers.length === 0 ? (
-                                              <p className="text-[0.74rem] text-mist italic">No topic markers set in this session.</p>
-                                            ) : (
-                                              m.topicMarkers.map((marker, idx) => (
-                                                <div key={idx} className="flex justify-between items-center p-2 rounded bg-white/[0.02] border border-white/[0.03] text-[0.74rem]">
-                                                  <span className="font-semibold text-snow">&quot;{marker.label}&quot;</span>
-                                                  <span className="text-[#c47c3e] font-bold">{marker.time} · {marker.cfi}% CFI</span>
-                                                </div>
-                                              ))
-                                            )}
-                                          </div>
+                      </thead>
+                      <tbody className="divide-y divide-black/5">
+                        {filteredTeacherMeetings.length === 0 ? (
+                          <tr>
+                            <td colSpan="5" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
+                              No classroom sessions found matching the filter criteria.
+                            </td>
+                          </tr>
+                        ) : (
+                          paginatedTeacherMeetings.map((m) => {
+                            const studentParticipants = m.participants.filter(p => p.role === 'student');
+                            const totalRegistryCount = myStudents.length || 50; 
+                            const attendancePercent = totalRegistryCount > 0 ? Math.round((studentParticipants.length / totalRegistryCount) * 100) : 0;
+                            
+                            // Calculate CFI variables
+                            const cfiVal = m.cfi || 75;
+                            const radius = 14;
+                            const circumference = 2 * Math.PI * radius;
+                            const offset = circumference - (cfiVal / 100) * circumference;
+
+                            // Determine CFI label, color & sub-bars
+                            let cfiLabel = "Excellent";
+                            let cfiStatus = "Class Engaged";
+                            let cfiColorClass = "stroke-blue-400 text-blue-400";
+                            let cfiBgClass = "bg-blue-500";
+                            if (cfiVal < 55) {
+                              cfiLabel = "Critical";
+                              cfiStatus = "High Fatigue";
+                              cfiColorClass = "stroke-red-400 text-red-400";
+                              cfiBgClass = "bg-red-500";
+                            } else if (cfiVal < 70) {
+                              cfiLabel = "Moderate";
+                              cfiStatus = "Fatigue Creep";
+                              cfiColorClass = "stroke-orange-400 text-orange-400";
+                              cfiBgClass = "bg-orange-500";
+                            } else if (cfiVal < 85) {
+                              cfiLabel = "Good";
+                              cfiStatus = "Progress";
+                              cfiColorClass = "stroke-amber-400 text-amber-400";
+                              cfiBgClass = "bg-amber-500";
+                            }
+
+                            // Dynamic Duration
+                            const getSessionDuration = (cls) => {
+                              if (cls.active) return "Active Now";
+                              const diffMs = new Date(cls.updatedAt) - new Date(cls.createdAt);
+                              const diffMins = Math.max(1, Math.round(diffMs / 60000));
+                              if (diffMins < 60) return `${diffMins}m`;
+                              const hrs = Math.floor(diffMins / 60);
+                              const mins = diffMins % 60;
+                              return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
+                            };
+
+                            const gradients = [
+                              "linear-gradient(135deg, #3b82f6, #1e3a8a)",
+                              "linear-gradient(135deg, #1d4ed8, #0f172a)",
+                              "linear-gradient(135deg, #2563eb, #1e293b)",
+                              "linear-gradient(135deg, #60a5fa, #172554)",
+                              "linear-gradient(135deg, #3a86ff, #023e8a)"
+                            ];
+                            const gradientIndex = m.title.charCodeAt(0) % gradients.length;
+                            const avatarGradient = gradients[gradientIndex];
+
+                            return (
+                              <Fragment key={m._id}>
+                                <tr className="hover:bg-white/[0.01] transition-colors">
+                                  {/* Session Info */}
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
+                                           style={{ background: avatarGradient, border: "1px solid rgba(255,255,255,0.08)" }}>
+                                        {m.title.slice(0, 2).toUpperCase()}
+                                      </div>
+                                      <div>
+                                        <div className="text-[0.88rem] font-bold text-snow hover:text-[#3B82F6] transition-colors cursor-default">{m.title}</div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <span className="px-1.5 py-0.5 rounded text-[0.66rem] font-bold bg-[rgba(59, 130, 246,0.12)] border border-[rgba(59, 130, 246,0.22)] text-amber-400 font-mono">
+                                            {m.code}
+                                          </span>
+                                          <span className="text-[0.72rem] text-mist">{new Date(m.createdAt).toLocaleString()}</span>
                                         </div>
                                       </div>
                                     </div>
                                   </td>
+
+                                  {/* Status */}
+                                  <td className="px-6 py-4">
+                                    {m.active ? (
+                                      <span className="flex items-center gap-1.5 text-[0.8rem] text-blue-400 font-bold">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                                        Active
+                                      </span>
+                                    ) : (
+                                      <div className="flex flex-col">
+                                        <span className="text-[0.8rem] text-mist font-semibold">Ended</span>
+                                        <span className="text-[0.7rem] text-mist/60 font-medium font-mono">{getSessionDuration(m)}</span>
+                                      </div>
+                                    )}
+                                  </td>
+
+                                  {/* CFI circular progress */}
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                      <svg className="w-9 h-9 transform -rotate-90 flex-shrink-0" viewBox="0 0 36 36">
+                                        <circle cx="18" cy="18" r={radius} className="stroke-white/5" strokeWidth="3" fill="transparent" />
+                                        <circle cx="18" cy="18" r={radius} className={cfiColorClass.split(" ")[0]} strokeWidth="3" fill="transparent"
+                                                strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
+                                      </svg>
+                                      <div className="flex flex-col">
+                                        <span className="text-[0.82rem] font-bold text-snow">{cfiVal}%</span>
+                                        <span className={`text-[0.68rem] font-extrabold uppercase tracking-wide ${cfiColorClass.split(" ")[1]}`}>{cfiLabel}</span>
+                                        <div className="w-16 h-1 rounded-full bg-black/5 overflow-hidden mt-1">
+                                          <div className={`h-full ${cfiBgClass}`} style={{ width: `${cfiVal}%` }} />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+
+                                  {/* Attendance progress */}
+                                  <td className="px-6 py-4">
+                                    <div className="flex flex-col gap-1 w-24">
+                                      <div className="flex items-baseline justify-between text-[0.82rem] font-bold text-snow">
+                                        <span>{studentParticipants.length} / {totalRegistryCount}</span>
+                                      </div>
+                                      <div className="w-full h-1.5 rounded-full bg-black/5 overflow-hidden">
+                                        <div className="h-full bg-blue-500" style={{ width: `${Math.min(100, attendancePercent)}%` }} />
+                                      </div>
+                                      <span className="text-[0.68rem] text-mist/60 font-semibold">{attendancePercent}% Attendance</span>
+                                    </div>
+                                  </td>
+
+                                  {/* Actions */}
+                                  <td className="px-6 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                      <button
+                                        onClick={() => setExpandedMeetingId(expandedMeetingId === m._id ? null : m._id)}
+                                        className="px-2.5 py-1.5 rounded-lg text-[0.72rem] font-extrabold uppercase tracking-wider text-mist hover:text-snow hover:bg-black/5 transition-all"
+                                      >
+                                        {expandedMeetingId === m._id ? "Hide Details" : "View Details"}
+                                      </button>
+                                      {m.active ? (
+                                        <>
+                                          <Link href={`/dashboard/classroom/${m.code}?role=teacher`} className="btn-primary px-3.5 py-1.5 rounded-lg text-[0.74rem] font-bold">
+                                            Join
+                                          </Link>
+                                          <button
+                                            onClick={() => handleEndMeeting(m.code)}
+                                            className="px-3.5 py-1.5 rounded-lg text-[0.74rem] font-bold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                                          >
+                                            End
+                                          </button>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <button
+                                            onClick={() => {
+                                              setActiveTab("nav-analytics");
+                                            }}
+                                            className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold bg-black/5 text-snow border border-black/10 hover:bg-black/5 transition-all"
+                                          >
+                                            Analytics
+                                          </button>
+                                          <button
+                                            onClick={() => {
+                                              setSelectedAttendanceMeetingId(m._id);
+                                              setActiveTab("nav-attendance");
+                                            }}
+                                            className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold bg-[#3B82F6]/10 text-amber-400 border border-[#3B82F6]/20 hover:bg-[#3B82F6]/20 transition-all"
+                                          >
+                                            Attendance
+                                          </button>
+                                        </>
+                                      )}
+                                    </div>
+                                  </td>
                                 </tr>
-                              )}
-                            </Fragment>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
+
+                                {/* Expanded meeting details drawer */}
+                                {expandedMeetingId === m._id && (
+                                  <tr className="bg-white/[0.01]">
+                                    <td colSpan="5" className="px-6 py-5">
+                                      <div className="flex flex-col gap-5 p-5 rounded-xl border border-white/[0.04] bg-black/[0.01] animate-slide-down">
+                                        <h4 className="text-[0.9rem] font-extrabold text-[#3B82F6] border-b border-black/5 pb-2">Session Details Matrix</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                          {/* Participants */}
+                                          <div className="flex flex-col gap-2.5">
+                                            <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Participants ({m.participants.length})</h5>
+                                            <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
+                                              {m.participants.length === 0 ? (
+                                                <p className="text-[0.74rem] text-mist italic">No participants joined this session.</p>
+                                              ) : (
+                                                m.participants.map((p, idx) => (
+                                                  <div key={idx} className="flex items-center justify-between p-2 rounded bg-black/[0.02] border border-black/5">
+                                                    <span className="text-[0.78rem] font-semibold text-snow">{p.name}</span>
+                                                    <span className="text-[0.72rem] font-bold px-2 py-0.5 rounded badge-copper capitalize">{p.role} · {p.score}%</span>
+                                                  </div>
+                                                ))
+                                              )}
+                                            </div>
+                                          </div>
+                                          {/* Chat Messages */}
+                                          <div className="flex flex-col gap-2.5">
+                                            <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Chat Logs ({m.messages?.length || 0})</h5>
+                                            <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
+                                              {!m.messages || m.messages.length === 0 ? (
+                                                <p className="text-[0.74rem] text-mist italic">No messages sent in this session.</p>
+                                              ) : (
+                                                m.messages.map((msg, idx) => (
+                                                  <div key={idx} className="p-2 rounded bg-black/[0.02] border border-black/5 text-[0.74rem]">
+                                                    <div className="flex justify-between font-bold text-snow mb-0.5">
+                                                      <span>{msg.sender}</span>
+                                                      <span className="text-mist text-[0.66rem]">{msg.time}</span>
+                                                    </div>
+                                                    <p className="text-mist">{msg.msg}</p>
+                                                  </div>
+                                                ))
+                                              )}
+                                            </div>
+                                          </div>
+                                          {/* Topic Markers */}
+                                          <div className="flex flex-col gap-2.5">
+                                            <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Topic Markers ({m.topicMarkers?.length || 0})</h5>
+                                            <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
+                                              {!m.topicMarkers || m.topicMarkers.length === 0 ? (
+                                                <p className="text-[0.74rem] text-mist italic">No topic markers set in this session.</p>
+                                              ) : (
+                                                m.topicMarkers.map((marker, idx) => (
+                                                  <div key={idx} className="flex justify-between items-center p-2 rounded bg-black/[0.02] border border-black/5 text-[0.74rem]">
+                                                    <span className="font-semibold text-snow">&quot;{marker.label}&quot;</span>
+                                                    <span className="text-[#3B82F6] font-bold">{marker.time} · {marker.cfi}% CFI</span>
+                                                  </div>
+                                                ))
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </Fragment>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Footer */}
+                  {teacherTotalPages > 1 && (
+                    <div className="px-6 py-4 border-t border-[rgba(59, 130, 246,0.12)] bg-[rgba(255, 255, 255,0.1)] flex items-center justify-between">
+                      <span className="text-[0.76rem] text-mist">
+                        Showing page {teacherCurrentPage} of {teacherTotalPages} ({filteredTeacherMeetings.length} sessions total)
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          disabled={teacherCurrentPage === 1}
+                          onClick={() => setTeacherCurrentPage(teacherCurrentPage - 1)}
+                          className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-black/10 bg-black/5 hover:bg-black/5 disabled:opacity-40 disabled:pointer-events-none transition-all"
+                        >
+                          Previous
+                        </button>
+                        {Array.from({ length: teacherTotalPages }, (_, i) => i + 1).map((pNum) => (
+                          <button
+                            key={pNum}
+                            onClick={() => setTeacherCurrentPage(pNum)}
+                            className={`px-3 py-1.5 rounded-lg text-[0.74rem] font-bold transition-all ${
+                              teacherCurrentPage === pNum
+                                ? "bg-[#3B82F6] text-white border border-[#3B82F6]"
+                                : "text-snow border border-black/10 bg-black/5 hover:bg-black/5"
+                            }`}
+                          >
+                            {pNum}
+                          </button>
+                        ))}
+                        <button
+                          disabled={teacherCurrentPage === teacherTotalPages}
+                          onClick={() => setTeacherCurrentPage(teacherCurrentPage + 1)}
+                          className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-black/10 bg-black/5 hover:bg-black/5 disabled:opacity-40 disabled:pointer-events-none transition-all"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Sidebar Columns Area */}
+              <div className="xl:col-span-1 flex flex-col gap-6">
+                {/* Start Session CTA Button */}
+                <Link
+                  href="/dashboard/create-meeting"
+                  className="w-full btn-primary px-5 py-4 rounded-2xl font-bold text-[0.88rem] flex items-center justify-center gap-2 hover:shadow-[0_10px_25px_rgba(59, 130, 246,0.25)] hover:-translate-y-0.5 transition-all text-white"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Start New Session
+                </Link>
+
+                {/* Alerts Warning Card Box */}
+                <div className="card-navy rounded-[22px] border border-black/5 p-5 flex flex-col gap-4">
+                  <div className="flex items-center justify-between border-b border-black/5 pb-2.5">
+                    <h3 className="text-[0.92rem] font-black text-snow">Recent Alerts</h3>
+                    <button
+                      onClick={() => {
+                        setTeacherCfiFilter("low");
+                        setTeacherCurrentPage(1);
+                      }}
+                      className="text-[0.72rem] font-bold text-[#3B82F6] hover:text-[#1D4ED8] transition-colors"
+                    >
+                      View All
+                    </button>
+                  </div>
+
+                  <div className="flex flex-col gap-3 max-h-[360px] overflow-y-auto pr-1 dark-scroll">
+                    {compiledTeacherAlerts.length === 0 ? (
+                      <p className="text-[0.75rem] text-mist italic text-center py-4">
+                        No warning alerts generated. All sessions stable.
+                      </p>
+                    ) : (
+                      compiledTeacherAlerts.map((alt) => (
+                        <div
+                          key={alt.id}
+                          className="p-3 rounded-xl bg-black/[0.02] border border-black/5 hover:border-[#3B82F6]/20 transition-all flex flex-col gap-1.5"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className={`text-[0.7rem] font-bold px-2 py-0.5 rounded ${
+                              alt.type === "Attention Required"
+                                ? "bg-red-500/10 text-red-400 border border-red-500/15"
+                                : "bg-orange-500/10 text-orange-400 border border-orange-500/15"
+                            }`}>
+                              {alt.type}
+                            </span>
+                            <span className="text-[0.66rem] text-mist/60 font-mono">{alt.dateStr}, {alt.time}</span>
+                          </div>
+                          <div>
+                            <p className="text-[0.8rem] font-bold text-snow">{alt.studentName}</p>
+                            <p className="text-[0.68rem] text-mist mt-0.5">Session: &quot;{alt.meetingTitle}&quot;</p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
           ) : role === 'teacher' && activeTab === 'nav-analytics' ? (
             <div className="flex flex-col gap-6 animate-fadeUp">
               <div>
-                <h2 className="text-[1.25rem] font-black text-white">Classroom Performance Analytics</h2>
+                <h2 className="text-[1.25rem] font-black text-snow">Classroom Performance Analytics</h2>
                 <p className="text-[0.8rem] text-mist font-medium">Visual indicators tracking cognitive fatigue index trends and student leaderboards.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div className="card-navy rounded-[20px] p-6 border border-white/[0.03]">
+                <div className="card-navy rounded-[20px] p-6 border border-black/5">
                   <p className="text-[0.74rem] text-mist font-bold uppercase tracking-wide mb-1">Average Classroom CFI</p>
                   <p className="text-[1.6rem] font-black text-snow leading-none font-mono">{avgEngagement}%</p>
-                  <span className="inline-block mt-2 text-[0.66rem] text-[#c47c3e] font-bold">Standard engagement baseline</span>
+                  <span className="inline-block mt-2 text-[0.66rem] text-[#3B82F6] font-bold">Standard engagement baseline</span>
                 </div>
-                <div className="card-navy rounded-[20px] p-6 border border-white/[0.03]">
+                <div className="card-navy rounded-[20px] p-6 border border-black/5">
                   <p className="text-[0.74rem] text-mist font-bold uppercase tracking-wide mb-1">Total Monitored Sessions</p>
                   <p className="text-[1.6rem] font-black text-snow leading-none font-mono">{totalSessions}</p>
-                  <span className="inline-block mt-2 text-[0.66rem] text-[#c47c3e] font-bold">MongoDB historical count</span>
+                  <span className="inline-block mt-2 text-[0.66rem] text-[#3B82F6] font-bold">MongoDB historical count</span>
                 </div>
-                <div className="card-navy rounded-[20px] p-6 border border-white/[0.03]">
+                <div className="card-navy rounded-[20px] p-6 border border-black/5">
                   <p className="text-[0.74rem] text-mist font-bold uppercase tracking-wide mb-1">Assigned Active Students</p>
                   <p className="text-[1.6rem] font-black text-snow leading-none font-mono">{myStudents.length}</p>
-                  <span className="inline-block mt-2 text-[0.66rem] text-[#c47c3e] font-bold">Academic registry matches</span>
+                  <span className="inline-block mt-2 text-[0.66rem] text-[#3B82F6] font-bold">Academic registry matches</span>
                 </div>
               </div>
 
-              <div className="card-navy p-6 rounded-[22px] border border-white/[0.03] flex flex-col gap-4">
+              <div className="card-navy p-6 rounded-[22px] border border-black/5 flex flex-col gap-4">
                 <div>
-                  <h3 className="text-[0.95rem] font-bold text-white">Cognitive Fatigue Index (CFI) Historical Trend</h3>
+                  <h3 className="text-[0.95rem] font-bold text-snow">Cognitive Fatigue Index (CFI) Historical Trend</h3>
                   <p className="text-[0.74rem] text-mist">Tracking the 5 most recent classroom sessions (oldest to newest).</p>
                 </div>
                 
                 {teacherMeetings.length === 0 ? (
-                  <div className="h-48 flex items-center justify-center text-[0.8rem] text-mist italic bg-white/[0.01] rounded-xl border border-white/5">
+                  <div className="h-48 flex items-center justify-center text-[0.8rem] text-mist italic bg-white/[0.01] rounded-xl border border-black/5">
                     No meeting data available to display trend graphs.
                   </div>
                 ) : (
@@ -2176,15 +2697,15 @@ export default function DashboardPage() {
                         const cfiVal = meet.cfi || 75;
                         return (
                           <div key={meet._id} className="flex-1 flex flex-col items-center gap-2 group relative">
-                            <div className="absolute bottom-full mb-2 bg-[#152038] border border-[#c47c3e]/30 px-2.5 py-1 rounded text-[0.7rem] font-bold text-snow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg whitespace-nowrap z-10">
+                            <div className="absolute bottom-full mb-2 bg-[#FFFFFF] border border-[#3B82F6]/30 px-2.5 py-1 rounded text-[0.7rem] font-bold text-snow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg whitespace-nowrap z-10">
                               {meet.title} · {cfiVal}%
                             </div>
                             <div 
                               className="w-full sm:w-16 rounded-t-lg transition-all duration-500 hover:brightness-125"
                               style={{ 
                                 height: `${cfiVal}%`, 
-                                background: "linear-gradient(180deg, #c47c3e 0%, #8c5828 100%)",
-                                boxShadow: "0 0 15px rgba(196, 124, 62, 0.2)"
+                                background: "linear-gradient(180deg, #3B82F6 0%, #1D4ED8 100%)",
+                                boxShadow: "0 0 15px rgba(59, 130, 246, 0.2)"
                               }}
                             />
                             <span className="text-[0.72rem] font-bold text-snow font-mono">{meet.code}</span>
@@ -2200,16 +2721,16 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03] flex flex-col gap-4 p-6">
+              <div className="card-navy rounded-[22px] overflow-hidden border border-black/5 flex flex-col gap-4 p-6">
                 <div>
-                  <h3 className="text-[0.95rem] font-bold text-white">Student Engagement Leaderboard</h3>
+                  <h3 className="text-[0.95rem] font-bold text-snow">Student Engagement Leaderboard</h3>
                   <p className="text-[0.74rem] text-mist">Average attention and cognitive fatigue index mapped across monitored classrooms.</p>
                 </div>
 
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+                      <tr className="border-b border-white/[0.06] bg-black/[0.02]">
                         <th className="px-5 py-3 text-[0.78rem] font-bold text-mist uppercase">Rank</th>
                         <th className="px-5 py-3 text-[0.78rem] font-bold text-mist uppercase">Student Name</th>
                         <th className="px-5 py-3 text-[0.78rem] font-bold text-mist uppercase">Roll Number</th>
@@ -2273,7 +2794,7 @@ export default function DashboardPage() {
                               <td className="px-5 py-3.5 text-[0.8rem] text-snow">
                                 {stud.sessionsCount} sessions
                               </td>
-                              <td className="px-5 py-3.5 text-right font-bold text-[0.82rem] text-[#c47c3e]">
+                              <td className="px-5 py-3.5 text-right font-bold text-[0.82rem] text-[#3B82F6]">
                                 {stud.avgScore}%
                               </td>
                             </tr>
@@ -2288,11 +2809,11 @@ export default function DashboardPage() {
           ) : role === 'teacher' && activeTab === 'nav-students' ? (
             <div className="flex flex-col gap-6 animate-fadeUp">
               <div>
-                <h2 className="text-[1.25rem] font-black text-white">Academic Student Registry</h2>
+                <h2 className="text-[1.25rem] font-black text-snow">Academic Student Registry</h2>
                 <p className="text-[0.8rem] text-mist font-medium">View and search official learners mapped to your instruction channels.</p>
               </div>
 
-              <div className="flex p-4 rounded-2xl card-navy border border-white/[0.03]">
+              <div className="flex p-4 rounded-2xl card-navy border border-black/5">
                 <div className="relative w-full max-w-md">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-snow/30">
                     <SvgIcon paths={["M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"]} size={15} />
@@ -2310,18 +2831,18 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+              <div className="card-navy rounded-[22px] overflow-hidden border border-black/5">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                      <tr className="border-b border-[rgba(59, 130, 246,0.12)] bg-black/[0.02]">
                         <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Learner Name</th>
                         <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Roll Number</th>
                         <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Degree Batch</th>
                         <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Assigned Subject</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
+                    <tbody className="divide-y divide-black/5">
                       {(() => {
                         const filtered = myStudents.filter(s => {
                           const term = studentSearchQuery.toLowerCase();
@@ -2346,15 +2867,15 @@ export default function DashboardPage() {
                         return (
                           <>
                             {pageItems.map((s) => (
-                              <tr key={s._id} className="hover:bg-white/[0.02] transition-colors">
+                              <tr key={s._id} className="hover:bg-black/[0.02] transition-colors">
                                 <td className="px-6 py-4">
                                   <div className="flex items-center gap-3">
                                     <div className="w-8.5 h-8.5 rounded-full flex items-center justify-center font-bold text-snow text-xs"
-                                      style={{ background: "linear-gradient(135deg,#c47c3e,#152038)" }}>
+                                      style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
                                       {(s.firstName[0] + s.lastName[0]).toUpperCase()}
                                     </div>
                                     <div>
-                                      <div className="text-[0.86rem] font-bold text-white">{s.firstName} {s.lastName}</div>
+                                      <div className="text-[0.86rem] font-bold text-snow">{s.firstName} {s.lastName}</div>
                                       <div className="text-[0.72rem] text-mist">{s.email}</div>
                                     </div>
                                   </div>
@@ -2383,14 +2904,14 @@ export default function DashboardPage() {
                                       <button
                                         disabled={studentPage === 1}
                                         onClick={() => setStudentPage(studentPage - 1)}
-                                        className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:pointer-events-none transition-all"
+                                        className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-black/10 bg-black/5 hover:bg-black/5 disabled:opacity-40 disabled:pointer-events-none transition-all"
                                       >
                                         Previous
                                       </button>
                                       <button
                                         disabled={studentPage === totalPages}
                                         onClick={() => setStudentPage(studentPage + 1)}
-                                        className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-white/10 bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:pointer-events-none transition-all"
+                                        className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-black/10 bg-black/5 hover:bg-black/5 disabled:opacity-40 disabled:pointer-events-none transition-all"
                                       >
                                         Next
                                       </button>
@@ -2410,18 +2931,18 @@ export default function DashboardPage() {
           ) : role === 'teacher' && activeTab === 'nav-attendance' ? (
             <div className="flex flex-col gap-6 animate-fadeUp">
               <div>
-                <h2 className="text-[1.25rem] font-black text-white">Classroom Attendance Registry</h2>
+                <h2 className="text-[1.25rem] font-black text-snow">Classroom Attendance Registry</h2>
                 <p className="text-[0.8rem] text-mist font-medium">Select a historical meeting session to query the check-in rosters.</p>
               </div>
 
-              <div className="card-navy p-6 rounded-2xl border border-white/[0.03] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="card-navy p-6 rounded-2xl border border-black/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex flex-col gap-1.5 w-full max-w-md">
                   <label className="text-[0.78rem] font-semibold text-snow/70">Select Monitored Session</label>
                   <select
                     value={selectedAttendanceMeetingId}
                     onChange={(e) => setSelectedAttendanceMeetingId(e.target.value)}
                     className="neu-input px-3.5 py-2.5 rounded-xl text-[0.88rem] outline-none cursor-pointer text-snow"
-                    style={{ background: "#152038" }}
+                    style={{ background: "#FFFFFF" }}
                   >
                     <option value="">-- Choose Classroom Meeting --</option>
                     {teacherMeetings.map((meet) => (
@@ -2455,7 +2976,7 @@ export default function DashboardPage() {
                         document.body.removeChild(link);
                       }
                     }}
-                    className="btn-secondary px-4 py-2.5 rounded-xl font-bold text-[0.8rem] flex items-center gap-1.5 border border-white/10 text-snow self-end sm:self-center"
+                    className="btn-secondary px-4 py-2.5 rounded-xl font-bold text-[0.8rem] flex items-center gap-1.5 border border-black/10 text-snow self-end sm:self-center"
                   >
                     📥 Download CSV Report
                   </button>
@@ -2468,7 +2989,7 @@ export default function DashboardPage() {
 
                 if (!selectedMeet) {
                   return (
-                    <div className="card-navy rounded-[22px] p-8 text-center text-[0.82rem] text-mist italic border border-white/[0.03]">
+                    <div className="card-navy rounded-[22px] p-8 text-center text-[0.82rem] text-mist italic border border-black/5">
                       No session records found. Create and end a classroom meeting to generate logs.
                     </div>
                   );
@@ -2478,9 +2999,9 @@ export default function DashboardPage() {
 
                 return (
                   <div className="flex flex-col gap-5">
-                    <div className="card-navy rounded-xl p-5 border border-white/[0.03] flex justify-between items-center bg-white/[0.01]">
+                    <div className="card-navy rounded-xl p-5 border border-black/5 flex justify-between items-center bg-white/[0.01]">
                       <div>
-                        <h4 className="text-[0.92rem] font-bold text-white">{selectedMeet.title}</h4>
+                        <h4 className="text-[0.92rem] font-bold text-snow">{selectedMeet.title}</h4>
                         <p className="text-[0.74rem] text-mist">
                           Conducted on {new Date(selectedMeet.createdAt).toLocaleString()} · Code: <span className="font-mono font-bold text-amber-400">{selectedMeet.code}</span>
                         </p>
@@ -2493,18 +3014,18 @@ export default function DashboardPage() {
                       </div>
                     </div>
 
-                    <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
+                    <div className="card-navy rounded-[22px] overflow-hidden border border-black/5">
                       <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                           <thead>
-                            <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
+                            <tr className="border-b border-[rgba(59, 130, 246,0.12)] bg-black/[0.02]">
                               <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Student Name</th>
                               <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Check-in Status</th>
                               <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Device Status</th>
                               <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Avg CFI</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
+                          <tbody className="divide-y divide-black/5">
                             {studentParticipants.length === 0 ? (
                               <tr>
                                 <td colSpan="4" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
@@ -2514,12 +3035,12 @@ export default function DashboardPage() {
                             ) : (
                               studentParticipants.map((p, idx) => (
                                 <tr key={idx} className="hover:bg-white/[0.01] transition-colors">
-                                  <td className="px-6 py-4 font-bold text-white text-[0.84rem]">
+                                  <td className="px-6 py-4 font-bold text-snow text-[0.84rem]">
                                     {p.name}
                                   </td>
                                   <td className="px-6 py-4">
-                                    <span className="inline-flex items-center gap-1 text-[0.76rem] font-semibold text-emerald-400">
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                    <span className="inline-flex items-center gap-1 text-[0.76rem] font-semibold text-blue-400">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                                       Present
                                     </span>
                                   </td>
@@ -2538,7 +3059,7 @@ export default function DashboardPage() {
                                       )}
                                     </div>
                                   </td>
-                                  <td className="px-6 py-4 text-right font-bold text-[0.82rem] text-[#c47c3e]">
+                                  <td className="px-6 py-4 text-right font-bold text-[0.82rem] text-[#3B82F6]">
                                     {p.score}%
                                   </td>
                                 </tr>
@@ -2555,38 +3076,38 @@ export default function DashboardPage() {
           ) : role === 'student' && activeTab === 'nav-analytics' ? (
             <div className="flex flex-col gap-6 animate-fadeUp">
               <div>
-                <h2 className="text-[1.25rem] font-black text-white">My Academic Analytics</h2>
+                <h2 className="text-[1.25rem] font-black text-snow">My Academic Analytics</h2>
                 <p className="text-[0.8rem] text-mist font-medium">Visual representations tracking your personal classroom engagement scores and metrics.</p>
               </div>
 
               {/* Stats Row */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                <div className="card-navy rounded-[20px] p-6 border border-white/[0.03]">
+                <div className="card-navy rounded-[20px] p-6 border border-black/5">
                   <p className="text-[0.74rem] text-mist font-bold uppercase tracking-wide mb-1">Classes Attended</p>
                   <p className="text-[1.6rem] font-black text-snow leading-none font-mono">{studentAttendedCount}</p>
-                  <span className="inline-block mt-2 text-[0.66rem] text-[#c47c3e] font-bold">Monitored sessions checklist</span>
+                  <span className="inline-block mt-2 text-[0.66rem] text-[#3B82F6] font-bold">Monitored sessions checklist</span>
                 </div>
-                <div className="card-navy rounded-[20px] p-6 border border-white/[0.03]">
+                <div className="card-navy rounded-[20px] p-6 border border-black/5">
                   <p className="text-[0.74rem] text-mist font-bold uppercase tracking-wide mb-1">My Average Engagement</p>
                   <p className="text-[1.6rem] font-black text-snow leading-none font-mono">{studentAvgScore}%</p>
-                  <span className="inline-block mt-2 text-[0.66rem] text-[#c47c3e] font-bold">AI-evaluated attention score</span>
+                  <span className="inline-block mt-2 text-[0.66rem] text-[#3B82F6] font-bold">AI-evaluated attention score</span>
                 </div>
-                <div className="card-navy rounded-[20px] p-6 border border-white/[0.03]">
+                <div className="card-navy rounded-[20px] p-6 border border-black/5">
                   <p className="text-[0.74rem] text-mist font-bold uppercase tracking-wide mb-1">Total Monitored Time</p>
                   <p className="text-[1.6rem] font-black text-snow leading-none font-mono">{studentAttendedCount * 45}m</p>
-                  <span className="inline-block mt-2 text-[0.66rem] text-[#c47c3e] font-bold">Total classroom attendance length</span>
+                  <span className="inline-block mt-2 text-[0.66rem] text-[#3B82F6] font-bold">Total classroom attendance length</span>
                 </div>
               </div>
 
               {/* CFI trend chart */}
-              <div className="card-navy p-6 rounded-[22px] border border-white/[0.03] flex flex-col gap-4">
+              <div className="card-navy p-6 rounded-[22px] border border-black/5 flex flex-col gap-4">
                 <div>
-                  <h3 className="text-[0.95rem] font-bold text-white">My Cognitive Fatigue Index (CFI) Trend</h3>
+                  <h3 className="text-[0.95rem] font-bold text-snow">My Cognitive Fatigue Index (CFI) Trend</h3>
                   <p className="text-[0.74rem] text-mist">Tracking your personal engagement score across the 5 most recent sessions (oldest to newest).</p>
                 </div>
                 
                 {teacherMeetings.length === 0 ? (
-                  <div className="h-48 flex items-center justify-center text-[0.8rem] text-mist italic bg-white/[0.01] rounded-xl border border-white/5">
+                  <div className="h-48 flex items-center justify-center text-[0.8rem] text-mist italic bg-white/[0.01] rounded-xl border border-black/5">
                     You have not attended any classes yet. Join a session to generate engagement reports!
                   </div>
                 ) : (
@@ -2598,7 +3119,7 @@ export default function DashboardPage() {
                         return (
                           <div key={meet._id} className="flex-1 flex flex-col items-center gap-2 group relative">
                             {/* Tooltip */}
-                            <div className="absolute bottom-full mb-2 bg-[#152038] border border-[#c47c3e]/30 px-2.5 py-1 rounded text-[0.7rem] font-bold text-snow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg whitespace-nowrap z-10">
+                            <div className="absolute bottom-full mb-2 bg-[#FFFFFF] border border-[#3B82F6]/30 px-2.5 py-1 rounded text-[0.7rem] font-bold text-snow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg whitespace-nowrap z-10">
                               {meet.title} · {cfiVal}% Engagement
                             </div>
                             {/* Bar */}
@@ -2606,8 +3127,8 @@ export default function DashboardPage() {
                               className="w-full sm:w-16 rounded-t-lg transition-all duration-500 hover:brightness-125"
                               style={{ 
                                 height: `${cfiVal}%`, 
-                                background: "linear-gradient(180deg, #c47c3e 0%, #8c5828 100%)",
-                                boxShadow: "0 0 15px rgba(196, 124, 62, 0.2)"
+                                background: "linear-gradient(180deg, #3B82F6 0%, #1D4ED8 100%)",
+                                boxShadow: "0 0 15px rgba(59, 130, 246, 0.2)"
                               }}
                             />
                             <span className="text-[0.72rem] font-bold text-snow font-mono">{meet.code}</span>
@@ -2624,15 +3145,15 @@ export default function DashboardPage() {
               </div>
 
               {/* Recent Classes Roster */}
-              <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03] flex flex-col gap-4 p-6">
+              <div className="card-navy rounded-[22px] overflow-hidden border border-black/5 flex flex-col gap-4 p-6">
                 <div>
-                  <h3 className="text-[0.95rem] font-bold text-white">Recent Session Scores</h3>
+                  <h3 className="text-[0.95rem] font-bold text-snow">Recent Session Scores</h3>
                   <p className="text-[0.74rem] text-mist">Individual scores logged during monitored classroom sessions.</p>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-white/[0.06] bg-white/[0.02]">
+                      <tr className="border-b border-white/[0.06] bg-black/[0.02]">
                         <th className="px-5 py-3 text-[0.78rem] font-bold text-mist uppercase">Class Title</th>
                         <th className="px-5 py-3 text-[0.78rem] font-bold text-mist uppercase">Instructor</th>
                         <th className="px-5 py-3 text-[0.78rem] font-bold text-mist uppercase">Date</th>
@@ -2661,7 +3182,7 @@ export default function DashboardPage() {
                               <td className="px-5 py-3.5 text-[0.78rem] text-mist">
                                 {new Date(meet.createdAt).toLocaleDateString()}
                               </td>
-                              <td className="px-5 py-3.5 text-right font-bold text-[0.82rem] text-[#c47c3e]">
+                              <td className="px-5 py-3.5 text-right font-bold text-[0.82rem] text-[#3B82F6]">
                                 {myScore}%
                               </td>
                             </tr>
@@ -2674,85 +3195,292 @@ export default function DashboardPage() {
               </div>
             </div>
           ) : role === 'student' && activeTab === 'nav-reports' ? (
-            <div className="flex flex-col gap-6 animate-fadeUp">
-              <div>
-                <h2 className="text-[1.25rem] font-black text-white">My Monitored Classroom Reports</h2>
-                <p className="text-[0.8rem] text-mist font-medium">Review your detailed metrics, marked lectures, and interaction summaries.</p>
-              </div>
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 animate-fadeUp">
+              {/* Left Main Dashboard Area */}
+              <div className="xl:col-span-3 flex flex-col gap-6">
+                
+                {/* Header Title Block */}
+                <div>
+                  <h2 className="text-[1.35rem] font-black text-snow">My Classroom Reports</h2>
+                  <p className="text-[0.8rem] text-mist font-medium">Review your detailed metrics, marked lectures, and interaction summaries.</p>
+                </div>
 
-              <div className="card-navy rounded-[22px] overflow-hidden border border-white/[0.03]">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-[rgba(196,124,62,0.12)] bg-[rgba(15,24,36,0.2)]">
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Class Info</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Instructor</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Class Code</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Class Avg CFI</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">My Engagement</th>
-                        <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right">Details</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[rgba(196,124,62,0.08)]">
-                      {teacherMeetings.length === 0 ? (
+                {/* 4 Stats Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* Card 1: Attended */}
+                  <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
+                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      <SvgIcon paths={["M15 10l4.553-2.069A1 1 0 0 1 21 8.914V15.086a1 1 0 0 1-1.447.914L15 14M3 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"]} size={17} />
+                    </div>
+                    <div>
+                      <p className="text-[0.77rem] text-mist font-medium mb-0.5">Classes Attended</p>
+                      <p className="text-[1.75rem] font-black text-snow leading-none font-mono">{studentAttendedCount}</p>
+                    </div>
+                    <span className="text-[0.72rem] font-semibold px-2 py-0.5 rounded-full self-start badge-copper">Active Logs</span>
+                  </div>
+
+                  {/* Card 2: Avg Engagement */}
+                  <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
+                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      <SvgIcon paths={["M22 12h-4l-3 9L9 3l-3 9H2"]} size={17} />
+                    </div>
+                    <div>
+                      <p className="text-[0.77rem] text-mist font-medium mb-0.5">My Average Engagement</p>
+                      <p className="text-[1.75rem] font-black text-snow leading-none font-mono">{studentAvgScore}%</p>
+                    </div>
+                    <span className="text-[0.72rem] font-semibold px-2 py-0.5 rounded-full self-start badge-copper">AI attention index</span>
+                  </div>
+
+                  {/* Card 3: Monitored Time */}
+                  <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
+                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      <SvgIcon paths={["M12 8v4l3 3", "M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"]} size={17} />
+                    </div>
+                    <div>
+                      <p className="text-[0.77rem] text-mist font-medium mb-0.5">Monitored Time</p>
+                      <p className="text-[1.75rem] font-black text-snow leading-none font-mono">{studentAttendedCount * 45}m</p>
+                    </div>
+                    <span className="text-[0.72rem] font-semibold px-2 py-0.5 rounded-full self-start badge-copper">Total hours</span>
+                  </div>
+
+                  {/* Card 4: Reports Checked */}
+                  <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
+                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      <SvgIcon paths={["M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2", "M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2", "M9 12l2 2 4-4"]} size={17} />
+                    </div>
+                    <div>
+                      <p className="text-[0.77rem] text-mist font-medium mb-0.5">Reports Checked</p>
+                      <p className="text-[1.75rem] font-black text-snow leading-none font-mono">{filteredStudentMeetings.length}</p>
+                    </div>
+                    <span className="text-[0.72rem] font-semibold px-2 py-0.5 rounded-full self-start badge-copper">Database records</span>
+                  </div>
+                </div>
+
+                {/* Filter and Search Bar */}
+                <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl card-navy border border-black/5">
+                  <div className="relative w-full md:w-72">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-snow/30">
+                      <SvgIcon paths={["M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"]} size={15} />
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Search reports by title, instructor..."
+                      value={studentReportSearch}
+                      onChange={(e) => {
+                        setStudentReportSearch(e.target.value);
+                        setStudentReportCurrentPage(1);
+                      }}
+                      className="neu-input w-full pl-10 pr-4 py-2.5 rounded-xl text-[0.85rem] outline-none"
+                    />
+                  </div>
+                  
+                  {/* Dropdown Filters */}
+                  <div className="flex flex-wrap gap-2.5 items-center">
+                    <select
+                      value={studentReportDateFilter}
+                      onChange={(e) => {
+                        setStudentReportDateFilter(e.target.value);
+                        setStudentReportCurrentPage(1);
+                      }}
+                      className="neu-input px-3.5 py-2 rounded-xl text-[0.82rem] outline-none cursor-pointer text-snow bg-[#FFFFFF] border border-black/5"
+                    >
+                      <option value="all">Date Range</option>
+                      <option value="today">Today</option>
+                      <option value="7days">Last 7 Days</option>
+                      <option value="30days">Last 30 Days</option>
+                    </select>
+
+                    <select
+                      value={studentReportCfiFilter}
+                      onChange={(e) => {
+                        setStudentReportCfiFilter(e.target.value);
+                        setStudentReportCurrentPage(1);
+                      }}
+                      className="neu-input px-3.5 py-2 rounded-xl text-[0.82rem] outline-none cursor-pointer text-snow bg-[#FFFFFF] border border-black/5"
+                    >
+                      <option value="all">My Engagement Score</option>
+                      <option value="excellent">Excellent (&gt;=85%)</option>
+                      <option value="good">Good (70-84%)</option>
+                      <option value="low">Fatigued (&lt;70%)</option>
+                    </select>
+
+                    {/* Reset Button */}
+                    {(studentReportSearch || studentReportDateFilter !== "all" || studentReportCfiFilter !== "all") && (
+                      <button
+                        onClick={() => {
+                          setStudentReportSearch("");
+                          setStudentReportDateFilter("all");
+                          setStudentReportCfiFilter("all");
+                          setStudentReportCurrentPage(1);
+                        }}
+                        className="p-2 rounded-xl text-mist hover:text-snow bg-black/5 border border-black/10 hover:bg-black/5 transition-all flex items-center justify-center"
+                        title="Reset Filters"
+                      >
+                        <SvgIcon paths={["M2 12a10 10 0 1 0 10-10H10", "M12 2v6H6"]} size={15} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Table Container Card */}
+                <div className="card-navy rounded-[22px] overflow-hidden border border-black/5">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-[rgba(59, 130, 246,0.12)] bg-black/[0.02]">
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider">Class Info</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider w-48">Instructor</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider w-40">Class Avg CFI</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider w-40">My Engagement</th>
+                          <th className="px-6 py-4 text-[0.82rem] font-bold text-mist uppercase tracking-wider text-right w-36">Details</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-black/5">
+                      {filteredStudentMeetings.length === 0 ? (
                         <tr>
-                          <td colSpan="6" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
-                            No attended session reports found.
+                          <td colSpan="5" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
+                            No classroom session reports found matching your criteria.
                           </td>
                         </tr>
                       ) : (
-                        teacherMeetings.map((m) => {
+                        paginatedStudentMeetings.map((m) => {
                           const myParticipant = m.participants.find(p => p.name === userName);
                           const myScore = myParticipant ? myParticipant.score : 75;
+                          const classCfi = m.cfi || 75;
+
+                          // Personal score progress variables
+                          const personalRadius = 14;
+                          const personalCirc = 2 * Math.PI * personalRadius;
+                          const personalOffset = personalCirc - (myScore / 100) * personalCirc;
+
+                          // Class Avg progress variables
+                          const classRadius = 14;
+                          const classCirc = 2 * Math.PI * classRadius;
+                          const classOffset = classCirc - (classCfi / 100) * classCirc;
+
+                          // CFI display elements
+                          let myCfiColorClass = "stroke-[#3B82F6] text-[#3B82F6]";
+                          let myBgClass = "bg-[#3B82F6]";
+                          if (myScore < 55) {
+                            myCfiColorClass = "stroke-red-400 text-red-400";
+                            myBgClass = "bg-red-500";
+                          } else if (myScore < 70) {
+                            myCfiColorClass = "stroke-orange-400 text-orange-400";
+                            myBgClass = "bg-orange-500";
+                          } else if (myScore < 85) {
+                            myCfiColorClass = "stroke-amber-400 text-amber-400";
+                            myBgClass = "bg-amber-500";
+                          }
+
+                          let classCfiColorClass = "stroke-[#3B82F6] text-[#3B82F6]";
+                          if (classCfi < 70) classCfiColorClass = "stroke-orange-400 text-orange-400";
+
+                          const gradients = [
+                            "linear-gradient(135deg, #3b82f6, #1e3a8a)",
+                            "linear-gradient(135deg, #1d4ed8, #0f172a)",
+                            "linear-gradient(135deg, #2563eb, #1e293b)",
+                            "linear-gradient(135deg, #60a5fa, #172554)",
+                            "linear-gradient(135deg, #3a86ff, #023e8a)"
+                          ];
+                          const gradientIndex = m.title.charCodeAt(0) % gradients.length;
+                          const avatarGradient = gradients[gradientIndex];
+
                           return (
                             <Fragment key={m._id}>
                               <tr className="hover:bg-white/[0.01] transition-colors">
+                                {/* Class Info */}
                                 <td className="px-6 py-4">
-                                  <div className="text-[0.88rem] font-bold text-white">{m.title}</div>
-                                  <div className="text-[0.72rem] text-mist">{new Date(m.createdAt).toLocaleDateString()}</div>
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
+                                         style={{ background: avatarGradient, border: "1px solid rgba(255,255,255,0.08)" }}>
+                                      {m.title.slice(0, 2).toUpperCase()}
+                                    </div>
+                                    <div>
+                                      <div className="text-[0.88rem] font-bold text-snow cursor-default">{m.title}</div>
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <span className="px-1.5 py-0.5 rounded text-[0.66rem] font-bold bg-[rgba(59, 130, 246,0.12)] border border-[rgba(59, 130, 246,0.22)] text-amber-400 font-mono">
+                                          {m.code}
+                                        </span>
+                                        <span className="text-[0.72rem] text-mist">{new Date(m.createdAt).toLocaleDateString()}</span>
+                                      </div>
+                                    </div>
+                                  </div>
                                 </td>
-                                <td className="px-6 py-4 text-[0.85rem] font-semibold text-snow">
-                                  {m.teacherName}
-                                </td>
-                                <td className="px-6 py-4 font-mono text-[0.8rem] text-snow">
-                                  <span className="px-2 py-0.5 rounded bg-[rgba(196,124,62,0.12)] border border-[rgba(196,124,62,0.25)] text-amber-400">
-                                    {m.code}
-                                  </span>
-                                </td>
+
+                                {/* Instructor */}
                                 <td className="px-6 py-4">
-                                  <span className="text-[0.82rem] font-medium text-snow">{m.cfi || 75}%</span>
+                                  <div className="flex items-center gap-2.5">
+                                    <div className="w-7 h-7 rounded-full flex items-center justify-center bg-black/5 border border-black/10 font-bold text-snow text-[0.7rem] flex-shrink-0">
+                                      {m.teacherName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+                                    </div>
+                                    <span className="text-[0.84rem] text-snow font-medium">{m.teacherName}</span>
+                                  </div>
                                 </td>
-                                <td className="px-6 py-4 font-bold text-[0.82rem] text-[#c47c3e]">
-                                  {myScore}%
+
+                                {/* Class Avg CFI */}
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-2.5">
+                                    <svg className="w-9 h-9 transform -rotate-90 flex-shrink-0" viewBox="0 0 36 36">
+                                      <circle cx="18" cy="18" r={classRadius} className="stroke-white/5" strokeWidth="3" fill="transparent" />
+                                      <circle cx="18" cy="18" r={classRadius} className={classCfiColorClass} strokeWidth="3" fill="transparent"
+                                              strokeDasharray={classCirc} strokeDashoffset={classOffset} strokeLinecap="round" />
+                                    </svg>
+                                    <span className="text-[0.82rem] font-bold text-snow font-mono">{classCfi}%</span>
+                                  </div>
                                 </td>
+
+                                {/* My Engagement */}
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-3">
+                                    <svg className="w-9 h-9 transform -rotate-90 flex-shrink-0" viewBox="0 0 36 36">
+                                      <circle cx="18" cy="18" r={personalRadius} className="stroke-white/5" strokeWidth="3" fill="transparent" />
+                                      <circle cx="18" cy="18" r={personalRadius} className={myCfiColorClass.split(" ")[0]} strokeWidth="3" fill="transparent"
+                                              strokeDasharray={personalCirc} strokeDashoffset={personalOffset} strokeLinecap="round" />
+                                    </svg>
+                                    <div className="flex flex-col">
+                                      <span className="text-[0.82rem] font-bold text-snow">{myScore}%</span>
+                                      <div className="w-12 h-0.5 rounded-full bg-black/5 overflow-hidden mt-0.5">
+                                        <div className={`h-full ${myBgClass}`} style={{ width: `${myScore}%` }} />
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+
+                                {/* Action */}
                                 <td className="px-6 py-4 text-right">
                                   <button
                                     onClick={() => setExpandedMeetingId(expandedMeetingId === m._id ? null : m._id)}
-                                    className="px-3.5 py-1.5 rounded-lg text-[0.72rem] font-extrabold uppercase tracking-wider text-mist hover:text-snow hover:bg-white/5 border border-white/10 transition-all"
+                                    className="px-3.5 py-1.5 rounded-lg text-[0.72rem] font-extrabold uppercase tracking-wider text-mist hover:text-snow hover:bg-black/5 border border-black/10 transition-all"
                                   >
                                     {expandedMeetingId === m._id ? "Hide Details" : "View Report"}
                                   </button>
                                 </td>
                               </tr>
+
+                              {/* Expanded Report Details Drawer */}
                               {expandedMeetingId === m._id && (
                                 <tr className="bg-white/[0.01]">
-                                  <td colSpan="6" className="px-6 py-5">
-                                    <div className="flex flex-col gap-5 p-5 rounded-xl border border-white/[0.04] bg-[#152038]/60 animate-slide-down">
-                                      <h4 className="text-[0.9rem] font-extrabold text-[#c47c3e] border-b border-white/[0.05] pb-2">Session Summary Matrix</h4>
+                                  <td colSpan="5" className="px-6 py-5">
+                                    <div className="flex flex-col gap-5 p-5 rounded-xl border border-white/[0.04] bg-black/[0.01] animate-slide-down">
+                                      <h4 className="text-[0.9rem] font-extrabold text-[#3B82F6] border-b border-black/5 pb-2">Session Summary Matrix</h4>
                                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         {/* Status */}
                                         <div className="flex flex-col gap-2.5">
-                                          <h5 className="text-[0.78rem] font-bold text-white uppercase tracking-wider">Device Check Log</h5>
-                                          <div className="flex flex-col gap-2.5 p-3 rounded bg-white/[0.02] border border-white/[0.03] text-[0.76rem]">
+                                          <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Device Check Log</h5>
+                                          <div className="flex flex-col gap-2.5 p-3 rounded bg-black/[0.02] border border-black/5 text-[0.76rem]">
                                             <div className="flex justify-between">
                                               <span className="text-mist">Camera Feed Analyzed:</span>
-                                              <span className={`font-bold ${myParticipant?.camOff ? 'text-red-400' : 'text-emerald-400'}`}>
+                                              <span className={`font-bold ${myParticipant?.camOff ? 'text-red-400' : 'text-blue-400'}`}>
                                                 {myParticipant?.camOff ? 'Offline' : 'Online (Active)'}
                                               </span>
                                             </div>
                                             <div className="flex justify-between">
                                               <span className="text-mist">Audio Status:</span>
-                                              <span className={`font-bold ${myParticipant?.muted ? 'text-red-400' : 'text-emerald-400'}`}>
+                                              <span className={`font-bold ${myParticipant?.muted ? 'text-red-400' : 'text-blue-400'}`}>
                                                 {myParticipant?.muted ? 'Muted' : 'Unmuted'}
                                               </span>
                                             </div>
@@ -2764,13 +3492,13 @@ export default function DashboardPage() {
                                         </div>
                                         {/* Chat Messages */}
                                         <div className="flex flex-col gap-2.5">
-                                          <h5 className="text-[0.78rem] font-bold text-white uppercase tracking-wider">Class Chat Logs ({m.messages?.length || 0})</h5>
+                                          <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Class Chat Logs ({m.messages?.length || 0})</h5>
                                           <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
                                             {!m.messages || m.messages.length === 0 ? (
                                               <p className="text-[0.74rem] text-mist italic">No messages sent in this session.</p>
                                             ) : (
                                               m.messages.map((msg, idx) => (
-                                                <div key={idx} className="p-2 rounded bg-white/[0.02] border border-white/[0.03] text-[0.74rem]">
+                                                <div key={idx} className="p-2 rounded bg-black/[0.02] border border-black/5 text-[0.74rem]">
                                                   <div className="flex justify-between font-bold text-snow mb-0.5">
                                                     <span>{msg.sender}</span>
                                                     <span className="text-mist text-[0.66rem]">{msg.time}</span>
@@ -2783,15 +3511,15 @@ export default function DashboardPage() {
                                         </div>
                                         {/* Topic Markers */}
                                         <div className="flex flex-col gap-2.5">
-                                          <h5 className="text-[0.78rem] font-bold text-white uppercase tracking-wider">Teacher Topic Markers ({m.topicMarkers?.length || 0})</h5>
+                                          <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Teacher Topic Markers ({m.topicMarkers?.length || 0})</h5>
                                           <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
                                             {!m.topicMarkers || m.topicMarkers.length === 0 ? (
                                               <p className="text-[0.74rem] text-mist italic">No topic markers set in this session.</p>
                                             ) : (
                                               m.topicMarkers.map((marker, idx) => (
-                                                <div key={idx} className="flex justify-between items-center p-2 rounded bg-white/[0.02] border border-white/[0.03] text-[0.74rem]">
+                                                <div key={idx} className="flex justify-between items-center p-2 rounded bg-black/[0.02] border border-black/5 text-[0.74rem]">
                                                   <span className="font-semibold text-snow">&quot;{marker.label}&quot;</span>
-                                                  <span className="text-[#c47c3e] font-bold">{marker.time}</span>
+                                                  <span className="text-[#3B82F6] font-bold">{marker.time}</span>
                                                 </div>
                                               ))
                                             )}
@@ -2809,42 +3537,143 @@ export default function DashboardPage() {
                     </tbody>
                   </table>
                 </div>
+
+                {/* Pagination Footer */}
+                {studentReportTotalPages > 1 && (
+                  <div className="px-6 py-4 border-t border-[rgba(59, 130, 246,0.12)] bg-[rgba(255, 255, 255,0.1)] flex items-center justify-between">
+                    <span className="text-[0.76rem] text-mist">
+                      Showing page {studentReportCurrentPage} of {studentReportTotalPages} ({filteredStudentMeetings.length} reports total)
+                    </span>
+                    <div className="flex gap-2">
+                      <button
+                        disabled={studentReportCurrentPage === 1}
+                        onClick={() => setStudentReportCurrentPage(studentReportCurrentPage - 1)}
+                        className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-black/10 bg-black/5 hover:bg-black/5 disabled:opacity-40 disabled:pointer-events-none transition-all"
+                      >
+                        Previous
+                      </button>
+                      {Array.from({ length: studentReportTotalPages }, (_, i) => i + 1).map((pNum) => (
+                        <button
+                          key={pNum}
+                          onClick={() => setStudentReportCurrentPage(pNum)}
+                          className={`px-3 py-1.5 rounded-lg text-[0.74rem] font-bold transition-all ${
+                            studentReportCurrentPage === pNum
+                              ? "bg-[#3B82F6] text-white border border-[#3B82F6]"
+                              : "text-snow border border-black/10 bg-black/5 hover:bg-black/5"
+                          }`}
+                        >
+                          {pNum}
+                        </button>
+                      ))}
+                      <button
+                        disabled={studentReportCurrentPage === studentReportTotalPages}
+                        onClick={() => setStudentReportCurrentPage(studentReportCurrentPage + 1)}
+                        className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-black/10 bg-black/5 hover:bg-black/5 disabled:opacity-40 disabled:pointer-events-none transition-all"
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+
+            {/* Right Sidebar Columns Area */}
+            <div className="xl:col-span-1 flex flex-col gap-6">
+              {/* Join Session CTA Button */}
+              <Link
+                href="/dashboard/join-meeting"
+                className="w-full btn-primary px-5 py-4 rounded-2xl font-bold text-[0.88rem] flex items-center justify-center gap-2 hover:shadow-[0_10px_25px_rgba(59, 130, 246,0.25)] hover:-translate-y-0.5 transition-all text-white"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                  <polyline points="10 17 15 12 10 7" />
+                  <line x1="15" y1="12" x2="3" y2="12" />
+                </svg>
+                Join Classroom Session
+              </Link>
+
+              {/* Assigned Instructor sidebar card */}
+              <div className="rounded-[20px] overflow-hidden card-navy border border-black/5 flex flex-col">
+                <div className="px-5 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
+                  <h2 className="text-[0.95rem] font-bold text-snow">
+                    Assigned Instructor
+                  </h2>
+                </div>
+                <div className="p-5 flex flex-col gap-4">
+                  {assignedTeacher ? (
+                    <>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
+                          style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
+                          {(assignedTeacher.firstName[0] + assignedTeacher.lastName[0]).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-[0.88rem] font-bold text-snow truncate">
+                            Prof. {assignedTeacher.firstName} {assignedTeacher.lastName}
+                          </p>
+                          <p className="text-[0.74rem] text-mist truncate">
+                            {assignedTeacher.email}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-black/[0.02] border border-white/[0.04]">
+                        <div className="flex justify-between text-[0.76rem]">
+                          <span className="text-mist">Department:</span>
+                          <span className="font-semibold text-snow">{assignedTeacher.department || 'General'}</span>
+                        </div>
+                        <div className="flex justify-between text-[0.76rem]">
+                          <span className="text-mist">Course Enrolled:</span>
+                          <span className="font-semibold text-teal-400">{assignedSubject || 'General class'}</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-6 text-[0.82rem] text-mist flex flex-col items-center gap-2">
+                      <span className="text-[1.3rem]">💼</span>
+                      No instructor assigned yet.
+                      <p className="text-[0.7rem] text-mist/60">Contact administration to register your academic mapping.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
           ) : activeTab === 'nav-settings' ? (
-            <div className="card-navy rounded-[24px] p-8 border border-white/5 max-w-2xl">
-              <h2 className="text-[1.2rem] font-black text-white mb-2">System Configuration</h2>
+            <div className="card-navy rounded-[24px] p-8 border border-black/5 max-w-2xl">
+              <h2 className="text-[1.2rem] font-black text-snow mb-2">System Configuration</h2>
               <p className="text-[0.82rem] text-mist mb-6">Manage platform parameters and global administrative configurations.</p>
               
               <div className="flex flex-col gap-5">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-[rgba(196,124,62,0.12)]">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
                   <div>
-                    <h3 className="text-[0.88rem] font-bold text-white">Database Status</h3>
+                    <h3 className="text-[0.88rem] font-bold text-snow">Database Status</h3>
                     <p className="text-[0.74rem] text-mist mt-0.5">MongoDB Atlas Connection Status</p>
                   </div>
-                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                     CONNECTED
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-[rgba(196,124,62,0.12)]">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
                   <div>
-                    <h3 className="text-[0.88rem] font-bold text-white">API Health</h3>
+                    <h3 className="text-[0.88rem] font-bold text-snow">API Health</h3>
                     <p className="text-[0.74rem] text-mist mt-0.5">Routes & Handlers Status</p>
                   </div>
-                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
                     OPERATIONAL
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-white/[0.02] border border-[rgba(196,124,62,0.12)]">
+                <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
                   <div>
-                    <h3 className="text-[0.88rem] font-bold text-white">Platform Version</h3>
+                    <h3 className="text-[0.88rem] font-bold text-snow">Platform Version</h3>
                     <p className="text-[0.74rem] text-mist mt-0.5">Production Build Tag</p>
                   </div>
-                  <span className="px-3 py-1 rounded-lg text-[0.75rem] font-bold text-snow bg-[rgba(196,124,62,0.15)] border border-[rgba(196,124,62,0.22)] font-mono">
+                  <span className="px-3 py-1 rounded-lg text-[0.75rem] font-bold text-snow bg-[rgba(59, 130, 246,0.15)] border border-[rgba(59, 130, 246,0.22)] font-mono">
                     v1.0.0-release
                   </span>
                 </div>
@@ -2860,24 +3689,24 @@ export default function DashboardPage() {
                 <Link
                   href="/dashboard/create-meeting"
                   id="cta-create-meeting"
-                  className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(196,124,62,0.25)]"
+                  className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)]"
                   style={{
-                    background: "linear-gradient(135deg,#152038 0%,#1e3050 100%)",
-                    border: "1px solid rgba(196,124,62,0.25)",
+                    background: "linear-gradient(135deg,#FFFFFF 0%,#FFFFFF 100%)",
+                    border: "1px solid rgba(59, 130, 246,0.25)",
                   }}
                 >
                   <div
                     className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
                     style={{
                       background:
-                        "radial-gradient(circle,rgba(196,124,62,0.15) 0%,transparent 70%)",
+                        "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
                     }}
                   />
                   <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
                     style={{
-                      background: "rgba(196,124,62,0.15)",
-                      border: "1px solid rgba(196,124,62,0.30)",
+                      background: "rgba(59, 130, 246,0.15)",
+                      border: "1px solid rgba(59, 130, 246,0.30)",
                     }}
                   >
                     <svg
@@ -2895,15 +3724,15 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-[1.25rem] font-black text-white mb-1.5">
+                    <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
                       Start a New Meeting
                     </h2>
-                    <p className="text-[0.87rem] text-[rgba(255,255,255,0.60)] leading-[1.6]">
+                    <p className="text-[0.87rem] text-mist leading-[1.6]">
                       Create a classroom session instantly. Get a 6-digit code to
                       share with students.
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-[rgba(255,255,255,0.75)] group-hover:text-white transition-colors mt-auto">
+                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
                     Create Meeting
                     <svg
                       width="14"
@@ -2924,20 +3753,20 @@ export default function DashboardPage() {
                 <Link
                   href="/dashboard/join-meeting"
                   id="cta-join-meeting"
-                  className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(196,124,62,0.25)] card-navy"
+                  className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)] card-navy"
                 >
                   <div
                     className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
                     style={{
                       background:
-                        "radial-gradient(circle,rgba(196,124,62,0.15) 0%,transparent 70%)",
+                        "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
                     }}
                   />
                   <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
                     style={{
-                      background: "rgba(196,124,62,0.15)",
-                      border: "1px solid rgba(196,124,62,0.30)",
+                      background: "rgba(59, 130, 246,0.15)",
+                      border: "1px solid rgba(59, 130, 246,0.30)",
                     }}
                   >
                     <svg
@@ -2987,23 +3816,23 @@ export default function DashboardPage() {
                 <button
                   onClick={() => setActiveTab("nav-database")}
                   id="cta-manage-db"
-                  className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(196,124,62,0.25)]"
+                  className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)]"
                   style={{
-                    background: "linear-gradient(135deg,#152038 0%,#1e3050 100%)",
-                    border: "1px solid rgba(196,124,62,0.25)",
+                    background: "linear-gradient(135deg,#FFFFFF 0%,#FFFFFF 100%)",
+                    border: "1px solid rgba(59, 130, 246,0.25)",
                   }}
                 >
                   <div
                     className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
                     style={{
-                      background: "radial-gradient(circle,rgba(196,124,62,0.15) 0%,transparent 70%)",
+                      background: "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
                     }}
                   />
                   <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
                     style={{
-                      background: "rgba(196,124,62,0.15)",
-                      border: "1px solid rgba(196,124,62,0.30)",
+                      background: "rgba(59, 130, 246,0.15)",
+                      border: "1px solid rgba(59, 130, 246,0.30)",
                     }}
                   >
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -3014,14 +3843,14 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-[1.25rem] font-black text-white mb-1.5">
+                    <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
                       Manage User Database
                     </h2>
-                    <p className="text-[0.87rem] text-[rgba(255,255,255,0.60)] leading-[1.6]">
+                    <p className="text-[0.87rem] text-mist leading-[1.6]">
                       Perform CRUD operations on user accounts, promote teachers or admins, and update credentials.
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-[rgba(255,255,255,0.75)] group-hover:text-white transition-colors mt-auto">
+                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
                     Open Database Console
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                       <path d="M5 12h14M12 5l7 7-7 7" />
@@ -3033,19 +3862,19 @@ export default function DashboardPage() {
                 <button
                   onClick={() => setActiveTab("nav-settings")}
                   id="cta-system-settings"
-                  className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(196,124,62,0.25)] card-navy"
+                  className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)] card-navy"
                 >
                   <div
                     className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
                     style={{
-                      background: "radial-gradient(circle,rgba(196,124,62,0.15) 0%,transparent 70%)",
+                      background: "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
                     }}
                   />
                   <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
                     style={{
-                      background: "rgba(196,124,62,0.15)",
-                      border: "1px solid rgba(196,124,62,0.30)",
+                      background: "rgba(59, 130, 246,0.15)",
+                      border: "1px solid rgba(59, 130, 246,0.30)",
                     }}
                   >
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -3075,24 +3904,24 @@ export default function DashboardPage() {
                 <Link
                   href="/dashboard/join-meeting"
                   id="cta-join-meeting-student"
-                  className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(196,124,62,0.25)]"
+                  className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)]"
                   style={{
-                    background: "linear-gradient(135deg,#152038 0%,#1e3050 100%)",
-                    border: "1px solid rgba(196,124,62,0.25)",
+                    background: "linear-gradient(135deg,#FFFFFF 0%,#FFFFFF 100%)",
+                    border: "1px solid rgba(59, 130, 246,0.25)",
                   }}
                 >
                   <div
                     className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
                     style={{
                       background:
-                        "radial-gradient(circle,rgba(196,124,62,0.15) 0%,transparent 70%)",
+                        "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
                     }}
                   />
                   <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
                     style={{
-                      background: "rgba(196,124,62,0.15)",
-                      border: "1px solid rgba(196,124,62,0.30)",
+                      background: "rgba(59, 130, 246,0.15)",
+                      border: "1px solid rgba(59, 130, 246,0.30)",
                     }}
                   >
                     <svg
@@ -3111,14 +3940,14 @@ export default function DashboardPage() {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-[1.25rem] font-black text-white mb-1.5">
+                    <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
                       Join a Meeting
                     </h2>
-                    <p className="text-[0.87rem] text-[rgba(255,255,255,0.60)] leading-[1.6]">
+                    <p className="text-[0.87rem] text-mist leading-[1.6]">
                       Enter a 6-digit class code or browse active classes to enter your live virtual classroom session.
                     </p>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-[rgba(255,255,255,0.75)] group-hover:text-white transition-colors mt-auto">
+                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
                     Join Classroom
                     <svg
                       width="14"
@@ -3139,20 +3968,20 @@ export default function DashboardPage() {
                 <button
                   onClick={() => alert("Performance Analytics module is coming soon!")}
                   id="cta-view-reports"
-                  className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(196,124,62,0.25)] card-navy"
+                  className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)] card-navy"
                 >
                   <div
                     className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
                     style={{
                       background:
-                        "radial-gradient(circle,rgba(196,124,62,0.15) 0%,transparent 70%)",
+                        "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
                     }}
                   />
                   <div
                     className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
                     style={{
-                      background: "rgba(196,124,62,0.15)",
-                      border: "1px solid rgba(196,124,62,0.30)",
+                      background: "rgba(59, 130, 246,0.15)",
+                      border: "1px solid rgba(59, 130, 246,0.30)",
                     }}
                   >
                     <svg
@@ -3211,8 +4040,8 @@ export default function DashboardPage() {
                 <div
                   className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
                   style={{
-                    background: "rgba(196,124,62,0.15)",
-                    border: "1px solid rgba(196,124,62,0.30)",
+                    background: "rgba(59, 130, 246,0.15)",
+                    border: "1px solid rgba(59, 130, 246,0.30)",
                   }}
                 >
                   <SvgIcon paths={card.icon} size={17} />
@@ -3239,9 +4068,9 @@ export default function DashboardPage() {
               id="live-classes-card"
               className="lg:col-span-2 rounded-[20px] overflow-hidden card-navy"
             >
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(196,124,62,0.14)]">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
                 <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#c47c3e] animate-pulse" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] animate-pulse" />
                   <h2 className="text-[0.95rem] font-bold text-snow">
                     Live Classes
                   </h2>
@@ -3256,7 +4085,7 @@ export default function DashboardPage() {
                   Join one →
                 </Link>
               </div>
-              <div className="divide-y divide-[rgba(196,124,62,0.12)]">
+              <div className="divide-y divide-[rgba(59, 130, 246,0.12)]">
                 {activeMeetings.length === 0 ? (
                   <div className="px-6 py-10 text-center text-[0.85rem] text-mist flex flex-col items-center gap-2">
                     <span className="text-[1.5rem]">🏫</span>
@@ -3267,14 +4096,14 @@ export default function DashboardPage() {
                     <div
                       key={cls._id}
                       id={cls._id}
-                      className="flex items-center gap-4 px-6 py-4 hover:bg-[rgba(196,124,62,0.06)] transition-colors"
+                      className="flex items-center gap-4 px-6 py-4 hover:bg-[rgba(59, 130, 246,0.06)] transition-colors"
                     >
                       <div
                         className="w-10 h-10 rounded-xl flex items-center justify-center text-snow font-black text-[0.78rem] flex-shrink-0"
                         style={{
                           background:
-                            "linear-gradient(135deg,rgba(196,124,62,0.22),rgba(196,124,62,0.08))",
-                          border: "1px solid rgba(196,124,62,0.28)",
+                            "linear-gradient(135deg,rgba(59, 130, 246,0.22),rgba(59, 130, 246,0.08))",
+                          border: "1px solid rgba(59, 130, 246,0.28)",
                         }}
                       >
                         {cls.title.slice(0, 3).toUpperCase()}
@@ -3288,12 +4117,12 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-[0.72rem] font-bold text-snow px-2 py-1 rounded-lg bg-[rgba(196,124,62,0.16)] border border-[rgba(196,124,62,0.25)] font-mono tracking-wider">
+                        <span className="text-[0.72rem] font-bold text-snow px-2 py-1 rounded-lg bg-[rgba(59, 130, 246,0.16)] border border-[rgba(59, 130, 246,0.25)] font-mono tracking-wider">
                           {cls.code}
                         </span>
                         <Link
                           href={`/dashboard/classroom/${cls.code}?role=${role}`}
-                          className="px-3.5 py-1.5 rounded-xl text-[0.78rem] font-bold text-[#f2f2f2] btn-primary whitespace-nowrap"
+                          className="px-3.5 py-1.5 rounded-xl text-[0.78rem] font-bold text-white btn-primary whitespace-nowrap"
                         >
                           Join
                         </Link>
@@ -3307,7 +4136,7 @@ export default function DashboardPage() {
             {/* My Students Roster (Only for Teacher role) */}
             {role === "teacher" && (
               <div className="rounded-[20px] overflow-hidden card-navy flex flex-col">
-                <div className="px-5 py-4 border-b border-[rgba(196,124,62,0.14)] flex items-center justify-between">
+                <div className="px-5 py-4 border-b border-[rgba(59, 130, 246,0.14)] flex items-center justify-between">
                   <h2 className="text-[0.95rem] font-bold text-snow">
                     My Students
                   </h2>
@@ -3315,7 +4144,7 @@ export default function DashboardPage() {
                     {myStudents.length} mapped
                   </span>
                 </div>
-                <div className="divide-y divide-[rgba(196,124,62,0.12)] overflow-y-auto max-h-[300px]">
+                <div className="divide-y divide-[rgba(59, 130, 246,0.12)] overflow-y-auto max-h-[300px]">
                   {myStudents.length === 0 ? (
                     <div className="px-5 py-10 text-center text-[0.82rem] text-mist flex flex-col items-center gap-2">
                       <span className="text-[1.3rem]">👨‍🎓</span>
@@ -3325,7 +4154,7 @@ export default function DashboardPage() {
                     myStudents.map((stud) => (
                       <div key={stud._id} className="flex items-center gap-3 px-5 py-3 hover:bg-white/[0.01] transition-colors">
                         <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-snow text-xs flex-shrink-0"
-                          style={{ background: "linear-gradient(135deg,#c47c3e,#152038)" }}>
+                          style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
                           {(stud.firstName[0] + stud.lastName[0]).toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -3349,7 +4178,7 @@ export default function DashboardPage() {
             {/* Assigned Instructor Card (Only for Student role) */}
             {role === "student" && (
               <div className="rounded-[20px] overflow-hidden card-navy flex flex-col">
-                <div className="px-5 py-4 border-b border-[rgba(196,124,62,0.14)]">
+                <div className="px-5 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
                   <h2 className="text-[0.95rem] font-bold text-snow">
                     Assigned Instructor
                   </h2>
@@ -3359,7 +4188,7 @@ export default function DashboardPage() {
                     <>
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
-                          style={{ background: "linear-gradient(135deg,#c47c3e,#152038)" }}>
+                          style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
                           {(assignedTeacher.firstName[0] + assignedTeacher.lastName[0]).toUpperCase()}
                         </div>
                         <div className="min-w-0">
@@ -3372,7 +4201,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       
-                      <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                      <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-black/[0.02] border border-white/[0.04]">
                         <div className="flex justify-between text-[0.76rem]">
                           <span className="text-mist">Department:</span>
                           <span className="font-semibold text-snow">{assignedTeacher.department || 'General'}</span>
@@ -3400,7 +4229,7 @@ export default function DashboardPage() {
             id="recent-sessions-card"
             className="rounded-[20px] overflow-hidden card-navy"
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(196,124,62,0.14)]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
               <h2 className="text-[0.95rem] font-bold text-snow">
                 Recent Sessions
               </h2>
@@ -3408,7 +4237,7 @@ export default function DashboardPage() {
                 View all →
               </button>
             </div>
-            <div className="divide-y divide-[rgba(196,124,62,0.12)]">
+            <div className="divide-y divide-[rgba(59, 130, 246,0.12)]">
               {(() => {
                 const endedStudentMeetings = role === "student" ? teacherMeetings.filter(m => !m.active) : [];
                 const endedMeetingsForRole = role === "teacher" ? endedTeacherMeetings : endedStudentMeetings;
@@ -3430,13 +4259,13 @@ export default function DashboardPage() {
                     <div
                       key={s._id}
                       id={s._id}
-                      className="flex items-center gap-4 px-6 py-4 hover:bg-[rgba(196,124,62,0.06)] transition-colors"
+                      className="flex items-center gap-4 px-6 py-4 hover:bg-[rgba(59, 130, 246,0.06)] transition-colors"
                     >
                       <div
                         className="w-9 h-9 rounded-xl flex items-center justify-center text-snow flex-shrink-0"
                         style={{
-                          background: "rgba(196,124,62,0.15)",
-                          border: "1px solid rgba(196,124,62,0.30)",
+                          background: "rgba(59, 130, 246,0.15)",
+                          border: "1px solid rgba(59, 130, 246,0.30)",
                         }}
                       >
                         <SvgIcon
@@ -3486,12 +4315,12 @@ export default function DashboardPage() {
       {isProfileModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="fixed inset-0" onClick={() => setIsProfileModalOpen(false)} />
-          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(196,124,62,0.25)] shadow-2xl animate-modal-in">
+          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
             <h3 className="text-[1.25rem] font-black text-snow mb-1">My Profile & Settings</h3>
             <p className="text-[0.8rem] text-mist mb-6">View and update your account details.</p>
             
             {profileSuccess && (
-              <div className="mb-4 px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+              <div className="mb-4 px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-blue-500 bg-[rgba(59,130,246,0.10)] border border-[rgba(59,130,246,0.20)]">
                 ✓ {profileSuccess}
               </div>
             )}
@@ -3539,7 +4368,7 @@ export default function DashboardPage() {
                 />
               </div>
 
-              <div className="h-px bg-[rgba(196,124,62,0.12)] my-1" />
+              <div className="h-px bg-[rgba(59, 130, 246,0.12)] my-1" />
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[0.78rem] font-semibold text-snow/70">Change Password (leave empty to keep current)</label>
@@ -3566,7 +4395,7 @@ export default function DashboardPage() {
                   <button
                     type="button"
                     onClick={handleProfileForgotPassword}
-                    className="text-[0.72rem] text-left text-copper hover:text-snow/70 transition-colors mt-0.5"
+                    className="text-[0.72rem] text-left text-blue-500 hover:text-snow/70 transition-colors mt-0.5"
                   >
                     Forgot your current password? Click here to email a recovery link.
                   </button>
@@ -3577,7 +4406,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsProfileModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl text-[0.85rem] font-bold text-mist hover:text-snow hover:bg-white/5 transition-all"
+                  className="px-5 py-2.5 rounded-xl text-[0.85rem] font-bold text-mist hover:text-snow hover:bg-black/5 transition-all"
                 >
                   Cancel
                 </button>
@@ -3598,7 +4427,7 @@ export default function DashboardPage() {
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="fixed inset-0" onClick={() => setIsCreateModalOpen(false)} />
-          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(196,124,62,0.25)] shadow-2xl animate-modal-in">
+          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
             <h3 className="text-[1.25rem] font-black text-snow mb-1">Create New User</h3>
             <p className="text-[0.8rem] text-mist mb-6">Register a new user directly into the database.</p>
             
@@ -3658,7 +4487,7 @@ export default function DashboardPage() {
                   value={crudForm.role}
                   onChange={(e) => setCrudForm({ ...crudForm, role: e.target.value })}
                   className="neu-input px-3.5 py-2.5 rounded-xl text-[0.88rem] outline-none cursor-pointer text-snow"
-                  style={{ background: "#152038" }}
+                  style={{ background: "#FFFFFF" }}
                 >
                   <option value="student">Student</option>
                   <option value="teacher">Teacher</option>
@@ -3724,7 +4553,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}
-                  className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow/70 hover:bg-white/5 border border-white/10 transition-all"
+                  className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow/70 hover:bg-black/5 border border-black/10 transition-all"
                 >
                   Cancel
                 </button>
@@ -3744,7 +4573,7 @@ export default function DashboardPage() {
       {isAddStudentModalOpen && selectedTeacherForStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="fixed inset-0" onClick={() => { setIsAddStudentModalOpen(false); setSelectedTeacherForStudent(null); }} />
-          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(196,124,62,0.25)] shadow-2xl animate-modal-in">
+          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
             <h3 className="text-[1.25rem] font-black text-snow mb-1">Add Student to Teacher</h3>
             <p className="text-[0.8rem] text-mist mb-6">
               Create a student account and link directly under <strong>Instructor {selectedTeacherForStudent.firstName} {selectedTeacherForStudent.lastName}</strong>.
@@ -3832,7 +4661,7 @@ export default function DashboardPage() {
                   value={addStudentForm.mappedSubject}
                   onChange={(e) => setAddStudentForm({ ...addStudentForm, mappedSubject: e.target.value })}
                   className="neu-input px-3.5 py-2.5 rounded-xl text-[0.88rem] outline-none cursor-pointer text-snow"
-                  style={{ background: "#152038" }}
+                  style={{ background: "#FFFFFF" }}
                 >
                   {selectedTeacherForStudent.subjects && selectedTeacherForStudent.subjects.length > 0 ? (
                     selectedTeacherForStudent.subjects.map((sub, idx) => (
@@ -3848,7 +4677,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => { setIsAddStudentModalOpen(false); setSelectedTeacherForStudent(null); }}
-                  className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow/70 hover:bg-white/5 border border-white/10 transition-all"
+                  className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow/70 hover:bg-black/5 border border-black/10 transition-all"
                 >
                   Cancel
                 </button>
@@ -3868,7 +4697,7 @@ export default function DashboardPage() {
       {isEditModalOpen && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="fixed inset-0" onClick={() => setIsEditModalOpen(false)} />
-          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(196,124,62,0.25)] shadow-2xl animate-modal-in">
+          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
             <h3 className="text-[1.25rem] font-black text-snow mb-1">Edit User Profile</h3>
             <p className="text-[0.8rem] text-mist mb-6">Modify user credentials and system access permissions.</p>
             
@@ -3925,7 +4754,7 @@ export default function DashboardPage() {
                   onChange={(e) => setCrudForm({ ...crudForm, role: e.target.value })}
                   disabled={selectedUser.email === userEmail}
                   className="neu-input px-3.5 py-2.5 rounded-xl text-[0.88rem] outline-none cursor-pointer text-snow disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ background: "#152038" }}
+                  style={{ background: "#FFFFFF" }}
                 >
                   <option value="student">Student</option>
                   <option value="teacher">Teacher</option>
@@ -3991,7 +4820,7 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow/70 hover:bg-white/5 border border-white/10 transition-all"
+                  className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow/70 hover:bg-black/5 border border-black/10 transition-all"
                 >
                   Cancel
                 </button>
@@ -4021,7 +4850,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow/70 hover:bg-white/5 border border-white/10 transition-all"
+                className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow/70 hover:bg-black/5 border border-black/10 transition-all"
               >
                 Cancel
               </button>

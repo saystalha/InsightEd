@@ -189,7 +189,7 @@ export default function LoginPage() {
       <div className="min-h-screen flex items-center justify-center p-4 pt-24 relative overflow-hidden hero-bg">
         
         {/* Background Decorative Layer Glow Orbs */}
-        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none orb-copper" />
+        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none orb-navy" />
         <div className="absolute -bottom-24 -left-24 w-[400px] h-[400px] rounded-full pointer-events-none orb-navy" />
 
         <div className="relative z-10 w-full max-w-[460px]">
@@ -201,7 +201,7 @@ export default function LoginPage() {
             <div className="relative w-full mb-5">
               <button
                 type="button"
-                className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl font-semibold text-[0.9rem] text-snow transition-all hover:bg-white/5 active:scale-95 border border-[rgba(196,124,62,0.25)] bg-[rgba(196,124,62,0.05)]"
+                className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl font-semibold text-[0.9rem] text-snow transition-all hover:bg-black/5 active:scale-95 border border-[rgba(59, 130, 246,0.25)] bg-[rgba(59, 130, 246,0.05)]"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -218,13 +218,13 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center gap-3 mb-5">
-              <div className="flex-1 h-px bg-[rgba(196,124,62,0.14)]" />
+              <div className="flex-1 h-px bg-[rgba(59, 130, 246,0.14)]" />
               <span className="text-[0.74rem] text-mist font-medium">OR</span>
-              <div className="flex-1 h-px bg-[rgba(196,124,62,0.14)]" />
+              <div className="flex-1 h-px bg-[rgba(59, 130, 246,0.14)]" />
             </div>
 
             {error && (
-              <div className="mb-4 px-4 py-3 rounded-xl text-[0.83rem] font-semibold text-copper bg-[rgba(196,124,62,0.1)] border border-[rgba(196,124,62,0.2)]">
+              <div className="mb-4 px-4 py-3 rounded-xl text-[0.83rem] font-semibold text-blue-500 bg-[rgba(59, 130, 246,0.1)] border border-[rgba(59, 130, 246,0.2)]">
                 ⚠ {error}
               </div>
             )}
@@ -281,7 +281,7 @@ export default function LoginPage() {
                     onChange={e => setPassword(e.target.value)}
                     className="neu-input w-full pl-11 pr-12 py-3.5 rounded-2xl text-[0.92rem] outline-none"
                   />
-                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors z-10">
+                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-4 top-1/2 -translate-y-1/2 text-black/30 hover:text-black transition-colors z-10">
                     {showPw
                       ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
                       : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
@@ -292,7 +292,7 @@ export default function LoginPage() {
 
               {/* Checkbox */}
               <label htmlFor="login-remember" className="flex items-center gap-2 cursor-pointer -mt-1 select-none">
-                <input id="login-remember" type="checkbox" className="w-4 h-4 rounded cursor-pointer accent-copper" style={{ accentColor: '#c47c3e' }} />
+                <input id="login-remember" type="checkbox" className="w-4 h-4 rounded cursor-pointer accent-copper" style={{ accentColor: '#3B82F6' }} />
                 <span className="text-[0.81rem] text-mist">Keep me signed in</span>
               </label>
 
@@ -320,7 +320,7 @@ export default function LoginPage() {
           {/* Lower Secure Badging element tag */}
           <div className="flex justify-center mt-5">
             <span className="badge-copper flex items-center gap-2 text-[0.74rem] font-semibold px-4 py-2 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-copper animate-pulse" style={{ backgroundColor: "#c47c3e" }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-copper animate-pulse" style={{ backgroundColor: "#3B82F6" }} />
               Privacy-First by Design
             </span>
           </div>
@@ -331,12 +331,12 @@ export default function LoginPage() {
       {isForgotOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="fixed inset-0" onClick={() => setIsForgotOpen(false)} />
-          <div className="relative card-navy rounded-[24px] max-w-[420px] w-full p-8 border border-[rgba(196,124,62,0.25)] shadow-2xl animate-modal-in z-10">
+          <div className="relative card-navy rounded-[24px] max-w-[420px] w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in z-10">
             <h3 className="text-[1.25rem] font-black text-snow mb-1">Recover Password</h3>
             <p className="text-[0.8rem] text-mist mb-6">Enter your registered email address below, and we will send you a secure link to reset your password.</p>
             
             {forgotSuccess && (
-              <div className="mb-4 px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+              <div className="mb-4 px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-blue-500 bg-[rgba(59,130,246,0.10)] border border-[rgba(59,130,246,0.20)]">
                 ✓ {forgotSuccess}
               </div>
             )}
@@ -364,7 +364,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setIsForgotOpen(false)}
-                  className="px-5 py-2.5 rounded-xl text-[0.85rem] font-bold text-mist hover:text-snow hover:bg-white/5 transition-all"
+                  className="px-5 py-2.5 rounded-xl text-[0.85rem] font-bold text-mist hover:text-snow hover:bg-black/5 transition-all"
                 >
                   Cancel
                 </button>

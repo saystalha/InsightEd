@@ -10,18 +10,18 @@ export default function SignupPage() {
 
       <div className="min-h-screen flex items-center justify-center p-4 pt-24 pb-10 relative overflow-hidden hero-bg">
         {/* Dark background graphic orbs */}
-        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none orb-copper" />
+        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none orb-navy" />
         <div className="absolute -bottom-24 -left-24 w-[400px] h-[400px] rounded-full pointer-events-none orb-navy" />
 
         <div className="relative z-10 w-full max-w-[500px]">
           {/* Card Container */}
-          <div className="card-navy rounded-[28px] p-9 text-center border border-[rgba(196,124,62,0.22)] flex flex-col items-center">
+          <div className="card-navy rounded-[28px] p-9 text-center border border-[rgba(59, 130, 246,0.22)] flex flex-col items-center">
             {/* Lock/Security Graphic */}
             <div 
-              className="w-16 h-16 rounded-2xl flex items-center justify-center text-[#c47c3e] mb-6 animate-pulse"
+              className="w-16 h-16 rounded-2xl flex items-center justify-center text-[#3B82F6] mb-6 animate-pulse"
               style={{
-                background: 'rgba(196,124,62,0.10)',
-                border: '1.5px solid rgba(196,124,62,0.30)',
+                background: 'rgba(59, 130, 246,0.10)',
+                border: '1.5px solid rgba(59, 130, 246,0.30)',
               }}
             >
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -37,8 +37,8 @@ export default function SignupPage() {
               Public user registration is disabled for InsightEd. To maintain academic integrity, teacher credentials and student academic accounts are provisioned directly by the system administrator.
             </p>
 
-            <div className="w-full p-4 rounded-xl bg-white/[0.02] border border-[rgba(196,124,62,0.12)] mb-8 text-[0.82rem] text-mist text-left flex items-start gap-3">
-              <span className="text-[#c47c3e] mt-0.5">ℹ</span>
+            <div className="w-full p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)] mb-8 text-[0.82rem] text-mist text-left flex items-start gap-3">
+              <span className="text-[#3B82F6] mt-0.5">ℹ</span>
               <span>
                 Please contact your institution&apos;s Academic Coordinator or IT Helpdesk to request your portal login credentials.
               </span>
@@ -59,7 +59,7 @@ export default function SignupPage() {
           {/* Lower Secure Badging element tag */}
           <div className="flex justify-center mt-5">
             <span className="badge-copper flex items-center gap-2 text-[0.74rem] font-semibold px-4 py-2 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-copper" style={{ backgroundColor: "#c47c3e" }} />
+              <span className="w-1.5 h-1.5 rounded-full bg-copper" style={{ backgroundColor: "#3B82F6" }} />
               Authorized IT Provisioning Portal
             </span>
           </div>

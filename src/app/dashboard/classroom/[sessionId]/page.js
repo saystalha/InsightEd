@@ -18,13 +18,13 @@ function CircularGauge({ value = 72, size = 120 }) {
   const r = size / 2 - 12;
   const circ = 2 * Math.PI * r;
   const dash = (value / 100) * circ;
-  const color = value > 65 ? '#c47c3e' : value > 40 ? '#d4924e' : '#8c5828';
+  const color = value > 65 ? '#3B82F6' : value > 40 ? '#60A5FA' : '#1D4ED8';
   const label = value > 65 ? 'High Engagement' : value > 40 ? 'Moderate Attention' : 'Low Engagement';
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(196,124,62,0.12)" strokeWidth="8" />
+          <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(59, 130, 246,0.12)" strokeWidth="8" />
           <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth="8"
             strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={circ / 4} strokeLinecap="round"
             style={{ transition: 'stroke-dasharray 0.8s ease, stroke 0.5s' }} />
@@ -34,7 +34,7 @@ function CircularGauge({ value = 72, size = 120 }) {
           <p className="text-[0.55rem] text-mist font-semibold">CFI</p>
         </div>
       </div>
-      <p className="text-[0.72rem] font-bold text-copper">{label}</p>
+      <p className="text-[0.72rem] font-bold text-blue-500">{label}</p>
     </div>
   );
 }
@@ -42,10 +42,10 @@ function CircularGauge({ value = 72, size = 120 }) {
 /* ─── Metric Bar ─────────────────────── */
 function MetricBar({ label, value }) {
   const gradient = label === 'Attention'
-    ? 'linear-gradient(90deg, #8c5828, #c47c3e)'
+    ? 'linear-gradient(90deg, #1D4ED8, #3B82F6)'
     : label === 'Confusion'
-      ? 'linear-gradient(90deg, #8c5828, #d4924e)'
-      : 'linear-gradient(90deg, #8c5828, #c47c3e)';
+      ? 'linear-gradient(90deg, #1D4ED8, #60A5FA)'
+      : 'linear-gradient(90deg, #1D4ED8, #3B82F6)';
       
   return (
     <div className="flex flex-col gap-1 w-full">
@@ -53,7 +53,7 @@ function MetricBar({ label, value }) {
         <span className="text-[0.72rem] text-mist font-medium">{label}</span>
         <span className="text-[0.75rem] font-bold text-snow">{Math.round(value * 100)}%</span>
       </div>
-      <div className="h-1.5 rounded-full bg-[rgba(196,124,62,0.12)] overflow-hidden">
+      <div className="h-1.5 rounded-full bg-[rgba(59, 130, 246,0.12)] overflow-hidden">
         <div className="h-full rounded-full transition-all duration-700" style={{ width: `${value * 100}%`, background: gradient }} />
       </div>
     </div>
@@ -201,12 +201,13 @@ function TeacherView({ sessionId }) {
           score: 100,
           handRaised: false,
           camOff,
-          muted
+          muted,
+          isSpeaking
         })
       }).catch(err => console.error('Heartbeat sync failed:', err));
     }, 3000);
     return () => clearInterval(heartbeatInterval);
-  }, [sessionId, camOff, muted]);
+  }, [sessionId, camOff, muted, isSpeaking]);
 
   // Request/release webcam stream
   useEffect(() => {
@@ -375,7 +376,7 @@ function TeacherView({ sessionId }) {
           ctx.fillRect(0, 0, w, h);
 
           // Head / Body Avatar
-          ctx.fillStyle = s.handRaised ? 'rgba(196, 124, 62, 0.22)' : 'rgba(196, 124, 62, 0.08)';
+          ctx.fillStyle = s.handRaised ? 'rgba(59, 130, 246, 0.22)' : 'rgba(59, 130, 246, 0.08)';
           ctx.beginPath();
           ctx.arc(w / 2, h / 2 - 10, h * 0.18, 0, Math.PI * 2);
           ctx.fill();
@@ -385,7 +386,7 @@ function TeacherView({ sessionId }) {
           ctx.fill();
 
           if (s.camOff) {
-            ctx.fillStyle = 'rgba(15,24,36,0.65)';
+            ctx.fillStyle = 'rgba(255, 255, 255,0.65)';
             ctx.fillRect(0, 0, w, h);
             ctx.fillStyle = 'rgba(255,255,255,0.15)';
             ctx.font = '10px sans-serif';
@@ -394,7 +395,7 @@ function TeacherView({ sessionId }) {
           }
 
           if (s.handRaised) {
-            ctx.strokeStyle = '#c47c3e';
+            ctx.strokeStyle = '#3B82F6';
             ctx.lineWidth = 2.5;
             ctx.beginPath();
             ctx.arc(w / 2, h / 2 - 10, h * 0.22 + Math.sin(time * 8) * 3, 0, Math.PI * 2);
@@ -475,7 +476,7 @@ function TeacherView({ sessionId }) {
     }
   };
 
-  const scoreColor = (s) => s >= 75 ? '#d4924e' : s >= 50 ? '#c47c3e' : 'rgba(242,242,242,0.50)';
+  const scoreColor = (s) => s >= 75 ? '#60A5FA' : s >= 50 ? '#3B82F6' : 'rgba(17, 24, 39,0.50)';
 
   const toggleSidebar = (tab) => {
     setSidebarTab(prev => prev === tab ? null : tab);
@@ -491,7 +492,7 @@ function TeacherView({ sessionId }) {
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-[#111] text-snow relative">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#F3F5F6] text-snow relative">
       <style>{`
         @keyframes voiceRipple {
           0% { transform: scale(1); opacity: 0.7; }
@@ -503,7 +504,7 @@ function TeacherView({ sessionId }) {
       {/* ── TOAST NOTIFICATIONS ────────────────── */}
       <div className="fixed bottom-24 left-6 z-50 flex flex-col gap-2 pointer-events-none">
         {joinNotifications.map(n => (
-          <div key={n.id} className="flex items-center gap-2.5 px-4.5 py-3 rounded-xl shadow-2xl bg-copper border border-white/10 text-white font-extrabold text-xs animate-fadeUp">
+          <div key={n.id} className="flex items-center gap-2.5 px-4.5 py-3 rounded-xl shadow-2xl bg-copper border border-black/10 text-snow font-extrabold text-xs animate-fadeUp">
             <span>👤</span>
             <p>{n.message}</p>
           </div>
@@ -512,11 +513,11 @@ function TeacherView({ sessionId }) {
 
       {/* ── BREAK ALERT BANNER ────────────────── */}
       {breakAlert && (
-        <div id="break-alert-banner" className="flex-shrink-0 flex items-center justify-between px-6 py-3 z-50 bg-[#161a25] border-b border-copper/30 animate-fadeUp">
+        <div id="break-alert-banner" className="flex-shrink-0 flex items-center justify-between px-6 py-3 z-50 bg-[#FFFFFF] border-b border-blue-500/20 animate-fadeUp">
           <div className="flex items-center gap-3">
             <span className="w-2.5 h-2.5 rounded-full bg-copper animate-pulse" />
             <div>
-              <p className="text-[0.85rem] font-bold text-white">Engagement Alert — CFI dropped to {cfi}%</p>
+              <p className="text-[0.85rem] font-bold text-snow">Engagement Alert — CFI dropped to {cfi}%</p>
               <p className="text-[0.72rem] text-mist">Recommend a 5-minute break to restore attention</p>
             </div>
           </div>
@@ -525,7 +526,7 @@ function TeacherView({ sessionId }) {
               className="px-4 py-1.5 rounded-full text-[0.78rem] font-bold btn-primary">
               Call Break
             </button>
-            <button onClick={() => setBreakAlert(false)} className="text-mist hover:text-snow transition-colors">
+            <button onClick={() => setBreakAlert(false)} className="text-mist hover:text-[#111827] transition-colors">
               <Icon d="M18 6 6 18M6 6l12 12" size={16} />
             </button>
           </div>
@@ -536,11 +537,11 @@ function TeacherView({ sessionId }) {
       {handAlerts.length > 0 && (
         <div className="fixed top-4 right-4 z-50 flex flex-col gap-2">
           {handAlerts.map(h => (
-            <div key={h.id} id={`hand-alert-${h.id}`} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-lg bg-[#182030] border border-copper/30">
+            <div key={h.id} id={`hand-alert-${h.id}`} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl shadow-lg bg-[#FFFFFF] border border-blue-500/20">
               <span>✋</span>
               <p className="text-[0.8rem] font-semibold text-snow">{h.name} raised hand</p>
               <button onClick={() => setHandAlerts(prev => prev.filter(x => x.id !== h.id))}
-                className="text-copper/60 hover:text-copper ml-1.5 transition-colors font-bold text-sm">×</button>
+                className="text-blue-500/60 hover:text-blue-500 ml-1.5 transition-colors font-bold text-sm">×</button>
             </div>
           ))}
         </div>
@@ -555,7 +556,7 @@ function TeacherView({ sessionId }) {
           {isScreenSharing ? (
             /* Presentation Mode stage layout */
             <div className="flex-1 flex flex-col min-h-0 w-full">
-              <div id="screen-share-stage" className="flex-1 relative rounded-2xl overflow-hidden border border-white/5 bg-[#0a0a0a] flex items-center justify-center">
+              <div id="screen-share-stage" className="flex-1 relative rounded-2xl overflow-hidden border border-black/5 bg-[#0a0a0a] flex items-center justify-center">
                 <video ref={screenVideoRef} autoPlay playsInline muted className="w-full h-full object-contain" />
                 <div className="absolute bottom-4 left-4 text-[0.75rem] font-bold text-snow px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-md">
                   Screen Sharing Active
@@ -568,7 +569,7 @@ function TeacherView({ sessionId }) {
               {/* Row of feeds small previews underneath */}
               <div className="h-[110px] flex gap-3 mt-3 overflow-x-auto pb-1 flex-shrink-0">
                 {/* Teacher feed */}
-                <div className="w-[150px] h-full relative rounded-xl overflow-hidden bg-[#1f1f1f] border border-white/5 flex-shrink-0 flex items-center justify-center">
+                <div className="w-[150px] h-full relative rounded-xl overflow-hidden bg-[#FFFFFF] border border-black/10 flex-shrink-0 flex items-center justify-center">
                   {camOff ? (
                     <div className="w-full h-full flex items-center justify-center text-sm font-black bg-gradient-to-br from-[#241a12] to-[#121824]">{userInitials}</div>
                   ) : (
@@ -579,9 +580,9 @@ function TeacherView({ sessionId }) {
 
                 {/* Student feeds */}
                 {students.map(s => (
-                  <div key={s._id || s.userId} className="w-[150px] h-full relative rounded-xl overflow-hidden bg-[#1f1f1f] flex-shrink-0 flex items-center justify-center border border-white/5">
+                  <div key={s._id || s.userId} className="w-[150px] h-full relative rounded-xl overflow-hidden bg-[#FFFFFF] flex-shrink-0 flex items-center justify-center border border-[#EAECEB]">
                     <canvas id={`student-canvas-small-${s._id || s.userId}`} className="absolute inset-0 w-full h-full object-cover opacity-85" />
-                    <div className="relative z-10 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-black bg-gradient-to-br from-[#c47c3e] to-[#8c5828]">{s.initials}</div>
+                    <div className="relative z-10 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-black bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8]">{s.initials}</div>
                     <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[0.58rem] text-white px-1.5 py-0.5 rounded bg-black/60">
                       <span className="truncate max-w-[55px] font-medium">{s.name.split(' ')[0]}</span>
                       <span className="font-bold" style={{ color: scoreColor(s.score) }}>{s.score}%</span>
@@ -595,11 +596,11 @@ function TeacherView({ sessionId }) {
             <div className={`grid gap-4 items-center justify-center w-full min-h-0 ${getGridClass()}`}>
               
               {/* Teacher feed inside grid */}
-              <div id="teacher-self-view" className={`relative rounded-2xl overflow-hidden bg-[#1e1e1e] border flex items-center justify-center w-full aspect-video transition-all duration-300 ${
-                isSpeaking ? 'border-copper/70 ring-2 ring-copper/15' : 'border-white/5'
+              <div id="teacher-self-view" className={`relative rounded-2xl overflow-hidden bg-[#FFFFFF] border flex items-center justify-center w-full aspect-video transition-all duration-300 ${
+                isSpeaking ? 'border-copper/70 ring-2 ring-copper/15' : 'border-black/5'
               }`}>
                 {camOff ? (
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-black bg-gradient-to-br from-[#c47c3e] to-[#8c5828]">{userInitials}</div>
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-black bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8]">{userInitials}</div>
                 ) : (
                   <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
                 )}
@@ -616,13 +617,13 @@ function TeacherView({ sessionId }) {
               {/* Student feeds inside grid */}
               {students.map(s => (
                 <div key={s._id || s.userId} id={`student-video-${s._id || s.userId}`}
-                  className="relative rounded-2xl overflow-hidden aspect-video flex items-center justify-center bg-[#1e1e1e] border w-full transition-all duration-300"
+                  className="relative rounded-2xl overflow-hidden aspect-video flex items-center justify-center bg-[#FFFFFF] border w-full transition-all duration-300"
                   style={{
-                    borderColor: s.handRaised ? 'rgba(196,124,62,0.7)' : 'rgba(255, 255, 255, 0.05)',
-                    boxShadow: s.handRaised ? '0 0 16px rgba(196,124,62,0.2)' : 'none',
+                    borderColor: s.handRaised ? 'rgba(59, 130, 246,0.7)' : 'rgba(255, 255, 255, 0.05)',
+                    boxShadow: s.handRaised ? '0 0 16px rgba(59, 130, 246,0.2)' : 'none',
                   }}>
                   <canvas id={`student-canvas-${s._id || s.userId}`} className="absolute inset-0 w-full h-full object-cover opacity-85" />
-                  <div className="relative z-10 w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-black bg-gradient-to-br from-[#c47c3e] to-[#8c5828]">{s.initials}</div>
+                  <div className="relative z-10 w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-black bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8]">{s.initials}</div>
                   
                   <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between z-10">
                     <span className="text-[0.7rem] font-semibold text-white px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-md truncate max-w-[100px]">{s.name.split(' ')[0]}</span>
@@ -640,29 +641,29 @@ function TeacherView({ sessionId }) {
 
         {/* Right: Unified Tabbed Sidebar Container */}
         {sidebarTab !== null && (
-          <div id="unified-sidebar" className="w-[330px] flex-shrink-0 flex flex-col bg-[#171717] border-l border-[#262626] h-full z-30 animate-slide-down">
+          <div id="unified-sidebar" className="w-[330px] flex-shrink-0 flex flex-col bg-[#FFFFFF] border-l border-black/10 h-full z-30 animate-slide-down">
             
             {/* Sidebar Tab Header */}
-            <div className="flex items-center border-b border-[#262626] px-2 pt-2">
+            <div className="flex items-center border-b border-black/10 px-2 pt-2">
               <button onClick={() => setSidebarTab('analytics')}
                 className={`flex-1 py-3 text-[0.76rem] font-extrabold border-b-2 text-center transition-colors ${
-                  sidebarTab === 'analytics' ? 'border-copper text-copper' : 'border-transparent text-mist hover:text-snow'
+                  sidebarTab === 'analytics' ? 'border-copper text-blue-500' : 'border-transparent text-mist hover:text-[#111827]'
                 }`}>
                 Analytics
               </button>
               <button onClick={() => setSidebarTab('participants')}
                 className={`flex-1 py-3 text-[0.76rem] font-extrabold border-b-2 text-center transition-colors ${
-                  sidebarTab === 'participants' ? 'border-copper text-copper' : 'border-transparent text-mist hover:text-snow'
+                  sidebarTab === 'participants' ? 'border-copper text-blue-500' : 'border-transparent text-mist hover:text-[#111827]'
                 }`}>
                 Students ({students.length + 1})
               </button>
               <button onClick={() => setSidebarTab('chat')}
                 className={`flex-1 py-3 text-[0.76rem] font-extrabold border-b-2 text-center transition-colors ${
-                  sidebarTab === 'chat' ? 'border-copper text-copper' : 'border-transparent text-mist hover:text-snow'
+                  sidebarTab === 'chat' ? 'border-copper text-blue-500' : 'border-transparent text-mist hover:text-[#111827]'
                 }`}>
                 Chat
               </button>
-              <button onClick={() => setSidebarTab(null)} className="p-2.5 text-mist hover:text-snow transition-colors">
+              <button onClick={() => setSidebarTab(null)} className="p-2.5 text-mist hover:text-[#111827] transition-colors">
                 <Icon d="M18 6 6 18M6 6l12 12" size={14} />
               </button>
             </div>
@@ -673,25 +674,25 @@ function TeacherView({ sessionId }) {
               {/* Tab 1: Live Analytics */}
               {sidebarTab === 'analytics' && (
                 <div className="flex-1 p-5 flex flex-col gap-5">
-                  <div className="flex flex-col items-center border-b border-[#262626] pb-5">
+                  <div className="flex flex-col items-center border-b border-black/5 pb-5">
                     <CircularGauge value={cfi} />
                     <div className="flex items-center gap-1.5 mt-2">
                       {trend === 'improving'
-                        ? <><Icon d="m17 17 9.2-9.2M17 17V7H7" size={12} className="text-copper" /><span className="text-[0.7rem] text-copper font-semibold">Improving</span></>
+                        ? <><Icon d="m17 17 9.2-9.2M17 17V7H7" size={12} className="text-blue-500" /><span className="text-[0.7rem] text-blue-500 font-semibold">Improving</span></>
                         : <><Icon d="M17 7l-9.2 9.2M7 7v10h10" size={12} className="text-mist" /><span className="text-[0.7rem] text-mist font-semibold">Declining</span></>
                       }
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-3 border-b border-[#262626] pb-5">
-                    <p className="text-[0.68rem] font-bold uppercase tracking-[0.10em] text-mist/40">Engagement Metrics</p>
+                  <div className="flex flex-col gap-3 border-b border-black/5 pb-5">
+                    <p className="text-[0.68rem] font-bold uppercase tracking-[0.10em] text-mist">Engagement Metrics</p>
                     <MetricBar label="Attention" value={metrics.attention} />
                     <MetricBar label="Confusion" value={metrics.confusion} />
                     <MetricBar label="Energy" value={metrics.energy} />
                   </div>
 
-                  <div id="topic-marker-section" className="border-b border-[#262626] pb-5">
-                    <p className="text-[0.68rem] font-bold uppercase tracking-[0.10em] text-mist/40 mb-3">Topic Marker</p>
+                  <div id="topic-marker-section" className="border-b border-black/5 pb-5">
+                    <p className="text-[0.68rem] font-bold uppercase tracking-[0.10em] text-mist mb-3">Topic Marker</p>
                     <div className="flex gap-2 mb-3">
                       <input id="topic-label-input" type="text" placeholder="e.g., Started Derivatives"
                         value={topicLabel} onChange={e => setTopicLabel(e.target.value)}
@@ -706,7 +707,7 @@ function TeacherView({ sessionId }) {
                           <div key={i} className="flex items-center gap-2 text-[0.7rem]">
                             <span className="w-1.5 h-1.5 rounded-full bg-copper flex-shrink-0" />
                             <span className="text-snow/70 truncate flex-1">{m.label}</span>
-                            <span className="text-mist/40 flex-shrink-0 font-mono text-[0.64rem]">{m.time}</span>
+                            <span className="text-mist flex-shrink-0 font-mono text-[0.64rem]">{m.time}</span>
                           </div>
                         ))}
                       </div>
@@ -714,7 +715,7 @@ function TeacherView({ sessionId }) {
                   </div>
 
                   <div id="announcement-section" className="pb-5">
-                    <p className="text-[0.68rem] font-bold uppercase tracking-[0.10em] text-mist/40 mb-3">Announce to Class</p>
+                    <p className="text-[0.68rem] font-bold uppercase tracking-[0.10em] text-mist mb-3">Announce to Class</p>
                     <div className="flex gap-2">
                       <input id="announcement-input" type="text" placeholder="Broadcast a message…"
                         value={announcement} onChange={e => setAnnouncement(e.target.value)}
@@ -729,20 +730,20 @@ function TeacherView({ sessionId }) {
               {/* Tab 2: Connected Students */}
               {sidebarTab === 'participants' && (
                 <div className="flex-1 p-4 flex flex-col gap-2.5">
-                  <div className="flex items-center gap-2.5 py-1 border-b border-[#262626] pb-3">
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[0.65rem] font-bold bg-gradient-to-br from-[#c47c3e] to-[#8c5828] flex-shrink-0">{userInitials}</div>
+                  <div className="flex items-center gap-2.5 py-1 border-b border-black/5 pb-3">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[0.65rem] font-bold bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8] flex-shrink-0">{userInitials}</div>
                     <span className="text-[0.78rem] text-snow font-bold flex-1 truncate">{userName}</span>
-                    <span className="text-[0.65rem] text-copper font-bold uppercase tracking-wider">Host</span>
+                    <span className="text-[0.65rem] text-blue-500 font-bold uppercase tracking-wider">Host</span>
                   </div>
                   {students.length === 0 ? (
                     <p className="text-center text-mist/30 text-[0.72rem] mt-8">No students connected</p>
                   ) : (
                     students.map(s => (
                       <div key={s._id || s.userId} className="flex items-center gap-2.5 py-1">
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[0.65rem] font-bold bg-[#1e293b] flex-shrink-0 border border-white/5">{s.initials}</div>
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[0.65rem] font-bold bg-black/5 flex-shrink-0 border border-black/5">{s.initials}</div>
                         <span className="text-[0.78rem] text-mist flex-1 truncate font-medium">{s.name}</span>
                         <div className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{ background: s.score >= 75 ? '#d4924e' : s.score >= 50 ? '#c47c3e' : '#8c5828' }} />
+                          style={{ background: s.score >= 75 ? '#60A5FA' : s.score >= 50 ? '#3B82F6' : '#1D4ED8' }} />
                         {s.handRaised && <span className="text-xs">✋</span>}
                       </div>
                     ))
@@ -759,9 +760,9 @@ function TeacherView({ sessionId }) {
                     ) : (
                       messages.map(m => (
                         <div key={m._id || m.id} className={`flex flex-col gap-0.5 ${m.sender.includes('(You)') || m.role === 'teacher' ? 'items-end' : 'items-start'}`}>
-                          <span className="text-[0.64rem] text-mist/40">{m.sender}</span>
+                          <span className="text-[0.64rem] text-mist">{m.sender}</span>
                           <div className="px-3 py-2 rounded-[14px] max-w-[85%]"
-                            style={{ background: m.role === 'teacher' ? 'rgba(196,124,62,0.16)' : 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            style={{ background: m.role === 'teacher' ? 'rgba(59, 130, 246,0.16)' : 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
                             <p className="text-[0.78rem] text-snow/90 leading-relaxed font-medium">{m.msg}</p>
                           </div>
                           <span className="text-[0.62rem] text-mist/20 font-mono">{m.time}</span>
@@ -769,10 +770,10 @@ function TeacherView({ sessionId }) {
                       ))
                     )}
                   </div>
-                  <div className="p-3 border-t border-[#262626] flex gap-2">
+                  <div className="p-3 border-t border-black/5 flex gap-2">
                     <input type="text" placeholder="Send a message…" value={chatMsg} onChange={e => setChatMsg(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && sendChat()}
-                      className="flex-1 px-3 py-2 rounded-xl text-[0.78rem] text-white placeholder:text-mist/30 outline-none neu-input" />
+                      className="flex-1 px-3 py-2 rounded-xl text-[0.78rem] text-snow placeholder:text-mist/30 outline-none neu-input" />
                     <button onClick={sendChat} className="w-8 h-8 rounded-xl flex items-center justify-center btn-primary flex-shrink-0">
                       <Icon d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" size={13} />
                     </button>
@@ -785,15 +786,15 @@ function TeacherView({ sessionId }) {
       </div>
 
       {/* ── GOOGLE MEET STYLE CONTROL BAR ─────── */}
-      <div id="teacher-control-bar" className="fixed bottom-0 left-0 right-0 h-20 bg-[#171717] border-t border-[#262626] flex items-center justify-between px-6 z-40">
+      <div id="teacher-control-bar" className="fixed bottom-0 left-0 right-0 h-20 bg-[#FFFFFF] border-t border-black/10 flex items-center justify-between px-6 z-40">
         
         {/* Left Section: Time & Meeting details */}
         <div className="flex items-center gap-3">
           <span className="text-[0.82rem] text-mist font-bold uppercase tracking-wider">{formatTime(elapsed)}</span>
-          <span className="text-white/10">|</span>
+          <span className="text-black/10">|</span>
           <span className="text-[0.85rem] font-bold text-snow truncate max-w-[160px]">{meetingTitle}</span>
-          <span className="text-white/10">|</span>
-          <span className="text-[0.76rem] font-mono font-bold tracking-wider text-copper bg-white/5 border border-white/5 px-2.5 py-0.5 rounded-lg select-all cursor-pointer">{sessionId}</span>
+          <span className="text-black/10">|</span>
+          <span className="text-[0.76rem] font-mono font-bold tracking-wider text-blue-500 bg-[#F3F5F6] border border-black/5 px-2.5 py-0.5 rounded-lg select-all cursor-pointer">{sessionId}</span>
         </div>
 
         {/* Center Section: Core Controls */}
@@ -803,11 +804,11 @@ function TeacherView({ sessionId }) {
             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 relative ${
               muted 
                 ? 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30' 
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title={muted ? "Unmute Microphone" : "Mute Microphone"}>
             {isSpeaking && (
-              <span className="absolute inset-0 rounded-full bg-[#c47c3e]/30 pointer-events-none animate-ping" style={{ animationDuration: '1.5s' }} />
+              <span className="absolute inset-0 rounded-full bg-[#3B82F6]/30 pointer-events-none animate-ping" style={{ animationDuration: '1.5s' }} />
             )}
             <Icon d={muted ? 'm12 19 3-3 M19 10v1a7.9 7.9 0 0 1-3.07 6.27M12 2a3 3 0 0 0-3 3v1.17M1 1l22 22' : 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z M19 10v2a7 7 0 0 1-14 0v-2 M12 19v4 M8 23h8'} size={18} />
           </button>
@@ -817,7 +818,7 @@ function TeacherView({ sessionId }) {
             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
               camOff 
                 ? 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30' 
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title={camOff ? "Start Camera" : "Stop Camera"}>
             <Icon d={camOff ? 'm2 2 20 20M21 16V8a2 2 0 0 0-2-2h-9.83 M22 8l-6 4 6 4V8Z' : 'm22 8-6 4 6 4V8Z M2 6h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z'} size={18} />
@@ -827,8 +828,8 @@ function TeacherView({ sessionId }) {
           <button id="ctrl-screen" onClick={isScreenSharing ? () => stopScreenShare(null) : startScreenShare}
             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
               isScreenSharing 
-                ? 'bg-copper/20 border border-copper/40 text-copper hover:bg-copper/30' 
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+                ? 'bg-copper/20 border border-copper/40 text-blue-500 hover:bg-copper/30' 
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title={isScreenSharing ? "Stop Sharing Screen" : "Share Screen"}>
             <Icon d="M2 3h20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z M12 17v4 M8 21h8" size={18} />
@@ -850,8 +851,8 @@ function TeacherView({ sessionId }) {
           <button onClick={() => toggleSidebar('analytics')}
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
               sidebarTab === 'analytics'
-                ? 'bg-copper/20 border border-copper/40 text-copper'
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-[#f2f2f2]/60 hover:text-white hover:bg-[#363636]'
+                ? 'bg-copper/20 border border-copper/40 text-blue-500'
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title="Live Focus Analytics">
             <Icon d="M18 20V10 M12 20V4 M6 20V14" size={17} />
@@ -861,13 +862,13 @@ function TeacherView({ sessionId }) {
           <button onClick={() => toggleSidebar('participants')}
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 relative ${
               sidebarTab === 'participants'
-                ? 'bg-copper/20 border border-copper/40 text-copper'
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-[#f2f2f2]/60 hover:text-white hover:bg-[#363636]'
+                ? 'bg-copper/20 border border-copper/40 text-blue-500'
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title="Students List">
             <Icon d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M16 3.13a4 4 0 0 1 0 7.75" size={17} />
             {students.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-copper text-white text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#171717]">
+              <span className="absolute -top-1 -right-1 bg-copper text-snow text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
                 {students.length}
               </span>
             )}
@@ -877,13 +878,13 @@ function TeacherView({ sessionId }) {
           <button onClick={() => toggleSidebar('chat')}
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 relative ${
               sidebarTab === 'chat'
-                ? 'bg-copper/20 border border-copper/40 text-copper'
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-[#f2f2f2]/60 hover:text-white hover:bg-[#363636]'
+                ? 'bg-copper/20 border border-copper/40 text-blue-500'
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title="Class Chat">
             <Icon d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" size={17} />
             {messages.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-copper text-white text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#171717]">
+              <span className="absolute -top-1 -right-1 bg-copper text-snow text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
                 {messages.length}
               </span>
             )}
@@ -914,6 +915,7 @@ function StudentView({ sessionId }) {
   const [breakBanner, setBreakBanner] = useState(false);
   const [engScore, setEngScore] = useState(82);
   const [elapsed, setElapsed] = useState(0);
+  const [teacher, setTeacher] = useState(null);
 
   // Connected notification
   const [joinNotifications, setJoinNotifications] = useState([]);
@@ -974,6 +976,9 @@ function StudentView({ sessionId }) {
           });
           prevStudentsRef.current = activeStudents;
           setStudents(activeStudents);
+
+          const teacherParticipant = activeParticipants.find(p => p.role === 'teacher');
+          setTeacher(teacherParticipant || null);
 
           setMessages(meeting.messages || []);
 
@@ -1132,7 +1137,6 @@ function StudentView({ sessionId }) {
         const scrStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
         setScreenStream(scrStream);
         setIsScreenSharing(true);
-
         scrStream.getVideoTracks()[0].onended = () => {
           stopScreenShare(scrStream);
         };
@@ -1150,139 +1154,6 @@ function StudentView({ sessionId }) {
     setScreenStream(null);
     setIsScreenSharing(false);
   };
-
-  // Blackboard simulator canvas rendering
-  useEffect(() => {
-    const canvas = document.getElementById('teacher-lecture-canvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animId;
-    const render = () => {
-      const w = canvas.width = canvas.clientWidth || 800;
-      const h = canvas.height = canvas.clientHeight || 500;
-
-      // blackboard
-      ctx.fillStyle = '#080d1a';
-      ctx.fillRect(0, 0, w, h);
-
-      // grids
-      ctx.strokeStyle = 'rgba(196, 124, 62, 0.035)';
-      ctx.lineWidth = 1;
-      const stepSize = 30;
-      for (let x = 0; x < w; x += stepSize) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
-      }
-      for (let y = 0; y < h; y += stepSize) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-      }
-
-      const time = Date.now() * 0.001;
-
-      // chalkboard title headers
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
-      ctx.font = 'bold 15px sans-serif';
-      ctx.fillText("Lecture 04: Derivative Tangents & Live Wave Slopes", 40, 50);
-
-      // axis grids
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-      ctx.lineWidth = 2;
-      const oX = w / 2;
-      const oY = h / 2 + 30;
-      
-      ctx.beginPath();
-      ctx.moveTo(45, oY); ctx.lineTo(w - 45, oY);
-      ctx.moveTo(oX, 85); ctx.lineTo(oX, h - 75);
-      ctx.stroke();
-
-      // wave curve f(x)
-      ctx.strokeStyle = '#c47c3e';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      let first = true;
-      const sX = 0.015;
-      const sY = 110;
-      for (let px = 50; px < w - 50; px++) {
-        const dx = px - oX;
-        const dy = Math.sin(dx * sX + time) * Math.cos(dx * 0.004) * sY;
-        const py = oY - dy;
-        if (first) {
-          ctx.moveTo(px, py); first = false;
-        } else {
-          ctx.lineTo(px, py);
-        }
-      }
-      ctx.stroke();
-
-      // tangent node coordinates
-      const tDx = Math.sin(time * 0.4) * (w / 3.2);
-      const tX = oX + tDx;
-      const tY = oY - Math.sin(tDx * sX + time) * Math.cos(tDx * 0.004) * sY;
-
-      const delta = 0.1;
-      const dyLeft = Math.sin((tDx - delta) * sX + time) * Math.cos((tDx - delta) * 0.004) * sY;
-      const dyRight = Math.sin((tDx + delta) * sX + time) * Math.cos((tDx + delta) * 0.004) * sY;
-      const slope = (dyRight - dyLeft) / (2 * delta);
-
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
-      ctx.lineWidth = 1.8;
-      ctx.beginPath();
-      ctx.moveTo(tX - 70, tY + slope * 70);
-      ctx.lineTo(tX + 70, tY - slope * 70);
-      ctx.stroke();
-
-      ctx.fillStyle = '#d4924e';
-      ctx.beginPath();
-      ctx.arc(tX, tY, 6.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-      ctx.font = '12px monospace';
-      ctx.fillText(`P(x) = (${Math.round(tDx)}, ${Math.round(tY - oY)})`, tX + 15, tY - 15);
-      ctx.fillText(`Slope f'(x) = ${slope.toFixed(3)}`, tX + 15, tY + 4);
-
-      // Embedded instructor preview camera Box
-      const bW = 145;
-      const bH = 95;
-      const bX = w - bW - 40;
-      const bY = 40;
-
-      ctx.fillStyle = 'rgba(12, 19, 34, 0.88)';
-      ctx.strokeStyle = 'rgba(196, 124, 62, 0.25)';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.roundRect(bX, bY, bW, bH, 10);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.fillStyle = '#c47c3e';
-      const eqCount = 6;
-      for (let i = 0; i < eqCount; i++) {
-        const hEq = 4 + Math.abs(Math.sin(time * 7 + i)) * 14;
-        ctx.fillRect(bX + 18 + i * 8, bY + bH - 18 - hEq, 4, hEq);
-      }
-
-      ctx.fillStyle = 'rgba(255,255,255,0.08)';
-      ctx.beginPath();
-      ctx.arc(bX + bW / 2 + 20, bY + bH / 2 - 8, 14, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(bX + bW / 2 + 20, bY + bH / 2 + 20, 20, 12, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = 'rgba(255,255,255,0.50)';
-      ctx.font = '9px sans-serif';
-      ctx.fillText("Dr. Ahmed (Lecturing)", bX + 15, bY + 16);
-
-      animId = requestAnimationFrame(render);
-    };
-    render();
-    return () => cancelAnimationFrame(animId);
-  }, []);
 
   // Update engagement score locally
   useEffect(() => {
@@ -1317,7 +1188,7 @@ function StudentView({ sessionId }) {
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-[#111] text-snow relative">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#F3F5F6] text-snow relative">
       <style>{`
         @keyframes voiceRipple {
           0% { transform: scale(1); opacity: 0.7; }
@@ -1329,7 +1200,7 @@ function StudentView({ sessionId }) {
       {/* ── TOAST NOTIFICATIONS ────────────────── */}
       <div className="fixed bottom-24 left-6 z-50 flex flex-col gap-2 pointer-events-none">
         {joinNotifications.map(n => (
-          <div key={n.id} className="flex items-center gap-2.5 px-4.5 py-3 rounded-xl shadow-2xl bg-copper border border-white/10 text-white font-extrabold text-xs animate-fadeUp">
+          <div key={n.id} className="flex items-center gap-2.5 px-4.5 py-3 rounded-xl shadow-2xl bg-copper border border-black/10 text-snow font-extrabold text-xs animate-fadeUp">
             <span>👤</span>
             <p>{n.message}</p>
           </div>
@@ -1338,9 +1209,9 @@ function StudentView({ sessionId }) {
 
       {/* Break Banner */}
       {breakBanner && (
-        <div id="student-break-banner" className="flex-shrink-0 flex items-center justify-center gap-3 px-6 py-3 z-50 bg-[#161a25] border-b border-copper/30 animate-fadeDown">
+        <div id="student-break-banner" className="flex-shrink-0 flex items-center justify-center gap-3 px-6 py-3 z-50 bg-[#FFFFFF] border-b border-blue-500/20 animate-fadeDown">
           <span className="text-white text-sm font-bold">☕ Teacher called a 5-minute break</span>
-          <button onClick={() => setBreakBanner(false)} className="text-mist hover:text-snow transition-colors ml-3">×</button>
+          <button onClick={() => setBreakBanner(false)} className="text-mist hover:text-[#111827] transition-colors ml-3">×</button>
         </div>
       )}
 
@@ -1362,15 +1233,79 @@ function StudentView({ sessionId }) {
               </button>
             </div>
           ) : (
-            /* Chalkboard math canvas */
-            <canvas id="teacher-lecture-canvas" className="w-full h-full object-cover" />
+            /* Google Meet styled teacher view calling container */
+            <div className="w-full h-full flex items-center justify-center p-4 relative bg-gradient-to-br from-[#1c264c] via-[#243460] to-[#121936]">
+              {(!teacher || teacher.camOff) ? (
+                /* Camera is OFF placeholder (matches Google Meet) */
+                <div className="relative flex flex-col items-center justify-center">
+                  {/* Large avatar circle with speech ripple if speaking */}
+                  <div className="relative flex items-center justify-center">
+                    {(!teacher?.camOff && teacher?.isSpeaking) && (
+                      <span className="absolute w-36 h-36 rounded-full bg-[#3d4f85]/30 border border-black/10 animate-ping" style={{ animationDuration: '2s' }} />
+                    )}
+                    <div className="w-32 h-32 rounded-full bg-[#3f508a] text-white text-4xl font-black flex items-center justify-center border border-black/10 shadow-2xl transition-all duration-300">
+                      {teacher?.initials || 'DA'}
+                    </div>
+                  </div>
+                  
+                  {/* Google Meet centered utility pills decoration */}
+                  <div className="mt-8 bg-black/35 backdrop-blur-md border border-black/10 px-4 py-1.5 rounded-full flex items-center gap-3 shadow-lg select-none">
+                    <Icon d="M12 21c-4.97 0-9-4.03-9-9s4.03-9 9-9 9 4.03 9 9-4.03 9-9 9Z M12 7v10 M7 12h10" size={12} className="text-white/60" />
+                    <span className="text-white/20 text-xs">|</span>
+                    <Icon d="M15 10l5 5-5 5v-10z M2 5h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" size={12} className="text-white/60" />
+                    <span className="text-white/20 text-xs">|</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                  </div>
+                </div>
+              ) : (
+                /* Teacher video is ON (simulate active webcam feed) */
+                <div className="w-full h-full relative rounded-2xl overflow-hidden bg-[#FFFFFF] border border-black/5 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#121824] to-[#0c0f17] flex items-center justify-center opacity-75">
+                    {/* Simulated live video patterns */}
+                    <div className="absolute w-64 h-64 rounded-full border border-copper/10 animate-pulse" />
+                    <div className="absolute w-96 h-96 rounded-full border border-copper/5 animate-pulse" style={{ animationDelay: '1s' }} />
+                  </div>
+                  
+                  <div className="relative z-10 flex flex-col items-center gap-4">
+                    <div className={`w-28 h-28 rounded-full flex items-center justify-center text-white text-3xl font-black bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8] border-2 shadow-2xl transition-all duration-300 ${
+                      teacher?.isSpeaking ? 'border-copper scale-105 shadow-copper/20' : 'border-black/10'
+                    }`}>
+                      {teacher?.initials || 'DA'}
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                        <span className="text-xs font-bold text-snow tracking-wider uppercase">Live Video Stream</span>
+                      </div>
+                      {teacher?.isSpeaking && (
+                        <p className="text-[0.68rem] text-blue-500 font-semibold tracking-wider animate-bounce mt-1">Speaking...</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Host/Instructor Name bottom left overlay */}
+              <div className="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/60 border border-black/5 backdrop-blur-md shadow-lg select-none">
+                <span className="text-[0.78rem] text-snow font-bold">{teacher?.name || 'Dr. Ahmed'}</span>
+                <span className="text-[0.62rem] text-blue-500/80 font-bold uppercase tracking-wider bg-black/5 px-2 py-0.5 rounded-md border border-black/5">Host</span>
+              </div>
+
+              {/* Teacher Muted top right overlay (matches Google Meet) */}
+              {(teacher?.muted || !teacher) && (
+                <div className="absolute top-4 right-4 w-9 h-9 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center shadow-lg transition-all">
+                  <Icon d="m19 10-1.39 4.5M9 5a3 3 0 0 1 5.3 1.8M12 19v4M8 23h8M1 1l22 22" size={13} className="text-red-400" />
+                </div>
+              )}
+            </div>
           )}
 
           {/* Floating Self Preview Box (Google Meet styled pip in corner) */}
-          <div id="student-self-preview" className="absolute bottom-6 right-6 w-[180px] rounded-2xl overflow-hidden bg-[#1e1e1e] border border-white/10 shadow-2xl z-20 aspect-video transition-all duration-300">
+          <div id="student-self-preview" className="absolute bottom-6 right-6 w-[180px] rounded-2xl overflow-hidden bg-[#FFFFFF] border border-black/10 shadow-2xl z-20 aspect-video transition-all duration-300">
             <div className="w-full h-full flex items-center justify-center">
               {camOff ? (
-                <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-black bg-gradient-to-br from-[#c47c3e] to-[#8c5828]">{userInitials}</div>
+                <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-black bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8]">{userInitials}</div>
               ) : (
                 <video ref={localVideoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
               )}
@@ -1386,13 +1321,13 @@ function StudentView({ sessionId }) {
           {/* Private personal attention telemetry indicator */}
           <div id="personal-score" className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/60 border border-copper/20 backdrop-blur-md">
             <span className="text-[0.68rem] text-mist font-medium">My Attention</span>
-            <span className="text-[0.8rem] font-black text-copper">{Math.round(engScore)}%</span>
-            <span className="text-[0.58rem] text-mist/40 font-bold">· local</span>
+            <span className="text-[0.8rem] font-black text-blue-500">{Math.round(engScore)}%</span>
+            <span className="text-[0.58rem] text-mist font-bold">· local</span>
           </div>
 
           {/* AI Security indicator */}
-          <div id="ai-active-badge" className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#161a25]/90 border border-copper/20 backdrop-blur-md">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#d4924e" strokeWidth="2.5">
+          <div id="ai-active-badge" className="absolute top-4 right-4 flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#FFFFFF]/90 border border-copper/20 backdrop-blur-md">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2.5">
               <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             </svg>
             <span className="text-[0.68rem] font-bold text-snow">AI Protected</span>
@@ -1402,23 +1337,23 @@ function StudentView({ sessionId }) {
 
         {/* Right: Unified Tabbed Sidebar Drawer */}
         {sidebarTab !== null && (
-          <div id="unified-sidebar" className="w-[320px] flex-shrink-0 flex flex-col bg-[#171717] border-l border-[#262626] h-full z-30 animate-slide-down">
+          <div id="unified-sidebar" className="w-[320px] flex-shrink-0 flex flex-col bg-[#FFFFFF] border-l border-black/10 h-full z-30 animate-slide-down">
             
             {/* Sidebar Tab Header */}
-            <div className="flex items-center border-b border-[#262626] px-2 pt-2">
+            <div className="flex items-center border-b border-black/10 px-2 pt-2">
               <button onClick={() => setSidebarTab('participants')}
                 className={`flex-1 py-3 text-[0.76rem] font-extrabold border-b-2 text-center transition-colors ${
-                  sidebarTab === 'participants' ? 'border-copper text-copper' : 'border-transparent text-mist hover:text-snow'
+                  sidebarTab === 'participants' ? 'border-copper text-blue-500' : 'border-transparent text-mist hover:text-[#111827]'
                 }`}>
                 Students ({students.length + 1})
               </button>
               <button onClick={() => setSidebarTab('chat')}
                 className={`flex-1 py-3 text-[0.76rem] font-extrabold border-b-2 text-center transition-colors ${
-                  sidebarTab === 'chat' ? 'border-copper text-copper' : 'border-transparent text-mist hover:text-snow'
+                  sidebarTab === 'chat' ? 'border-copper text-blue-500' : 'border-transparent text-mist hover:text-[#111827]'
                 }`}>
                 Chat
               </button>
-              <button onClick={() => setSidebarTab(null)} className="p-2.5 text-mist hover:text-snow transition-colors">
+              <button onClick={() => setSidebarTab(null)} className="p-2.5 text-mist hover:text-[#111827] transition-colors">
                 <Icon d="M18 6 6 18M6 6l12 12" size={14} />
               </button>
             </div>
@@ -1429,17 +1364,17 @@ function StudentView({ sessionId }) {
               {/* Tab 1: Connected Users */}
               {sidebarTab === 'participants' && (
                 <div className="flex-1 p-4 flex flex-col gap-2.5">
-                  <div className="flex items-center gap-2.5 py-1 border-b border-[#262626] pb-3">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[0.6rem] font-bold bg-[#1e293b] flex-shrink-0 border border-white/5">TA</div>
+                  <div className="flex items-center gap-2.5 py-1 border-b border-black/5 pb-3">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[0.6rem] font-bold bg-black/5 flex-shrink-0 border border-black/5">TA</div>
                     <span className="text-[0.78rem] text-mist flex-1 truncate font-medium">Dr. Ahmed</span>
-                    <span className="text-[0.65rem] text-copper font-bold uppercase tracking-wider">Host</span>
+                    <span className="text-[0.65rem] text-blue-500 font-bold uppercase tracking-wider">Host</span>
                   </div>
                   {students.length === 0 ? (
                     <p className="text-center text-mist/30 text-[0.72rem] mt-8">No students connected</p>
                   ) : (
                     students.map(s => (
                       <div key={s._id || s.userId} className="flex items-center gap-2.5 py-1">
-                        <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[0.6rem] font-bold bg-[#1f293d] flex-shrink-0 border border-white/5">{s.initials}</div>
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[0.6rem] font-bold bg-black/5 flex-shrink-0 border border-black/5">{s.initials}</div>
                         <span className="text-[0.78rem] text-mist flex-1 truncate font-medium">{s.name}</span>
                         {s.handRaised && <span className="text-xs">✋</span>}
                       </div>
@@ -1457,19 +1392,19 @@ function StudentView({ sessionId }) {
                     ) : (
                       messages.map(m => (
                         <div key={m._id || m.id} className={`flex flex-col gap-0.5 ${m.sender === 'You' || m.sender.includes('(You)') || m.role === 'teacher' ? 'items-end' : 'items-start'}`}>
-                          <span className="text-[0.64rem] text-mist/40">{m.sender}</span>
+                          <span className="text-[0.64rem] text-mist">{m.sender}</span>
                           <div className="px-3 py-2 rounded-[14px] max-w-[85%]"
-                            style={{ background: m.role === 'teacher' ? 'rgba(196,124,62,0.16)' : 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            style={{ background: m.role === 'teacher' ? 'rgba(59, 130, 246,0.16)' : 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.05)' }}>
                             <p className="text-[0.78rem] text-snow/90 leading-relaxed font-medium">{m.msg}</p>
                           </div>
                         </div>
                       ))
                     )}
                   </div>
-                  <div className="p-3 border-t border-[#262626] flex gap-2">
+                  <div className="p-3 border-t border-black/5 flex gap-2">
                     <input type="text" placeholder="Send a message…" value={chatMsg} onChange={e => setChatMsg(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && sendChat()}
-                      className="flex-1 px-3 py-2 rounded-xl text-[0.78rem] text-white placeholder:text-mist/30 outline-none neu-input" />
+                      className="flex-1 px-3 py-2 rounded-xl text-[0.78rem] text-snow placeholder:text-mist/30 outline-none neu-input" />
                     <button onClick={sendChat} className="w-8 h-8 rounded-xl flex items-center justify-center btn-primary flex-shrink-0">
                       <Icon d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" size={13} />
                     </button>
@@ -1482,15 +1417,15 @@ function StudentView({ sessionId }) {
       </div>
 
       {/* ── GOOGLE MEET STYLE CONTROL BAR ─────── */}
-      <div id="student-control-bar" className="fixed bottom-0 left-0 right-0 h-20 bg-[#171717] border-t border-[#262626] flex items-center justify-between px-6 z-40">
+      <div id="student-control-bar" className="fixed bottom-0 left-0 right-0 h-20 bg-[#FFFFFF] border-t border-black/10 flex items-center justify-between px-6 z-40">
         
         {/* Left Section: Time & Details */}
         <div className="flex items-center gap-3">
           <span className="text-[0.82rem] text-mist font-bold uppercase tracking-wider">{formatTime(elapsed)}</span>
-          <span className="text-white/10">|</span>
+          <span className="text-black/10">|</span>
           <span className="text-[0.85rem] font-bold text-snow truncate max-w-[160px]">{meetingTitle}</span>
-          <span className="text-white/10">|</span>
-          <span className="text-[0.76rem] font-mono font-bold tracking-wider text-copper bg-white/5 border border-white/5 px-2.5 py-0.5 rounded-lg select-all cursor-pointer">{sessionId}</span>
+          <span className="text-black/10">|</span>
+          <span className="text-[0.76rem] font-mono font-bold tracking-wider text-blue-500 bg-[#F3F5F6] border border-black/5 px-2.5 py-0.5 rounded-lg select-all cursor-pointer">{sessionId}</span>
         </div>
 
         {/* Center Section: Core Controls */}
@@ -1501,11 +1436,11 @@ function StudentView({ sessionId }) {
             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 relative ${
               muted 
                 ? 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30' 
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title={muted ? "Unmute Microphone" : "Mute Microphone"}>
             {isSpeaking && (
-              <span className="absolute inset-0 rounded-full bg-[#c47c3e]/30 pointer-events-none animate-ping" style={{ animationDuration: '1.5s' }} />
+              <span className="absolute inset-0 rounded-full bg-[#3B82F6]/30 pointer-events-none animate-ping" style={{ animationDuration: '1.5s' }} />
             )}
             <Icon d={muted ? 'm12 19 3-3 M19 10v1a7.9 7.9 0 0 1-3.07 6.27M12 2a3 3 0 0 0-3 3v1.17M1 1l22 22' : 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z M19 10v2a7 7 0 0 1-14 0v-2 M12 19v4 M8 23h8'} size={18} />
           </button>
@@ -1515,7 +1450,7 @@ function StudentView({ sessionId }) {
             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
               camOff 
                 ? 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30' 
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title={camOff ? "Start Video" : "Stop Video"}>
             <Icon d={camOff ? 'm2 2 20 20M21 16V8a2 2 0 0 0-2-2h-9.83 M22 8l-6 4 6 4V8Z' : 'm22 8-6 4 6 4V8Z M2 6h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Z'} size={18} />
@@ -1525,8 +1460,8 @@ function StudentView({ sessionId }) {
           <button id="student-ctrl-screen" onClick={isScreenSharing ? () => stopScreenShare(null) : startScreenShare}
             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
               isScreenSharing 
-                ? 'bg-copper/20 border border-copper/40 text-copper hover:bg-copper/30' 
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+                ? 'bg-copper/20 border border-copper/40 text-blue-500 hover:bg-copper/30' 
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title={isScreenSharing ? "Stop Sharing Screen" : "Share Screen"}>
             <Icon d="M2 3h20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z M12 17v4 M8 21h8" size={18} />
@@ -1536,8 +1471,8 @@ function StudentView({ sessionId }) {
           <button id="student-ctrl-hand" onClick={() => setHandRaised(!handRaised)}
             className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-200 ${
               handRaised 
-                ? 'bg-copper/20 border border-copper/40 text-copper hover:bg-copper/30' 
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-white hover:bg-[#363636]'
+                ? 'bg-copper/20 border border-copper/40 text-blue-500 hover:bg-copper/30' 
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title={handRaised ? "Lower Hand" : "Raise Hand"}>
             <Icon d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5 M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6 M10 10.5V3a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8.5 M6 12V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v9c0 5 4 9 9 9h3a9 9 0 0 0 9-9v-3.5a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2" size={18} />
@@ -1558,13 +1493,13 @@ function StudentView({ sessionId }) {
           <button onClick={() => toggleSidebar('participants')}
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 relative ${
               sidebarTab === 'participants'
-                ? 'bg-copper/20 border border-copper/40 text-copper'
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-[#f2f2f2]/60 hover:text-white hover:bg-[#363636]'
+                ? 'bg-copper/20 border border-copper/40 text-blue-500'
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title="Class Participants">
             <Icon d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M16 3.13a4 4 0 0 1 0 7.75" size={17} />
             {students.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-copper text-white text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#171717]">
+              <span className="absolute -top-1 -right-1 bg-copper text-snow text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
                 {students.length}
               </span>
             )}
@@ -1574,13 +1509,13 @@ function StudentView({ sessionId }) {
           <button onClick={() => toggleSidebar('chat')}
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 relative ${
               sidebarTab === 'chat'
-                ? 'bg-copper/20 border border-copper/40 text-copper'
-                : 'bg-[#2b2b2b] border border-[#3c3c3c] text-[#f2f2f2]/60 hover:text-white hover:bg-[#363636]'
+                ? 'bg-copper/20 border border-copper/40 text-blue-500'
+                : 'bg-[#FFFFFF] border border-[#EAECEB] text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F5F6]'
             }`}
             title="Class Chat">
             <Icon d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" size={17} />
             {messages.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-copper text-white text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-[#171717]">
+              <span className="absolute -top-1 -right-1 bg-copper text-snow text-[0.58rem] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">
                 {messages.length}
               </span>
             )}
@@ -1605,7 +1540,7 @@ export default function ClassroomPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-[#0f111a] flex items-center justify-center">
         <div className="text-center animate-fadeIn">
-          <div className="w-12 h-12 border-2 border-[rgba(196,124,62,0.20)] border-t-copper rounded-full animate-spin-slow mx-auto mb-4" />
+          <div className="w-12 h-12 border-2 border-[rgba(59, 130, 246,0.20)] border-t-copper rounded-full animate-spin-slow mx-auto mb-4" />
           <p className="text-mist text-sm font-semibold">Loading classroom context…</p>
         </div>
       </div>

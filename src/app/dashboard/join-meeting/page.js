@@ -138,8 +138,8 @@ export default function JoinMeetingPage() {
         <div className="absolute inset-0 mesh-grid pointer-events-none opacity-40" />
         <div className="relative z-10 text-center animate-fadeUp">
           <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-            style={{ background: 'rgba(196,124,62,0.15)', border: '2px solid rgba(196,124,62,0.35)' }}>
-            <span className="w-8 h-8 border-2 border-[rgba(196,124,62,0.25)] border-t-copper rounded-full animate-spin-slow" />
+            style={{ background: 'rgba(59, 130, 246,0.15)', border: '2px solid rgba(59, 130, 246,0.35)' }}>
+            <span className="w-8 h-8 border-2 border-[rgba(59, 130, 246,0.25)] border-t-copper rounded-full animate-spin-slow" />
           </div>
           <h2 className="text-[1.5rem] font-black text-snow mb-2">Joining Classroom…</h2>
           <p className="text-[0.9rem] text-mist font-medium">Setting up your AI-powered engagement analysis locally</p>
@@ -156,7 +156,7 @@ export default function JoinMeetingPage() {
   if (step === 2) {
     return (
       <div className="min-h-screen dashboard-bg relative overflow-hidden text-snow">
-        <div className="absolute -top-24 -right-24 w-[400px] h-[400px] rounded-full orb-copper animate-float pointer-events-none" />
+        <div className="absolute -top-24 -right-24 w-[400px] h-[400px] rounded-full orb-navy animate-float pointer-events-none" />
         <div className="absolute inset-0 mesh-grid pointer-events-none opacity-40" />
 
         <header className="sticky top-0 z-30 px-8 py-4 flex items-center gap-4 glass-topbar">
@@ -166,7 +166,7 @@ export default function JoinMeetingPage() {
             </svg>
             Back
           </button>
-          <div className="w-px h-4 bg-[rgba(196,124,62,0.25)]" />
+          <div className="w-px h-4 bg-[rgba(59, 130, 246,0.25)]" />
           <span className="text-[0.9rem] font-bold text-snow">Device Check</span>
         </header>
 
@@ -180,14 +180,14 @@ export default function JoinMeetingPage() {
 
           {/* Camera preview */}
           <div id="camera-preview-card" className="rounded-[20px] overflow-hidden mb-5 card-navy">
-            <div className="relative aspect-video bg-navy-dark/45 flex items-center justify-center">
+            <div className="relative aspect-video bg-black/5 flex items-center justify-center">
               {camAllowed ? (
                 <video ref={videoRef} autoPlay muted={micMuted} playsInline className="w-full h-full object-cover" />
               ) : (
                 <div className="flex flex-col items-center gap-3 p-8 text-center">
                   <div className="w-16 h-16 rounded-full flex items-center justify-center"
-                    style={{ background: 'rgba(196,124,62,0.12)', border: '1px solid rgba(196,124,62,0.30)' }}>
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#c47c3e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    style={{ background: 'rgba(59, 130, 246,0.12)', border: '1px solid rgba(59, 130, 246,0.30)' }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
                     </svg>
                   </div>
@@ -197,7 +197,7 @@ export default function JoinMeetingPage() {
                     <p className="text-[0.84rem] text-mist">Camera permission needed for AI analysis</p>
                   )}
                   <button id="request-camera-btn" onClick={requestCamera}
-                    className="px-5 py-2.5 rounded-xl text-[0.85rem] font-bold text-[#f2f2f2] btn-primary">
+                    className="px-5 py-2.5 rounded-xl text-[0.85rem] font-bold text-white btn-primary">
                     Allow Camera
                   </button>
                 </div>
@@ -212,12 +212,12 @@ export default function JoinMeetingPage() {
             </div>
 
             {camAllowed && (
-              <div className="px-5 py-3 flex items-center gap-4 border-t border-[rgba(196,124,62,0.14)]">
+              <div className="px-5 py-3 flex items-center gap-4 border-t border-[rgba(59, 130, 246,0.14)]">
                 <button id="toggle-mic-btn" onClick={() => setMicMuted(!micMuted)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.8rem] font-semibold transition-all ${micMuted ? 'text-mist/40' : 'text-snow'}`}
                   style={{
-                    background: micMuted ? 'rgba(196,124,62,0.06)' : 'rgba(196,124,62,0.15)',
-                    border: '1px solid rgba(196,124,62,0.30)'
+                    background: micMuted ? 'rgba(59, 130, 246,0.06)' : 'rgba(59, 130, 246,0.15)',
+                    border: '1px solid rgba(59, 130, 246,0.30)'
                   }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     {micMuted
@@ -234,9 +234,9 @@ export default function JoinMeetingPage() {
 
           {/* Privacy info */}
           <div className="p-5 rounded-[18px] mb-5 flex gap-3"
-            style={{ background: 'rgba(196,124,62,0.08)', border: '1px solid rgba(196,124,62,0.22)' }}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-copper flex-shrink-0 mt-0.5"
-              style={{ background: 'rgba(196,124,62,0.12)' }}>
+            style={{ background: 'rgba(59, 130, 246,0.08)', border: '1px solid rgba(59, 130, 246,0.22)' }}>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-blue-500 flex-shrink-0 mt-0.5"
+              style={{ background: 'rgba(59, 130, 246,0.12)' }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" />
               </svg>
@@ -251,7 +251,7 @@ export default function JoinMeetingPage() {
 
           {/* Consent */}
           <label id="consent-checkbox-label" htmlFor="consent-cb" className="flex items-start gap-2.5 cursor-pointer p-4 rounded-[14px] mb-5 transition-colors card-navy"
-            style={{ borderColor: consentChecked ? 'rgba(196,124,62,0.60)' : 'rgba(196,124,62,0.18)' }}>
+            style={{ borderColor: consentChecked ? 'rgba(59, 130, 246,0.60)' : 'rgba(59, 130, 246,0.18)' }}>
             <input id="consent-cb" type="checkbox" checked={consentChecked} onChange={e => setConsentChecked(e.target.checked)}
               className="w-4.5 h-4.5 mt-0.5 rounded accent-copper flex-shrink-0 cursor-pointer" />
             <span className="text-[0.83rem] text-mist leading-[1.55] font-medium">
@@ -260,7 +260,7 @@ export default function JoinMeetingPage() {
           </label>
 
           <button id="join-class-btn" onClick={handleJoin} disabled={!camAllowed || !consentChecked}
-            className="w-full py-4 rounded-2xl text-[#f2f2f2] font-extrabold btn-primary flex items-center justify-center gap-2.5 disabled:opacity-40 disabled:cursor-not-allowed">
+            className="w-full py-4 rounded-2xl text-white font-extrabold btn-primary flex items-center justify-center gap-2.5 disabled:opacity-40 disabled:cursor-not-allowed">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
             </svg>
@@ -276,7 +276,7 @@ export default function JoinMeetingPage() {
   /* ── Step 1: Enter code + browse ─────── */
   return (
     <div className="min-h-screen dashboard-bg relative overflow-hidden text-snow">
-      <div className="absolute -top-24 -right-24 w-[400px] h-[400px] rounded-full orb-copper animate-float pointer-events-none" />
+      <div className="absolute -top-24 -right-24 w-[400px] h-[400px] rounded-full orb-navy animate-float pointer-events-none" />
       <div className="absolute -bottom-20 -left-20 w-[320px] h-[320px] rounded-full orb-navy animate-float-r pointer-events-none" />
       <div className="absolute inset-0 mesh-grid pointer-events-none opacity-40" />
 
@@ -288,7 +288,7 @@ export default function JoinMeetingPage() {
           </svg>
           Dashboard
         </Link>
-        <div className="w-px h-4 bg-[rgba(196,124,62,0.25)]" />
+        <div className="w-px h-4 bg-[rgba(59, 130, 246,0.25)]" />
         <span className="text-[0.9rem] font-bold text-snow">Join a Meeting</span>
       </header>
 
@@ -315,9 +315,9 @@ export default function JoinMeetingPage() {
                 onPaste={i === 0 ? handlePaste : undefined}
                 className="w-12 h-14 text-center text-[1.35rem] font-black text-snow rounded-xl border-2 outline-none transition-all focus:scale-105"
                 style={{
-                  background: d ? 'rgba(196,124,62,0.15)' : 'rgba(15,24,36,0.60)',
-                  borderColor: d ? 'rgba(196,124,62,0.60)' : 'rgba(196,124,62,0.22)',
-                  boxShadow: d ? '0 0 12px rgba(196,124,62,0.20)' : 'none',
+                  background: d ? 'rgba(59, 130, 246,0.15)' : 'rgba(0, 0, 0, 0.04)',
+                  borderColor: d ? 'rgba(59, 130, 246,0.60)' : 'rgba(59, 130, 246,0.22)',
+                  boxShadow: d ? '0 0 12px rgba(59, 130, 246,0.20)' : 'none',
                 }}
               />
             ))}
@@ -330,7 +330,7 @@ export default function JoinMeetingPage() {
           )}
 
           <button id="join-by-code-btn" onClick={() => proceedToCamera(null)} disabled={!codeComplete || checkingCode}
-            className="w-full py-3.5 rounded-2xl text-[#f2f2f2] font-extrabold btn-primary flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+            className="w-full py-3.5 rounded-2xl text-white font-extrabold btn-primary flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
             {checkingCode ? (
               <>
                 <span className="w-4 h-4 border-2 border-[rgba(255,255,255,0.3)] border-t-white rounded-full animate-spin" />
@@ -349,23 +349,23 @@ export default function JoinMeetingPage() {
 
         {/* Divider */}
         <div className="flex items-center gap-4">
-          <div className="flex-1 h-px bg-[rgba(196,124,62,0.20)]" />
+          <div className="flex-1 h-px bg-[rgba(59, 130, 246,0.20)]" />
           <span className="text-[0.78rem] font-bold text-mist/70 uppercase tracking-[0.1em]">or browse live classes</span>
-          <div className="flex-1 h-px bg-[rgba(196,124,62,0.20)]" />
+          <div className="flex-1 h-px bg-[rgba(59, 130, 246,0.20)]" />
         </div>
 
         {/* Browse live classes */}
         <div id="browse-classes-card" className="rounded-[20px] overflow-hidden animate-fadeUp card-navy">
-          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-[rgba(196,124,62,0.15)]">
+          <div className="flex items-center gap-2.5 px-6 py-4 border-b border-[rgba(59, 130, 246,0.15)]">
             <span className="w-2 h-2 rounded-full bg-copper animate-pulse" />
             <h2 className="text-[0.93rem] font-bold text-snow">Live Right Now</h2>
             <span className="text-[0.72rem] font-bold px-2 py-0.5 rounded-full badge-copper">{liveClasses.length} classes</span>
           </div>
 
-          <div className="divide-y divide-[rgba(196,124,62,0.10)]">
+          <div className="divide-y divide-[rgba(59, 130, 246,0.10)]">
             {loadingClasses ? (
               <div className="p-8 text-center text-mist text-xs">
-                <span className="inline-block w-5 h-5 border-2 border-[rgba(196,124,62,0.20)] border-t-copper rounded-full animate-spin mr-2 align-middle" />
+                <span className="inline-block w-5 h-5 border-2 border-[rgba(59, 130, 246,0.20)] border-t-copper rounded-full animate-spin mr-2 align-middle" />
                 Syncing active directories…
               </div>
             ) : liveClasses.length === 0 ? (
@@ -377,11 +377,11 @@ export default function JoinMeetingPage() {
               liveClasses.map(cls => {
                 const studentsCount = cls.participants ? cls.participants.filter(p => p.role === 'student').length : 0;
                 return (
-                  <div key={cls._id || cls.code} id={`browse-${cls.code}`} className="flex items-center gap-4 px-6 py-4 hover:bg-[rgba(196,124,62,0.06)] transition-colors">
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center font-black text-[0.82rem] text-copper flex-shrink-0"
+                  <div key={cls._id || cls.code} id={`browse-${cls.code}`} className="flex items-center gap-4 px-6 py-4 hover:bg-[rgba(59, 130, 246,0.06)] transition-colors">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center font-black text-[0.82rem] text-blue-500 flex-shrink-0"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(196,124,62,0.15), rgba(196,124,62,0.05))',
-                        border: '1px solid rgba(196,124,62,0.30)'
+                        background: 'linear-gradient(135deg, rgba(59, 130, 246,0.15), rgba(59, 130, 246,0.05))',
+                        border: '1px solid rgba(59, 130, 246,0.30)'
                       }}>
                       {cls.title.slice(0, 3).toUpperCase()}
                     </div>
@@ -389,14 +389,14 @@ export default function JoinMeetingPage() {
                       <p className="text-[0.9rem] font-semibold text-snow truncate">{cls.title}</p>
                       <p className="text-[0.76rem] text-mist">{cls.teacherName || 'Teacher'} · active now</p>
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                         <span className="text-[0.7rem] text-mist/60">{studentsCount} student(s) connected</span>
                       </div>
                     </div>
                     <div className="flex items-center gap-2.5 flex-shrink-0">
                       <code className="text-[0.78rem] font-mono font-bold px-2.5 py-1 rounded-lg badge-copper">{cls.code}</code>
                       <button id={`join-btn-${cls.code}`} onClick={() => proceedToCamera(cls)} disabled={checkingCode}
-                        className="px-4 py-2 rounded-xl text-[0.82rem] font-bold text-[#f2f2f2] btn-primary">
+                        className="px-4 py-2 rounded-xl text-[0.82rem] font-bold text-white btn-primary">
                         Join
                       </button>
                     </div>

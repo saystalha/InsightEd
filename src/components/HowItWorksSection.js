@@ -47,15 +47,15 @@ export default function HowItWorksSection() {
     <section id="how-it-works" className="relative py-24 hiw-bg overflow-hidden">
       
       {/* Sleek top/bottom divider rules */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-white/5" />
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-white/5" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-black/5" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-black/5" />
 
       <div className="relative z-10 max-w-6xl mx-auto px-6">
 
         {/* Section Header */}
         <div className="text-center mb-16 flex flex-col items-center">
           <span className="badge-copper inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-bold tracking-widest uppercase mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-copper animate-pulse" style={{ backgroundColor: '#c47c3e' }} />
+            <span className="w-1.5 h-1.5 rounded-full bg-copper animate-pulse" style={{ backgroundColor: '#3B82F6' }} />
             Pipeline Framework
           </span>
           <h2 className="text-[clamp(1.8rem,4vw,2.6rem)] font-black text-snow leading-tight tracking-tight mb-4">
@@ -78,13 +78,13 @@ export default function HowItWorksSection() {
                   id={step.id}
                   className={`flex-1 rounded-[24px] p-7 transition-all duration-400 relative overflow-hidden border ${
                     step.isActive 
-                      ? 'bg-gradient-to-br from-[#1e3050] to-[#152038] border-[rgba(196,124,62,0.35)] shadow-[0_20px_50px_rgba(196,124,62,0.1)]' 
-                      : 'card-navy border-white/5 hover:border-[rgba(196,124,62,0.22)] hover:bg-[#243452]/40'
+                      ? 'bg-gradient-to-br from-[#FFFFFF] to-[#FFFFFF] border-[rgba(59, 130, 246,0.35)] shadow-[0_20px_50px_rgba(59, 130, 246,0.1)]' 
+                      : 'card-navy border-black/5 hover:border-[rgba(59, 130, 246,0.22)] hover:bg-[#EAECEB]/40'
                   }`}
                 >
                   
                   {/* Premium Translucent Monospace Background Numbers */}
-                  <span className="absolute -top-4 -right-2 text-[6.5rem] font-mono font-black select-none pointer-events-none text-white/[0.02] tracking-tighter group-hover:text-white/[0.04] transition-colors duration-400">
+                  <span className="absolute -top-4 -right-2 text-[6.5rem] font-mono font-black select-none pointer-events-none text-black/[0.03] tracking-tighter group-hover:text-black/[0.06] transition-colors duration-400">
                     {step.num}
                   </span>
 
@@ -93,14 +93,14 @@ export default function HowItWorksSection() {
                     <div 
                       className={`w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-400 group-hover:scale-105 border ${
                         step.isActive
-                          ? 'bg-gradient-to-br from-[#c47c3e] to-[#8c5828] text-white border-white/10'
-                          : 'bg-[#152038] text-copper border-white/5'
+                          ? 'bg-gradient-to-br from-[#3B82F6] to-[#1D4ED8] text-[#FFFFFF] border-black/10'
+                          : 'bg-[#FFFFFF] text-blue-500 border-black/5'
                       }`}
                     >
                       {step.icon}
                     </div>
                     
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-white/20">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-mist/60">
                       Phase {step.num}
                     </span>
                   </div>
@@ -108,7 +108,7 @@ export default function HowItWorksSection() {
                   {/* Card Content Elements */}
                   <div className="relative z-10 flex flex-col justify-between h-[calc(100%-68px)]">
                     <div>
-                      <h3 className="text-base font-black text-white tracking-tight mb-2.5 group-hover:text-copper-lt transition-colors">
+                      <h3 className="text-base font-black text-snow tracking-tight mb-2.5 group-hover:text-[#3B82F6] transition-colors">
                         {step.title}
                       </h3>
                       <p className="text-xs text-mist leading-[1.65] mb-5 text-justify">
@@ -121,10 +121,10 @@ export default function HowItWorksSection() {
                       {step.tags.map(tag => (
                         <span 
                           key={tag} 
-                          className={`px-2.5 py-1 text-[9px] font-bold tracking-wider uppercase rounded-md ${
+                          className={`px-2.5 py-1 text-[9px] font-bold tracking-wider uppercase rounded-md border ${
                             step.isActive
-                              ? 'bg-white/10 text-white border border-white/5'
-                              : 'bg-black/20 text-white/40 border border-white/5'
+                              ? 'bg-[#3B82F6]/15 text-[#1D4ED8] border-[rgba(59,130,246,0.30)]'
+                              : 'bg-black/5 text-snow border-black/5'
                           }`}
                         >
                           {tag}
@@ -139,7 +139,7 @@ export default function HowItWorksSection() {
               {/* Clean Tech Timeline Connective Bridges (Hidden on mobile/tablet) */}
               {i < STEPS.length - 1 && (
                 <div className="hidden lg:flex items-center justify-center flex-shrink-0 opacity-25 pointer-events-none select-none px-1">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c47c3e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
                   </svg>

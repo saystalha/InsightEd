@@ -79,12 +79,12 @@ function ResetPasswordForm() {
       <p className="text-[0.88rem] text-mist mb-7">Enter and confirm your new account password</p>
 
       {error && (
-        <div className="mb-4 px-4 py-3 rounded-xl text-[0.83rem] font-semibold text-copper bg-[rgba(196,124,62,0.1)] border border-[rgba(196,124,62,0.2)]">
+        <div className="mb-4 px-4 py-3 rounded-xl text-[0.83rem] font-semibold text-red-400 bg-red-500/10 border border-red-500/20">
           ⚠ {error}
         </div>
       )}
       {success && (
-        <div className="mb-4 px-4 py-3 rounded-xl text-[0.83rem] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+        <div className="mb-4 px-4 py-3 rounded-xl text-[0.83rem] font-semibold text-blue-500 bg-[rgba(59,130,246,0.10)] border border-[rgba(59,130,246,0.20)]">
           ✓ {success} Redirecting to login...
         </div>
       )}
@@ -106,7 +106,7 @@ function ResetPasswordForm() {
               onChange={e => setPassword(e.target.value)}
               className="neu-input w-full pl-11 pr-12 py-3.5 rounded-2xl text-[0.92rem] outline-none"
             />
-            <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors z-10">
+            <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-4 top-1/2 -translate-y-1/2 text-black/30 hover:text-black transition-colors z-10">
               {showPw
                 ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
                 : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
@@ -152,7 +152,7 @@ export default function ResetPasswordPage() {
       <Navbar />
 
       <div className="min-h-screen flex items-center justify-center p-4 pt-24 relative overflow-hidden hero-bg">
-        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none orb-copper" />
+        <div className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none orb-navy" />
         <div className="absolute -bottom-24 -left-24 w-[400px] h-[400px] rounded-full pointer-events-none orb-navy" />
 
         <div className="relative z-10 w-full max-w-[460px]">

@@ -146,6 +146,7 @@ export async function POST(request, { params }) {
         if (body.handRaised !== undefined) meeting.participants[pIdx].handRaised = body.handRaised;
         if (body.camOff !== undefined) meeting.participants[pIdx].camOff = body.camOff;
         if (body.muted !== undefined) meeting.participants[pIdx].muted = body.muted;
+        if (body.isSpeaking !== undefined) meeting.participants[pIdx].isSpeaking = body.isSpeaking;
         await meeting.save();
       }
       return NextResponse.json({ success: true });

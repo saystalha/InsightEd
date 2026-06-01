@@ -52,14 +52,14 @@ export default function Navbar() {
       id="main-navbar"
       className="fixed top-0 left-0 right-0 z-50 transition-all duration-400 border-b"
       style={{
-        background: scrolled ? "rgba(15, 24, 36, 0.96)" : "rgba(21, 32, 56, 0.50)",
+        background: "#1D5BF1",
         backdropFilter: "blur(20px)",
         WebkitBackdropFilter: "blur(20px)",
-        borderColor: "rgba(196, 124, 62, 0.15)",
+        borderColor: "rgba(255, 255, 255, 0.15)",
         paddingTop: scrolled ? "0.5rem" : "0.875rem",
         paddingBottom: scrolled ? "0.5rem" : "0.875rem",
         boxShadow: scrolled
-          ? "0 4px 32px rgba(0,0,0,0.40)"
+          ? "0 4px 32px rgba(0, 0, 0, 0.15)"
           : "none",
       }}
     >
@@ -74,7 +74,7 @@ export default function Navbar() {
           <div
             className="w-9 h-9 rounded-[10px] flex items-center justify-center transition-all duration-300 group-hover:scale-110 overflow-hidden"
             style={{
-              border: "1px solid rgba(196, 124, 62, 0.35)",
+              border: "1px solid rgba(59, 130, 246, 0.35)",
             }}
           >
             <Image
@@ -86,11 +86,11 @@ export default function Navbar() {
               priority
             />
           </div>
-          <span className="font-black text-[1.05rem] tracking-tight text-[#f2f2f2]">
-            <span style={{ color: "#c47c3e" }}>IN</span>sightEd{" "}
+          <span className="font-black text-[1.05rem] tracking-tight text-[#FFFFFF]">
+            <span style={{ color: "#ffffff" }}>IN</span>sightEd{" "}
           </span>
         </Link>
-
+ 
         {/* ── Desktop Nav ──────────────────── */}
         <nav
           className="hidden md:flex items-center gap-1"
@@ -107,9 +107,9 @@ export default function Navbar() {
                 onClick={() => handleNavClick(id, href)}
                 className="relative px-4 py-2 text-[0.88rem] font-semibold rounded-xl transition-all duration-200 select-none overflow-hidden"
                 style={{
-                  color: isActive ? "#f2f2f2" : "rgba(242, 242, 242, 0.60)",
+                  color: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.70)",
                   background: isActive
-                    ? "rgba(196, 124, 62, 0.14)"
+                    ? "rgba(255, 255, 255, 0.15)"
                     : "transparent",
                   transform: isClicked ? "scale(0.94)" : "scale(1)",
                 }}
@@ -119,7 +119,7 @@ export default function Navbar() {
                   <span
                     className="absolute inset-0 rounded-xl animate-ping-once pointer-events-none"
                     style={{
-                      background: "rgba(196, 124, 62, 0.25)",
+                      background: "rgba(59, 130, 246, 0.20)",
                       animation: "navRipple 0.4s ease-out forwards",
                     }}
                   />
@@ -129,7 +129,7 @@ export default function Navbar() {
                 <span
                   className="absolute bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 rounded-full transition-all duration-300"
                   style={{
-                    background: "#c47c3e",
+                    background: "#FFFFFF",
                     width: isActive ? "1rem" : "0px",
                     opacity: isActive ? 1 : 0,
                   }}
@@ -138,7 +138,7 @@ export default function Navbar() {
             );
           })}
         </nav>
-
+ 
         {/* ── Auth Buttons ─────────────────── */}
         <div className="hidden md:flex items-center gap-2.5 flex-shrink-0">
           <Link
@@ -146,22 +146,22 @@ export default function Navbar() {
             id="nav-login"
             className="px-5 py-2 text-[0.85rem] font-semibold rounded-full transition-all duration-200 active:scale-95"
             style={{
-              color: pathname === "/login" ? "#f2f2f2" : "rgba(242, 242, 242, 0.80)",
-              background: pathname === "/login" ? "rgba(196, 124, 62, 0.18)" : "transparent",
-              borderColor: pathname === "/login" ? "rgba(196, 124, 62, 0.60)" : "rgba(196, 124, 62, 0.35)",
+              color: pathname === "/login" ? "#FFFFFF" : "rgba(255, 255, 255, 0.80)",
+              background: pathname === "/login" ? "rgba(255, 255, 255, 0.12)" : "transparent",
+              borderColor: pathname === "/login" ? "rgba(255, 255, 255, 0.50)" : "rgba(255, 255, 255, 0.25)",
               borderStyle: "solid",
               borderWidth: "1px",
             }}
             onMouseEnter={(e) => {
               if (pathname !== "/login") {
-                e.currentTarget.style.background = "rgba(196, 124, 62, 0.12)";
-                e.currentTarget.style.color = "#f2f2f2";
+                e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
+                e.currentTarget.style.color = "#FFFFFF";
               }
             }}
             onMouseLeave={(e) => {
               if (pathname !== "/login") {
                 e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "rgba(242, 242, 242, 0.80)";
+                e.currentTarget.style.color = "rgba(255, 255, 255, 0.80)";
               }
             }}
           >
@@ -180,15 +180,15 @@ export default function Navbar() {
         >
           <span
             className={`block w-[22px] h-0.5 rounded transition-all duration-300 origin-center ${menuOpen ? "translate-y-[7px] rotate-45" : ""}`}
-            style={{ background: "#f2f2f2" }}
+            style={{ background: "#FFFFFF" }}
           />
           <span
             className={`block w-[22px] h-0.5 rounded transition-all duration-300 ${menuOpen ? "opacity-0 scale-x-0" : ""}`}
-            style={{ background: "#f2f2f2" }}
+            style={{ background: "#FFFFFF" }}
           />
           <span
             className={`block w-[22px] h-0.5 rounded transition-all duration-300 origin-center ${menuOpen ? "-translate-y-[7px] -rotate-45" : ""}`}
-            style={{ background: "#f2f2f2" }}
+            style={{ background: "#FFFFFF" }}
           />
         </button>
       </div>
@@ -198,8 +198,8 @@ export default function Navbar() {
         <div
           className="md:hidden flex flex-col px-6 pb-6 pt-4 border-t animate-slide-down"
           style={{
-            background: "rgba(15, 24, 36, 0.98)",
-            borderColor: "rgba(196, 124, 62, 0.15)",
+            background: "#1D5BF1",
+            borderColor: "rgba(255, 255, 255, 0.15)",
           }}
         >
           {links.map(({ label, href, id }) => (
@@ -210,9 +210,9 @@ export default function Navbar() {
               style={{
                 color:
                   pathname === "/" && activeSection === id
-                    ? "#c47c3e"
-                    : "rgba(242, 242, 242, 0.65)",
-                borderColor: "rgba(196, 124, 62, 0.10)",
+                    ? "#FFFFFF"
+                    : "rgba(255, 255, 255, 0.70)",
+                borderColor: "rgba(255, 255, 255, 0.08)",
               }}
               onClick={() => {
                 handleNavClick(id, href);
@@ -221,7 +221,7 @@ export default function Navbar() {
             >
               {label}
               {pathname === "/" && activeSection === id && (
-                <span className="w-1.5 h-1.5 rounded-full bg-[#c47c3e]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#FFFFFF]" />
               )}
             </Link>
           ))}
@@ -229,11 +229,11 @@ export default function Navbar() {
             <Link
               href="/login"
               onClick={() => setMenuOpen(false)}
-              className="flex-1 py-3 text-center text-[0.88rem] font-semibold rounded-xl text-[rgba(242,242,242,0.75)] active:scale-95 transition-transform"
+              className="flex-1 py-3 text-center text-[0.88rem] font-semibold rounded-xl text-white active:scale-95 transition-transform"
               style={{
-                border: "1px solid rgba(196, 124, 62, 0.35)",
-                background: pathname === "/login" ? "rgba(196, 124, 62, 0.20)" : "transparent",
-                borderColor: pathname === "/login" ? "rgba(196, 124, 62, 0.60)" : "rgba(196, 124, 62, 0.35)"
+                border: "1px solid rgba(255, 255, 255, 0.25)",
+                background: pathname === "/login" ? "rgba(255, 255, 255, 0.12)" : "transparent",
+                borderColor: pathname === "/login" ? "rgba(255, 255, 255, 0.50)" : "rgba(255, 255, 255, 0.25)"
               }}
             >
               Login
