@@ -428,6 +428,8 @@ export default function DashboardPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [showCrudPw, setShowCrudPw] = useState(false);
+  const [showProfilePw, setShowProfilePw] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [notification, setNotification] = useState(null); // { type: 'success' | 'error', message: '' }
   const [isEndMeetingModalOpen, setIsEndMeetingModalOpen] = useState(false);
@@ -438,6 +440,39 @@ export default function DashboardPage() {
     setTimeout(() => {
       setNotification(prev => prev && prev.message === message ? null : prev);
     }, 5000);
+  };
+
+  /**
+   * Generates a random 10-character password containing letters, numbers, and symbols.
+   */
+  const generateRandomPassword = () => {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$";
+    let password = "";
+    for (let i = 0; i < 10; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
+
+  /**
+   * Pre-populates the crudForm state with a random password and opens the user creation modal.
+   */
+  const handleOpenCreateModal = (targetRole) => {
+    setCrudForm({
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: generateRandomPassword(),
+      role: targetRole,
+      department: "",
+      subjects: "",
+      rollNumber: "",
+      degreeBatch: ""
+    });
+    setCrudError("");
+    setCrudSuccess("");
+    setShowCrudPw(false);
+    setIsCreateModalOpen(true);
   };
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const [selectedTeacherForStudent, setSelectedTeacherForStudent] = useState(null);
@@ -1384,6 +1419,7 @@ export default function DashboardPage() {
           });
           setProfileSuccess("");
           setProfileError("");
+          setShowProfilePw(false);
           setIsProfileModalOpen(true);
         }}
         userName={userName}
@@ -1464,6 +1500,7 @@ export default function DashboardPage() {
                         });
                         setProfileSuccess("");
                         setProfileError("");
+                        setShowProfilePw(false);
                         setIsProfileModalOpen(true);
                         setUserDropdownOpen(false);
                       }}
@@ -1645,12 +1682,7 @@ export default function DashboardPage() {
                   </div>
                   
                   <button
-                    onClick={() => {
-                      setCrudForm({ firstName: "", lastName: "", email: "", password: "", role: "teacher", department: "", subjects: "", rollNumber: "", degreeBatch: "" });
-                      setCrudError("");
-                      setCrudSuccess("");
-                      setIsCreateModalOpen(true);
-                    }}
+                    onClick={() => handleOpenCreateModal('teacher')}
                     className="btn-primary px-5 py-3 rounded-xl font-bold text-[0.85rem] flex items-center gap-2"
                   >
                     <SvgIcon paths={["M12 5v14M5 12h14"]} size={15} />
@@ -1783,6 +1815,7 @@ export default function DashboardPage() {
                                       });
                                       setCrudError("");
                                       setCrudSuccess("");
+                                      setShowCrudPw(false);
                                       setIsEditModalOpen(true);
                                     }}
                                     className="p-2 rounded-lg text-mist hover:text-snow hover:bg-black/5 transition-all"
@@ -1822,12 +1855,7 @@ export default function DashboardPage() {
                   </div>
                   
                   <button
-                    onClick={() => {
-                      setCrudForm({ firstName: "", lastName: "", email: "", password: "", role: "student", department: "", subjects: "", rollNumber: "", degreeBatch: "" });
-                      setCrudError("");
-                      setCrudSuccess("");
-                      setIsCreateModalOpen(true);
-                    }}
+                    onClick={() => handleOpenCreateModal('student')}
                     className="btn-primary px-5 py-3 rounded-xl font-bold text-[0.85rem] flex items-center gap-2"
                   >
                     <SvgIcon paths={["M12 5v14M5 12h14"]} size={15} />
@@ -1942,6 +1970,7 @@ export default function DashboardPage() {
                                       });
                                       setCrudError("");
                                       setCrudSuccess("");
+                                      setShowCrudPw(false);
                                       setIsEditModalOpen(true);
                                     }}
                                     className="p-2 rounded-lg text-mist hover:text-snow hover:bg-black/5 transition-all"
@@ -4456,26 +4485,64 @@ export default function DashboardPage() {
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[0.78rem] font-semibold text-snow/70">Change Password (leave empty to keep current)</label>
-                <input
-                  type="password"
-                  placeholder="•••••••• (Min. 6 chars)"
-                  value={profileForm.password}
-                  onChange={(e) => setProfileForm({ ...profileForm, password: e.target.value })}
-                  className="neu-input px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
-                />
+                <div className="relative">
+                  <input
+                    type={showProfilePw ? "text" : "password"}
+                    placeholder="•••••••• (Min. 6 chars)"
+                    value={profileForm.password}
+                    onChange={(e) => setProfileForm({ ...profileForm, password: e.target.value })}
+                    className="neu-input w-full pl-4 pr-10 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowProfilePw(!showProfilePw)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-snow/30 hover:text-snow transition-colors z-10"
+                  >
+                    {showProfilePw ? (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               {profileForm.password && profileForm.password.trim() !== "" && (
                 <div className="flex flex-col gap-1.5 animate-slide-down">
                   <label className="text-[0.78rem] font-semibold text-snow/70">Current Password (Required to confirm changes)</label>
-                  <input
-                    type="password"
-                    required
-                    placeholder="Enter current password"
-                    value={profileForm.currentPassword}
-                    onChange={(e) => setProfileForm({ ...profileForm, currentPassword: e.target.value })}
-                    className="neu-input px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showProfilePw ? "text" : "password"}
+                      required
+                      placeholder="Enter current password"
+                      value={profileForm.currentPassword}
+                      onChange={(e) => setProfileForm({ ...profileForm, currentPassword: e.target.value })}
+                      className="neu-input w-full pl-4 pr-10 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowProfilePw(!showProfilePw)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-snow/30 hover:text-snow transition-colors z-10"
+                    >
+                      {showProfilePw ? (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                          <line x1="1" y1="1" x2="23" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   <button
                     type="button"
                     onClick={handleProfileForgotPassword}
@@ -4555,14 +4622,33 @@ export default function DashboardPage() {
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[0.78rem] font-semibold text-snow/70">Password</label>
-                <input
-                  type="password"
-                  required
-                  placeholder="Min 6 characters"
-                  value={crudForm.password}
-                  onChange={(e) => setCrudForm({ ...crudForm, password: e.target.value })}
-                  className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
-                />
+                <div className="relative">
+                  <input
+                    type={showCrudPw ? "text" : "password"}
+                    required
+                    placeholder="Min 6 characters"
+                    value={crudForm.password}
+                    onChange={(e) => setCrudForm({ ...crudForm, password: e.target.value })}
+                    className="neu-input w-full pl-4 pr-10 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCrudPw(!showCrudPw)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-snow/30 hover:text-snow transition-colors z-10"
+                  >
+                    {showCrudPw ? (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
@@ -4822,13 +4908,32 @@ export default function DashboardPage() {
 
               <div className="flex flex-col gap-1.5">
                 <label className="text-[0.78rem] font-semibold text-snow/70">Reset Password (Optional)</label>
-                <input
-                  type="password"
-                  placeholder="Leave blank to keep current"
-                  value={crudForm.password}
-                  onChange={(e) => setCrudForm({ ...crudForm, password: e.target.value })}
-                  className="neu-input w-full px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
-                />
+                <div className="relative">
+                  <input
+                    type={showCrudPw ? "text" : "password"}
+                    placeholder="Leave blank to keep current"
+                    value={crudForm.password}
+                    onChange={(e) => setCrudForm({ ...crudForm, password: e.target.value })}
+                    className="neu-input w-full pl-4 pr-10 py-2.5 rounded-xl text-[0.88rem] outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCrudPw(!showCrudPw)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-snow/30 hover:text-snow transition-colors z-10"
+                  >
+                    {showCrudPw ? (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
