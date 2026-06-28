@@ -2,45 +2,86 @@
 
 import Link from 'next/link';
 
-const TICKER = [
-  '✦ Privacy-First Design', '✦ Edge Computing', '✦ Class Fatigue Index™',
-  '✦ Real-Time AI Analysis', '✦ TensorFlow.js On-Device', '✦ Zero Biometric Uploads',
-  '✦ Instant Break Alerts', '✦ Teacher Feedback Loop',
-  '✦ Privacy-First Design', '✦ Edge Computing', '✦ Class Fatigue Index™',
-  '✦ Real-Time AI Analysis', '✦ TensorFlow.js On-Device', '✦ Zero Biometric Uploads',
-  '✦ Instant Break Alerts', '✦ Teacher Feedback Loop',
+/**
+ * Ticker elements shown in the marquee at the very bottom of the hero section.
+ * Highlight key features and design philosophy of InsightEd.
+ */
+const BASE_TICKER_ITEMS = [
+  '✦ Privacy-First Design',
+  '✦ Edge Computing',
+  '✦ Class Fatigue Index™',
+  '✦ Real-Time AI Analysis',
+  '✦ TensorFlow.js On-Device',
+  '✦ Zero Biometric Uploads',
+  '✦ Instant Break Alerts',
+  '✦ Teacher Feedback Loop',
 ];
 
+// Duplicate items to ensure a seamless looping marquee effect
+const TICKER = [...BASE_TICKER_ITEMS, ...BASE_TICKER_ITEMS];
+
+/**
+ * Key performance and security metrics displayed in the bottom stats bar.
+ */
 const STATS = [
   { num: '0%', label: 'Data Uploaded' },
   { num: '<2s', label: 'Alert Latency' },
   { num: '3x', label: 'Engagement Boost' },
 ];
 
+/**
+ * HeroSection Component
+ * Renders the main landing hero page for InsightEd.
+ * Features:
+ * - Ambient background orb animations and grid mesh.
+ * - Call-to-action (CTA) header linking to the portal dashboard and system specs.
+ * - Glassmorphic interactive core UI mockup visualizing edge computing status.
+ * - Performance/Privacy metrics summary bar.
+ * - Auto-scrolling ticker bar at the bottom.
+ */
 export default function HeroSection() {
   return (
-    <section id="hero" className="relative h-screen w-full flex flex-col items-center justify-between overflow-hidden pt-20 pb-0 hero-bg">
-
-      {/* ── Background Clean Layer Orbs (Kept simple, no crowded extra boxes) ──────────────── */}
+    <section
+      id="hero"
+      className="relative h-screen w-full flex flex-col items-center justify-between overflow-hidden pt-20 pb-0 hero-bg"
+    >
+      {/* ── Background Decorative Elements ── */}
+      {/* Mesh grid background pattern */}
       <div className="absolute inset-0 mesh-grid opacity-40 pointer-events-none" />
+      
+      {/* Floating navy orb (top right) */}
       <div className="absolute -top-28 -right-20 w-[500px] h-[500px] rounded-full orb-navy animate-float pointer-events-none opacity-70" />
+      
+      {/* Floating navy orb (bottom left) */}
       <div className="absolute bottom-20 -left-28 w-[400px] h-[400px] rounded-full orb-navy animate-float-r pointer-events-none opacity-60" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(59, 130, 246,0.06) 0%, transparent 60%)' }} />
+      
+      {/* Central glow gradient */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 60%)' }}
+      />
 
-      {/* ── Split Content Grid Wrapper (Left Text, Right Glassmorphic Engine Mockup) ────────────────── */}
+      {/* ── Main Content Grid ── */}
+      {/* Split layout: Left (Text & CTA) and Right (Interactive Engine Mockup) */}
       <div className="relative z-10 flex-1 w-full max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center justify-center my-auto">
         
-        {/* LEFT COLUMN: Main Text & Access Flow Actions */}
+        {/* Left Column: Messaging and Calls to Action */}
         <div className="lg:col-span-7 flex flex-col text-left items-start justify-center animate-fadeUp">
           
-          {/* Institutional Security Badge */}
-          <div id="hero-badge" className="inline-flex items-center gap-2 px-4 py-1 rounded-full text-[0.68rem] font-bold tracking-[0.08em] uppercase mb-4 badge-copper shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0" style={{ background: '#3B82F6', boxShadow: '0 0 8px rgba(59, 130, 246,0.80)' }} />
+          {/* Institutional Badge */}
+          <div
+            id="hero-badge"
+            className="inline-flex items-center gap-2 px-4 py-1 rounded-full text-[0.68rem] font-bold tracking-[0.08em] uppercase mb-4 badge-copper shadow-sm"
+          >
+            {/* Blinking status light indicator */}
+            <span
+              className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
+              style={{ background: '#3B82F6', boxShadow: '0 0 8px rgba(59, 130, 246, 0.80)' }}
+            />
             Centralized IT Provisioning Active
           </div>
 
-          {/* Heading */}
+          {/* Main Headline */}
           <h1 id="hero-heading" className="text-[clamp(1.3rem,2vw,2.3rem)] font-black leading-[1.15] text-[#111827] tracking-[-0.02em] mb-4">
             Restore the Teacher
             <br />
@@ -49,12 +90,14 @@ export default function HeroSection() {
             <span className="gradient-text">Engagement Loop</span>
           </h1>
 
-          {/* Subheading */}
+          {/* Subheading/Description of Edge-AI approach */}
           <p id="hero-subheading" className="text-[0.88rem] sm:text-[0.94rem] text-[#111827]/70 max-w-[520px] leading-relaxed mb-6">
-            AI-powered facial expression analysis detects class fatigue in real-time  <strong className="text-[#111827] font-bold">without compromising student privacy</strong>. All processing happens locally on each student&apos;s machine via Edge AI.
+            AI-powered facial expression analysis detects class fatigue in real-time{' '}
+            <strong className="text-[#111827] font-bold">without compromising student privacy</strong>.
+            All processing happens locally on each student&apos;s machine via Edge AI.
           </p>
 
-          {/* Integrated Portal CTAs */}
+          {/* Portal Call-to-Actions (CTAs) */}
           <div id="hero-cta" className="flex items-center gap-3.5 flex-wrap justify-start w-full">
             <Link
               href="/login"
@@ -66,6 +109,7 @@ export default function HeroSection() {
                 <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/>
               </svg>
             </Link>
+            
             <a
               href="#how-it-works"
               id="hero-cta-learn"
@@ -76,13 +120,17 @@ export default function HeroSection() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Sleek Glassmorphic Core UI Interactive Logo Simulation Card */}
+        {/* Right Column: Sleek Glassmorphic Core UI Simulation Card (Visible on desktop) */}
         <div className="lg:col-span-5 hidden lg:flex justify-center items-center animate-fadeUp delay-200">
           <div className="w-full max-w-[360px] aspect-[4/3] rounded-2xl border border-black/10 card-navy shadow-2xl p-6 backdrop-blur-xl relative overflow-hidden flex flex-col justify-between">
-            {/* Glossy sheen overlay reflection line */}
-            <div className="absolute top-0 left-0 w-full h-full pointer-events-none" 
-                 style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%)' }} />
             
+            {/* Glass reflection sheen effect */}
+            <div
+              className="absolute top-0 left-0 w-full h-full pointer-events-none"
+              style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%)' }}
+            />
+            
+            {/* Card Header with simulated window controls */}
             <div className="flex items-center justify-between border-b border-black/5 pb-3">
               <div className="flex gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-500/40" />
@@ -92,20 +140,21 @@ export default function HeroSection() {
               <span className="text-[9px] font-mono tracking-widest text-[#3B82F6] uppercase font-black">InsightEd Core Engine</span>
             </div>
 
-            {/* Neural Track UI Telemetry Simulation Wireframe Elements */}
+            {/* Neural Track UI Telemetry Simulation */}
             <div className="flex-1 flex flex-col items-center justify-center my-4 relative">
               <div className="w-16 h-16 rounded-full border border-[rgba(59, 130, 246,0.4)] flex items-center justify-center bg-[#F3F5F6] text-snow relative shadow-inner">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[#3B82F6]">
                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                   <circle cx="12" cy="13" r="4"/>
                 </svg>
-                {/* Simulated tracking bounds marker brackets */}
+                {/* Simulated tracking bounds markers */}
                 <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-[#3B82F6]" />
                 <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-[#3B82F6]" />
               </div>
               <span className="text-[10px] font-mono text-mist mt-3 uppercase tracking-[0.15em]">On-Device WebGL Thread</span>
             </div>
 
+            {/* Simulated secure edge prompt info status */}
             <div className="p-2.5 rounded-xl bg-[#F3F5F6] border border-[#EAECEB] text-center flex flex-col">
               <span className="text-[11px] font-bold text-blue-500 font-mono tracking-tight">STATUS: SECURE EDGE PROMPT</span>
               <span className="text-[9px] text-mist/85 mt-0.5 font-mono">Biometrics Encrypted inside Buffer Sandbox Memory</span>
@@ -114,7 +163,7 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* ── SCREEN BOTTOM BASE: Combined Static Metrics Card Bar Container ────────────────── */}
+      {/* ── Screen Bottom: Metrics Bar ── */}
       <div className="w-full max-w-5xl px-6 mb-5 mt-auto z-10 animate-fadeUp delay-100">
         <div id="hero-stats" className="w-full grid grid-cols-3 items-center rounded-xl overflow-hidden card-navy border border-black/5 shadow-xl backdrop-blur-md">
           {STATS.map((s, i) => (
@@ -123,6 +172,7 @@ export default function HeroSection() {
                 <span className="text-[1.35rem] font-black text-[#111827] leading-none mb-1 tracking-tight">{s.num}</span>
                 <span className="text-[0.65rem] font-black uppercase tracking-[0.1em] whitespace-nowrap text-mist">{s.label}</span>
               </div>
+              {/* Separate elements with a subtle line, except for the last item */}
               {i < STATS.length - 1 && (
                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-6" style={{ background: 'rgba(59, 130, 246, 0.20)' }} />
               )}
@@ -131,11 +181,18 @@ export default function HeroSection() {
         </div>
       </div>
           
-      {/* ── BOTTOM MOST CLOSING COMPONENT: Ticker ─────────────────────────── */}
-      <div className="w-full overflow-hidden py-2.5 border-t flex-shrink-0 mt-auto" style={{ background: 'rgba(255, 255, 255, 0.95)', borderColor: 'rgba(59, 130, 246, 0.15)', backdropFilter: 'blur(8px)' }}>
+      {/* ── Marquee Feature Ticker ── */}
+      <div
+        className="w-full overflow-hidden py-2.5 border-t flex-shrink-0 mt-auto"
+        style={{ background: 'rgba(255, 255, 255, 0.95)', borderColor: 'rgba(59, 130, 246, 0.15)', backdropFilter: 'blur(8px)' }}
+      >
         <div className="flex w-max animate-marquee">
           {TICKER.map((item, i) => (
-            <span key={i} className="text-[0.64rem] font-bold tracking-[0.16em] px-8 whitespace-nowrap uppercase" style={{ color: 'rgba(17, 24, 39, 0.45)' }}>
+            <span
+              key={i}
+              className="text-[0.64rem] font-bold tracking-[0.16em] px-8 whitespace-nowrap uppercase"
+              style={{ color: 'rgba(17, 24, 39, 0.45)' }}
+            >
               {item}
             </span>
           ))}

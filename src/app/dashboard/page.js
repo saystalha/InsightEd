@@ -183,6 +183,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
             border: "1px solid rgba(59, 130, 246,0.30)",
           }}
         >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logo.jpeg"
             alt="InsightEd Logo"
@@ -428,6 +429,16 @@ export default function DashboardPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [notification, setNotification] = useState(null); // { type: 'success' | 'error', message: '' }
+  const [isEndMeetingModalOpen, setIsEndMeetingModalOpen] = useState(false);
+  const [meetingCodeToEnd, setMeetingCodeToEnd] = useState("");
+
+  const showNotification = (type, message) => {
+    setNotification({ type, message });
+    setTimeout(() => {
+      setNotification(prev => prev && prev.message === message ? null : prev);
+    }, 5000);
+  };
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const [selectedTeacherForStudent, setSelectedTeacherForStudent] = useState(null);
   const [addStudentForm, setAddStudentForm] = useState({
@@ -560,11 +571,6 @@ export default function DashboardPage() {
         const response = await fetch('/api/auth/me');
         if (!response.ok) {
           router.push('/login');
-          setTimeout(() => {
-            if (window.location.pathname !== '/login') {
-              window.location.replace('/login');
-            }
-          }, 300);
           return;
         }
 
@@ -714,36 +720,57 @@ export default function DashboardPage() {
   }, [actualRole]);
 
   useEffect(() => {
+    let timer;
     if (role === 'teacher' && userName !== "Jane Doe") {
-      fetchTeacherMeetings(userName);
-      fetchActiveMeetings();
+      timer = setTimeout(() => {
+        fetchTeacherMeetings(userName);
+        fetchActiveMeetings();
+      }, 0);
       
       const interval = setInterval(() => {
         fetchTeacherMeetings(userName);
         fetchActiveMeetings();
       }, 10000);
       
-      return () => clearInterval(interval);
+      return () => {
+        clearTimeout(timer);
+        clearInterval(interval);
+      };
     } else if (role === 'student' && userName !== "Jane Doe") {
-      fetchStudentMeetings(userName);
-      fetchActiveMeetings();
+      timer = setTimeout(() => {
+        fetchStudentMeetings(userName);
+        fetchActiveMeetings();
+      }, 0);
       
       const interval = setInterval(() => {
         fetchStudentMeetings(userName);
         fetchActiveMeetings();
       }, 10000);
       
-      return () => clearInterval(interval);
+      return () => {
+        clearTimeout(timer);
+        clearInterval(interval);
+      };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role, userName]);
 
   useEffect(() => {
     if (activeTab === 'nav-join') {
       router.push('/dashboard/join-meeting');
-      setActiveTab('nav-dashboard');
+      const timer = setTimeout(() => {
+        setActiveTab('nav-dashboard');
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [activeTab, router]);
 
+  /**
+   * Submits new user registration data (teacher, student, or admin) to the server.
+   * On success, updates the local user registry state.
+   * 
+   * @param {React.FormEvent} e - The form submission event
+   */
   const handleCreateUser = async (e) => {
     e.preventDefault();
     setCrudError("");
@@ -773,6 +800,11 @@ export default function DashboardPage() {
     }
   };
 
+  /**
+   * Creates a student user account and maps them directly to a selected teacher and course subject in one atomic step.
+   * 
+   * @param {React.FormEvent} e - The form submission event
+   */
   const handleAddStudentSubmit = async (e) => {
     e.preventDefault();
     setCrudError("");
@@ -808,6 +840,11 @@ export default function DashboardPage() {
     }
   };
 
+  /**
+   * Updates an existing user's name, email, role, or password.
+   * 
+   * @param {React.FormEvent} e - The form submission event
+   */
   const handleEditUser = async (e) => {
     e.preventDefault();
     setCrudError("");
@@ -840,6 +877,9 @@ export default function DashboardPage() {
     }
   };
 
+  /**
+   * Permanently deletes a user from the system registry.
+   */
   const handleDeleteUser = async () => {
     setCrudError("");
     setCrudSuccess("");
@@ -862,6 +902,11 @@ export default function DashboardPage() {
     }
   };
 
+  /**
+   * Creates an academic mapping linkage between an existing student, teacher, and subject.
+   * 
+   * @param {React.FormEvent} e - The form submission event
+   */
   const handleMapRelationship = async (e) => {
     e.preventDefault();
     setCrudError("");
@@ -898,6 +943,11 @@ export default function DashboardPage() {
     }
   };
 
+  /**
+   * Removes an academic mapping relationship for a student.
+   * 
+   * @param {string} studentId - The MongoDB Object ID of the student
+   */
   const handleUnmapRelationship = async (studentId) => {
     setCrudError("");
     setCrudSuccess("");
@@ -919,25 +969,41 @@ export default function DashboardPage() {
     }
   };
 
-  const handleEndMeeting = async (meetingCode) => {
-    if (!confirm("Are you sure you want to end this classroom session? This will disconnect all students.")) return;
+  /**
+   * Initiates the end-session workflow by setting target code and opening confirmation modal.
+   * 
+   * @param {string} meetingCode - The unique 6-character classroom code
+   */
+  const handleEndMeeting = (meetingCode) => {
+    setMeetingCodeToEnd(meetingCode);
+    setIsEndMeetingModalOpen(true);
+  };
+
+  /**
+   * Calls the API to set a meeting session status to active=false, terminating the class.
+   */
+  const confirmEndMeeting = async () => {
+    if (!meetingCodeToEnd) return;
+    setIsEndMeetingModalOpen(false);
     try {
-      const res = await fetch(`/api/classroom/${meetingCode}`, {
+      const res = await fetch(`/api/classroom/${meetingCodeToEnd}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "end" }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        alert("Session ended successfully!");
+        showNotification("success", "Session ended successfully!");
         fetchTeacherMeetings(userName);
         fetchActiveMeetings();
       } else {
-        alert(data.error || "Failed to end meeting session");
+        showNotification("error", data.error || "Failed to end meeting session");
       }
     } catch (err) {
       console.error("Error ending meeting:", err);
-      alert("An error occurred. Please try again.");
+      showNotification("error", "An error occurred. Please try again.");
+    } finally {
+      setMeetingCodeToEnd("");
     }
   };
 
@@ -3966,7 +4032,7 @@ export default function DashboardPage() {
 
                 {/* View Reports (Secondary for Student) */}
                 <button
-                  onClick={() => alert("Performance Analytics module is coming soon!")}
+                  onClick={() => showNotification("success", "Performance Analytics module is coming soon!")}
                   id="cta-view-reports"
                   className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)] card-navy"
                 >
@@ -4862,6 +4928,56 @@ export default function DashboardPage() {
                 Confirm Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── END MEETING MODAL ─────────────────── */}
+      {isEndMeetingModalOpen && meetingCodeToEnd && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0" onClick={() => { setIsEndMeetingModalOpen(false); setMeetingCodeToEnd(""); }} />
+          <div className="relative card-navy rounded-[24px] max-w-[420px] w-full p-8 border border-red-500/20 shadow-2xl animate-modal-in">
+            <h3 className="text-[1.25rem] font-black text-red-400 mb-2">End Classroom Session</h3>
+            <p className="text-[0.85rem] text-mist leading-relaxed mb-6">
+              Are you sure you want to end this classroom session (<strong className="text-white font-bold">{meetingCodeToEnd}</strong>)? This will disconnect all students immediately.
+            </p>
+            
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => { setIsEndMeetingModalOpen(false); setMeetingCodeToEnd(""); }}
+                className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow/70 hover:bg-black/5 border border-black/10 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmEndMeeting}
+                className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-white bg-red-500 hover:bg-red-600 transition-all"
+              >
+                End Session
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── FLOATING NOTIFICATION TOAST ─────────────────── */}
+      {notification && (
+        <div className="fixed top-6 right-6 z-50 animate-modal-in">
+          <div className={`flex items-center gap-3 px-5 py-4 rounded-2xl border shadow-2xl ${
+            notification.type === 'success' 
+              ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' 
+              : 'bg-red-500/10 border-red-500/20 text-red-400'
+          }`}>
+            <span className="text-lg font-bold">{notification.type === 'success' ? '✓' : '⚠'}</span>
+            <p className="text-[0.88rem] font-bold text-snow">{notification.message}</p>
+            <button 
+              onClick={() => setNotification(null)}
+              className="text-snow/40 hover:text-snow text-[0.8rem] ml-2 font-bold"
+            >
+              ✕
+            </button>
           </div>
         </div>
       )}

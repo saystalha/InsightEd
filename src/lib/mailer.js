@@ -14,9 +14,6 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = parseInt(process.env.SMTP_PORT || '587', 10);
   let user = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
-  if (user && user.toLowerCase().trim() === 'contact.talhabilal.com') {
-    user = 'contact@talhabilal.com';
-  }
   const pass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
   const from = process.env.SMTP_FROM || (user ? `"InsightEd Portal" <${user}>` : '"InsightEd Portal" <noreply@insighted.edu>');
 
@@ -358,13 +355,20 @@ ${teacherName ? `TEACHER: ${teacherName} | SUBJECT: ${mappedSubject}` : ''}
   }
 }
 
+/**
+ * Sends a password reset link to a user.
+ * 
+ * @param {object} params
+ * @param {string} params.email - The user's email address
+ * @param {string} params.token - The password reset token
+ * @param {string} [params.firstName] - The user's first name
+ * @param {string} [params.lastName] - The user's last name
+ * @returns {Promise<{success: boolean, messageId?: string, simulated?: boolean, error?: string}>}
+ */
 export async function sendResetPasswordEmail({ email, token, firstName, lastName }) {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = parseInt(process.env.SMTP_PORT || '587', 10);
   let user = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
-  if (user && user.toLowerCase().trim() === 'contact.talhabilal.com') {
-    user = 'contact@talhabilal.com';
-  }
   const pass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
   const from = process.env.SMTP_FROM || (user ? `"InsightEd Portal" <${user}>` : '"InsightEd Portal" <noreply@insighted.edu>');
 

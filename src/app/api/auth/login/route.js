@@ -4,56 +4,85 @@ import User from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { cookies } from 'next/headers';
 
+/**
+ * POST /api/auth/login
+ *
+ * Authenticates a user with email and password.
+ * On success, sets two cookies:
+ *   - `insighted_session` (HttpOnly) — the user's MongoDB _id, used server-side
+ *   - `insighted_user`              — JSON metadata (name, role), readable by client JS
+ *
+ * If the logged-in email matches the ADMIN_EMAIL environment variable and the
+ * user's role is not already 'admin', they are auto-promoted to admin.
+ * This is a one-time bootstrap mechanism for the first admin account.
+ */
 export async function POST(request) {
   try {
     await connectDB();
     const body = await request.json();
     const { email, password } = body;
 
-    // Validation
+    // Basic field presence validation
     if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Email and password are required' },
+        { status: 400 }
+      );
     }
 
-    // Check if user exists
+    // Look up the user by email (case-insensitive)
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
-      return NextResponse.json({ error: 'Invalid email address or password' }, { status: 401 });
+      // Return a generic message to avoid disclosing whether the email is registered
+      return NextResponse.json(
+        { error: 'Invalid email address or password' },
+        { status: 401 }
+      );
     }
 
-    // Match password
+    // Compare the submitted password against the stored bcrypt hash
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return NextResponse.json({ error: 'Invalid email address or password' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Invalid email address or password' },
+        { status: 401 }
+      );
     }
 
-    // Auto-promote to admin if email matches
-    if (email.toLowerCase() === 'talhabilalchand4@gmail.com' && user.role !== 'admin') {
+    // Bootstrap: auto-promote to admin if this is the designated admin email
+    // and the account was created before the role was set (e.g., via seed script).
+    // This only runs once — after the first login the role is persisted in the DB.
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (adminEmail && email.toLowerCase() === adminEmail.toLowerCase() && user.role !== 'admin') {
       await User.updateOne({ _id: user._id }, { role: 'admin' });
       user.role = 'admin';
     }
 
-    // Write token & profile info to cookies
-    const cookieStore = await cookies();
-    
-    // Cookie for metadata (readable by client)
+    // Build the client-readable metadata object (does NOT contain password)
     const userMetadata = {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
     };
+
+    const cookieStore = await cookies();
+
+    // Client-readable cookie — used to personalise the UI without an extra API call
     cookieStore.set('insighted_user', JSON.stringify(userMetadata), {
       path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 days
       sameSite: 'lax',
+      // Not httpOnly — intentionally readable by client-side JS
     });
 
-    // Check if the connection is HTTPS
+    // Determine whether to set Secure flag (true in production HTTPS, false in local dev HTTP)
     const url = new URL(request.url);
-    const isSecure = url.protocol === 'https:' || request.headers.get('x-forwarded-proto') === 'https';
+    const isSecure =
+      url.protocol === 'https:' ||
+      request.headers.get('x-forwarded-proto') === 'https';
 
-    // Session token cookie (HttpOnly for security)
+    // HttpOnly session cookie — contains the user's DB _id; never readable by JS
     cookieStore.set('insighted_session', user._id.toString(), {
       httpOnly: true,
       secure: isSecure,
@@ -62,12 +91,12 @@ export async function POST(request) {
       sameSite: 'lax',
     });
 
-    return NextResponse.json({
-      success: true,
-      user: userMetadata,
-    });
+    return NextResponse.json({ success: true, user: userMetadata });
   } catch (error) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

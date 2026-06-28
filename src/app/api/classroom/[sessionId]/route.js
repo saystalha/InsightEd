@@ -5,12 +5,38 @@ import Meeting from '@/models/Meeting';
 import AuditLog from '@/models/AuditLog';
 import { cookies } from 'next/headers';
 
+/**
+ * GET /api/classroom/[sessionId]
+ *
+ * Fetches the current state of a classroom session.
+ * Requires a valid user session. Prunes stale participants who haven't sent a heartbeat.
+ */
 export async function GET(request, { params }) {
   try {
     const { sessionId } = await params;
     const uppercaseCode = sessionId.toUpperCase();
 
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('insighted_session');
+
+    if (!sessionCookie || !sessionCookie.value) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Please log in.' },
+        { status: 401 }
+      );
+    }
+
     await connectDB();
+
+    // Verify user session
+    const user = await User.findById(sessionCookie.value);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User session invalid' },
+        { status: 401 }
+      );
+    }
+
     const meeting = await Meeting.findOne({ code: uppercaseCode });
 
     if (!meeting) {
@@ -68,6 +94,13 @@ export async function GET(request, { params }) {
   }
 }
 
+/**
+ * POST /api/classroom/[sessionId]
+ *
+ * Handles actions inside a classroom session.
+ * Supported actions: join, heartbeat, chat, marker, end.
+ * 'marker' and 'end' actions require teacher or admin privileges.
+ */
 export async function POST(request, { params }) {
   try {
     const { sessionId } = await params;
@@ -172,6 +205,12 @@ export async function POST(request, { params }) {
 
     // ── ACTION: MARK TOPIC ──
     if (action === 'marker') {
+      if (user.role !== 'teacher' && user.role !== 'admin') {
+        return NextResponse.json(
+          { error: 'Forbidden. Only instructors can mark classroom topics.' },
+          { status: 403 }
+        );
+      }
       const { label, time, cfi } = body;
       if (!label || !time) {
         return NextResponse.json({ error: 'Marker label and time required' }, { status: 400 });
@@ -189,6 +228,12 @@ export async function POST(request, { params }) {
 
     // ── ACTION: END SESSION ──
     if (action === 'end') {
+      if (user.role !== 'teacher' && user.role !== 'admin') {
+        return NextResponse.json(
+          { error: 'Forbidden. Only instructors can end a classroom session.' },
+          { status: 403 }
+        );
+      }
       meeting.active = false;
       await meeting.save();
 

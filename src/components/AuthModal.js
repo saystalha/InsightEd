@@ -143,6 +143,7 @@ export default function AuthModal({ type, onClose, onSwitch }) {
 
         <div className="flex items-center gap-2.5 mb-6 relative z-10">
           <div className="w-9 h-9 rounded-[10px] flex items-center justify-center overflow-hidden" style={{ border: '1.5px solid rgba(59, 130, 246, 0.28)' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo.jpeg" alt="InsightEd Logo" className="w-full h-full object-cover" />
           </div>
           <span className="text-snow font-bold text-[1.05rem]">

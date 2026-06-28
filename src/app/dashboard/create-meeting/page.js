@@ -6,10 +6,6 @@ import { useRouter } from 'next/navigation';
 
 
 
-function generateCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
 export default function CreateMeetingPage() {
   const router = useRouter();
   const [threshold, setThreshold] = useState(40);
@@ -17,6 +13,7 @@ export default function CreateMeetingPage() {
   const [generatedCode, setGeneratedCode] = useState('');
   const [step, setStep] = useState(1); // 1 = input form, 2 = code delivery card
   const [copied, setCopied] = useState(false);
+  const [error, setError] = useState('');
 
   const [form, setForm] = useState({
     title: '',
@@ -25,10 +22,17 @@ export default function CreateMeetingPage() {
 
   const setField = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
 
+  /**
+   * Submits the classroom configuration details to the API route to initialize
+   * a fresh meeting session and generate a unique join code.
+   * 
+   * @param {React.FormEvent} e - The form submission event
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.title.trim()) return;
     
+    setError('');
     setLoading(true);
     try {
       const res = await fetch('/api/classroom/create', {
@@ -44,20 +48,26 @@ export default function CreateMeetingPage() {
         setGeneratedCode(data.code);
         setStep(2);
       } else {
-        alert(data.error || 'Failed to initialize session');
+        setError(data.error || 'Failed to initialize session');
       }
     } catch (err) {
       console.error(err);
-      alert('Network error initializing session');
+      setError('Network error initializing session');
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Navigates the teacher to the newly created live classroom page.
+   */
   const handleStart = () => {
     router.push(`/dashboard/classroom/${generatedCode}?role=teacher`);
   };
 
+  /**
+   * Copies the 6-character classroom access token code to the user's clipboard.
+   */
   const handleCopyCode = () => {
     navigator.clipboard?.writeText(generatedCode);
     setCopied(true);
@@ -163,6 +173,7 @@ export default function CreateMeetingPage() {
         <div className="w-flow h-4 w-px bg-black/5" />
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-lg flex items-center justify-center border border-[rgba(59,130,246,0.30)] overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logo.jpeg"
               alt="InsightEd Logo"
@@ -180,6 +191,12 @@ export default function CreateMeetingPage() {
           <h1 id="create-meeting-title" className="text-[1.65rem] font-black text-snow tracking-tight mb-1.5">Start a New Class</h1>
           <p className="text-xs text-mist">Configure your edge analytics telemetry rules. Students join instantly using a single 6-digit access code.</p>
         </div>
+
+        {error && (
+          <div className="mb-4 px-4 py-3 rounded-xl text-[0.83rem] font-semibold text-blue-500 bg-[rgba(59, 130, 246,0.1)] border border-[rgba(59, 130, 246,0.2)] animate-fadeUp">
+            ⚠ {error}
+          </div>
+        )}
 
         <form id="create-meeting-form" onSubmit={handleSubmit} className="flex flex-col gap-4 animate-fadeUp [animation-delay:80ms]">
 

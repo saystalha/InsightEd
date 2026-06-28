@@ -1,10 +1,4 @@
-import { Inter } from 'next/font/google';
 import './globals.css';
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-});
 
 export const metadata = {
   title: 'InsightEd — Real-Time Engagement Analysis for Virtual Classrooms',
@@ -20,12 +14,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" data-scroll-behavior="smooth" className={inter.className} suppressHydrationWarning>
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/logo.jpeg" type="image/jpeg" />
-        <link rel="apple-touch-icon" href="/logo.jpeg" />
-      </head>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body>{children}</body>
     </html>
   );

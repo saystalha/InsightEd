@@ -79,6 +79,8 @@ function TeacherView({ sessionId }) {
   const [topicLabel, setTopicLabel] = useState('');
   const [topicMarkers, setTopicMarkers] = useState([]);
   const [chatMsg, setChatMsg] = useState('');
+  const [isEndModalOpen, setIsEndModalOpen] = useState(false);
+  const [isSessionEndedModalOpen, setIsSessionEndedModalOpen] = useState(false);
   
   const [messages, setMessages] = useState([]);
   const [students, setStudents] = useState([]);
@@ -169,8 +171,7 @@ function TeacherView({ sessionId }) {
             setBreakAlert(true);
           }
         } else if (data.active === false) {
-          alert('Session has ended.');
-          router.push('/dashboard');
+          setIsSessionEndedModalOpen(true);
         }
       } catch (err) {
         console.error('Error fetching session state:', err);
@@ -461,19 +462,22 @@ function TeacherView({ sessionId }) {
     }
   };
 
-  const endClass = async () => {
-    if (window.confirm('Are you sure you want to end this class session?')) {
-      try {
-        await fetch(`/api/classroom/${sessionId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'end' })
-        });
-      } catch (err) {
-        console.error('Error ending class:', err);
-      }
-      router.push('/dashboard');
+  const endClass = () => {
+    setIsEndModalOpen(true);
+  };
+
+  const confirmEndClass = async () => {
+    setIsEndModalOpen(false);
+    try {
+      await fetch(`/api/classroom/${sessionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'end' })
+      });
+    } catch (err) {
+      console.error('Error ending class:', err);
     }
+    router.push('/dashboard');
   };
 
   const scoreColor = (s) => s >= 75 ? '#60A5FA' : s >= 50 ? '#3B82F6' : 'rgba(17, 24, 39,0.50)';
@@ -892,6 +896,60 @@ function TeacherView({ sessionId }) {
 
         </div>
       </div>
+
+      {/* ── END MEETING MODAL ─────────────────── */}
+      {isEndModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="fixed inset-0" onClick={() => setIsEndModalOpen(false)} />
+          <div className="relative card-navy rounded-[24px] max-w-[420px] w-full p-8 border border-red-500/20 shadow-2xl animate-modal-in z-[1000]">
+            <h3 className="text-[1.25rem] font-black text-red-400 mb-2">End Class Session</h3>
+            <p className="text-[0.85rem] text-mist leading-relaxed mb-6">
+              Are you sure you want to end this class session? This will disconnect all students immediately.
+            </p>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsEndModalOpen(false)}
+                className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-snow/70 hover:bg-black/5 border border-black/10 transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmEndClass}
+                className="flex-1 py-3 rounded-xl font-bold text-[0.85rem] text-white bg-red-500 hover:bg-red-600 transition-all"
+              >
+                End Session
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── SESSION ENDED BY ADMIN MODAL ─────────────────── */}
+      {isSessionEndedModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="relative card-navy rounded-[24px] max-w-[420px] w-full p-8 border border-blue-500/20 shadow-2xl animate-modal-in text-center z-[1000]">
+            <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+              i
+            </div>
+            <h3 className="text-[1.25rem] font-black text-snow mb-2">Class Session Ended</h3>
+            <p className="text-[0.85rem] text-mist leading-relaxed mb-6">
+              This classroom session has been ended. You will be redirected back to the dashboard.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setIsSessionEndedModalOpen(false);
+                router.push('/dashboard');
+              }}
+              className="w-full py-3 rounded-xl font-bold text-[0.88rem] text-white bg-blue-500 hover:bg-blue-600 transition-all active:scale-95"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -909,6 +967,7 @@ function StudentView({ sessionId }) {
   // Tabbed sidebar state: 'participants' | 'chat' | null
   const [sidebarTab, setSidebarTab] = useState(null);
   const [chatMsg, setChatMsg] = useState('');
+  const [isSessionEndedModalOpen, setIsSessionEndedModalOpen] = useState(false);
   
   const [messages, setMessages] = useState([]);
   const [students, setStudents] = useState([]);
@@ -988,8 +1047,7 @@ function StudentView({ sessionId }) {
             setBreakBanner(false);
           }
         } else if (data.active === false) {
-          alert('Session has ended.');
-          router.push('/dashboard');
+          setIsSessionEndedModalOpen(true);
         }
       } catch (err) {
         console.error('Error fetching session state:', err);
@@ -1523,6 +1581,30 @@ function StudentView({ sessionId }) {
 
         </div>
       </div>
+      {/* ── SESSION ENDED BY ADMIN MODAL ─────────────────── */}
+      {isSessionEndedModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in animate-modal-in">
+          <div className="relative card-navy rounded-[24px] max-w-[420px] w-full p-8 border border-blue-500/20 shadow-2xl animate-modal-in text-center z-[1000]">
+            <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+              i
+            </div>
+            <h3 className="text-[1.25rem] font-black text-snow mb-2">Class Session Ended</h3>
+            <p className="text-[0.85rem] text-mist leading-relaxed mb-6">
+              This classroom session has been ended by the instructor. You will be redirected back to the dashboard.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setIsSessionEndedModalOpen(false);
+                router.push('/dashboard');
+              }}
+              className="w-full py-3 rounded-xl font-bold text-[0.88rem] text-white bg-blue-500 hover:bg-blue-600 transition-all active:scale-95"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
