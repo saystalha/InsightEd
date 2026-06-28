@@ -49,12 +49,17 @@ export async function POST(request) {
     user.resetPasswordExpires = Date.now() + 3_600_000; // 1 hour in milliseconds
     await user.save();
 
+    // Dynamic appUrl resolution from incoming request host headers
+    const reqUrl = new URL(request.url);
+    const origin = reqUrl.origin;
+
     // Send the reset email — includes a link with the token as a query param
     const mailResult = await sendResetPasswordEmail({
       email: user.email,
       token,
       firstName: user.firstName,
       lastName: user.lastName,
+      appUrl: origin,
     });
 
     // If the email failed to send, report the error (the token is still saved;

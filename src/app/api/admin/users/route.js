@@ -204,6 +204,10 @@ export async function POST(request) {
       performedBy: auth.currentUser.email,
     });
 
+    // Dynamic appUrl resolution from incoming request host headers
+    const reqUrl = new URL(request.url);
+    const origin = reqUrl.origin;
+
     // ── Send welcome/credentials email to the new user ────────────────────
     const emailResult = await sendProvisioningEmail({
       email: newUser.email,
@@ -213,6 +217,7 @@ export async function POST(request) {
       lastName: newUser.lastName,
       teacherName: teacherName || undefined,
       mappedSubject: newUser.mappedSubject || undefined,
+      appUrl: origin,
     });
 
     // Build the response payload (never include the hashed password)

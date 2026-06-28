@@ -10,12 +10,14 @@ import nodemailer from 'nodemailer';
  * - SMTP_PASS
  * - SMTP_FROM (default "InsightEd Portal <noreply@insighted.edu>")
  */
-export async function sendProvisioningEmail({ email, password, role, firstName, lastName, teacherName, mappedSubject }) {
+export async function sendProvisioningEmail({ email, password, role, firstName, lastName, teacherName, mappedSubject, appUrl }) {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = parseInt(process.env.SMTP_PORT || '587', 10);
   let user = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
   const pass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
   const from = process.env.SMTP_FROM || (user ? `"InsightEd Portal" <${user}>` : '"InsightEd Portal" <noreply@insighted.edu>');
+
+  const baseUrl = appUrl || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   const subject = `Welcome to InsightEd! Your Account is Ready`;
   const roleDisplay = role.charAt(0).toUpperCase() + role.slice(1);
@@ -262,7 +264,7 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
               <div class="credentials-box">
                 <div class="credential-item">
                   <span class="label">Access Link:</span>
-                  <span class="value" style="color: #1D5BF1; font-weight: 800;">${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login</span>
+                  <span class="value" style="color: #1D5BF1; font-weight: 800;">${baseUrl}/login</span>
                 </div>
                 <div class="credential-item">
                   <span class="label">Username:</span>
@@ -275,7 +277,7 @@ export async function sendProvisioningEmail({ email, password, role, firstName, 
               </div>
 
               <div class="btn-container">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login" class="btn" target="_blank">
+                <a href="${baseUrl}/login" class="btn" target="_blank">
                   Enter Your Dashboard
                 </a>
               </div>
@@ -304,7 +306,7 @@ Role: ${roleDisplay}
 
 ${teacherName && mappedSubject ? `Academic Assignment:\n- Instructor: ${teacherName}\n- Course: "${mappedSubject}"\n` : ''}
 Security Credentials:
-- Access Link: ${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login
+- Access Link: ${baseUrl}/login
 - Username: ${email}
 - Password: ${password}
 
@@ -365,14 +367,15 @@ ${teacherName ? `TEACHER: ${teacherName} | SUBJECT: ${mappedSubject}` : ''}
  * @param {string} [params.lastName] - The user's last name
  * @returns {Promise<{success: boolean, messageId?: string, simulated?: boolean, error?: string}>}
  */
-export async function sendResetPasswordEmail({ email, token, firstName, lastName }) {
+export async function sendResetPasswordEmail({ email, token, firstName, lastName, appUrl }) {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = parseInt(process.env.SMTP_PORT || '587', 10);
   let user = process.env.SMTP_USER || process.env.EMAIL_SERVER_USER;
   const pass = process.env.SMTP_PASS || process.env.EMAIL_SERVER_PASSWORD;
   const from = process.env.SMTP_FROM || (user ? `"InsightEd Portal" <${user}>` : '"InsightEd Portal" <noreply@insighted.edu>');
 
-  const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
+  const baseUrl = appUrl || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const resetUrl = `${baseUrl}/reset-password?token=${token}`;
   const subject = `Reset Your InsightEd Password`;
 
   const htmlContent = `
