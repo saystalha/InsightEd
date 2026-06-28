@@ -4493,7 +4493,7 @@ export default function DashboardPage() {
       {isCreateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="fixed inset-0" onClick={() => setIsCreateModalOpen(false)} />
-          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
+          <div className="relative card-navy rounded-[24px] max-w-[460px] max-h-[90vh] overflow-y-auto w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
             <h3 className="text-[1.25rem] font-black text-snow mb-1">Create New User</h3>
             <p className="text-[0.8rem] text-mist mb-6">Register a new user directly into the database.</p>
             
@@ -4639,7 +4639,7 @@ export default function DashboardPage() {
       {isAddStudentModalOpen && selectedTeacherForStudent && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="fixed inset-0" onClick={() => { setIsAddStudentModalOpen(false); setSelectedTeacherForStudent(null); }} />
-          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
+          <div className="relative card-navy rounded-[24px] max-w-[460px] max-h-[90vh] overflow-y-auto w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
             <h3 className="text-[1.25rem] font-black text-snow mb-1">Add Student to Teacher</h3>
             <p className="text-[0.8rem] text-mist mb-6">
               Create a student account and link directly under <strong>Instructor {selectedTeacherForStudent.firstName} {selectedTeacherForStudent.lastName}</strong>.
@@ -4763,7 +4763,7 @@ export default function DashboardPage() {
       {isEditModalOpen && selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="fixed inset-0" onClick={() => setIsEditModalOpen(false)} />
-          <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
+          <div className="relative card-navy rounded-[24px] max-w-[460px] max-h-[90vh] overflow-y-auto w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
             <h3 className="text-[1.25rem] font-black text-snow mb-1">Edit User Profile</h3>
             <p className="text-[0.8rem] text-mist mb-6">Modify user credentials and system access permissions.</p>
             
