@@ -567,6 +567,24 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function checkSession() {
+      // Session-close override check:
+      const isRemembered = localStorage.getItem('insighted_remember_me') !== 'false';
+      const isSessionActive = sessionStorage.getItem('insighted_session_active') === 'true';
+      if (!isRemembered && !isSessionActive) {
+        // User closed the tab previously and didn't check "Keep me signed in"
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (e) {
+          console.error("Logout request failed:", e);
+        }
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('insighted_remember_me');
+        router.push('/login');
+        return;
+      }
+
       try {
         const response = await fetch('/api/auth/me');
         if (!response.ok) {

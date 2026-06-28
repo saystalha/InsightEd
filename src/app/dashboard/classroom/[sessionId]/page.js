@@ -1613,7 +1613,25 @@ function StudentView({ sessionId }) {
 function ClassroomContent() {
   const { sessionId } = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const role = searchParams.get('role') ?? 'student';
+
+  useEffect(() => {
+    // Session-close override check:
+    const isRemembered = localStorage.getItem('insighted_remember_me') !== 'false';
+    const isSessionActive = sessionStorage.getItem('insighted_session_active') === 'true';
+    if (!isRemembered && !isSessionActive) {
+      // User closed the tab previously and didn't check "Keep me signed in"
+      fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('insighted_remember_me');
+        router.push('/login');
+      });
+    }
+  }, [router]);
+
   return role === 'teacher' ? <TeacherView sessionId={sessionId} /> : <StudentView sessionId={sessionId} />;
 }
 

@@ -20,7 +20,7 @@ export async function POST(request) {
   try {
     await connectDB();
     const body = await request.json();
-    const { email, password } = body;
+    const { email, password, rememberMe } = body;
 
     // Basic field presence validation
     if (!email || !password) {
@@ -68,10 +68,13 @@ export async function POST(request) {
 
     const cookieStore = await cookies();
 
+    // Determine cookie duration (30 days if rememberMe is true, session-only if false)
+    const maxAge = rememberMe ? 60 * 60 * 24 * 30 : undefined;
+
     // Client-readable cookie — used to personalise the UI without an extra API call
     cookieStore.set('insighted_user', JSON.stringify(userMetadata), {
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: maxAge,
       sameSite: 'lax',
       // Not httpOnly — intentionally readable by client-side JS
     });
@@ -87,7 +90,7 @@ export async function POST(request) {
       httpOnly: true,
       secure: isSecure,
       path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: maxAge,
       sameSite: 'lax',
     });
 
