@@ -15,19 +15,31 @@ export default function MeetingVideoTile({
   onPin
 }) {
   const videoRef = useRef(null);
+  const audioRef = useRef(null);
 
+  // Bind video element
   useEffect(() => {
     if (videoRef.current) {
       if (stream) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play().catch(e => {
-          // Auto-play was prevented; will resume on first click
-        });
+        videoRef.current.play().catch(() => {});
       } else {
         videoRef.current.srcObject = null;
       }
     }
   }, [stream]);
+
+  // Bind dedicated audio element for remote participants to guarantee voice playback
+  useEffect(() => {
+    if (audioRef.current) {
+      if (stream && !isLocal) {
+        audioRef.current.srcObject = stream;
+        audioRef.current.play().catch(() => {});
+      } else {
+        audioRef.current.srcObject = null;
+      }
+    }
+  }, [stream, isLocal]);
 
   const initials = name
     ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
@@ -46,12 +58,15 @@ export default function MeetingVideoTile({
           : 'border-white/10 hover:border-white/20'
       }`}
     >
+      {/* Dedicated audio element for remote stream (ensures voice is heard even if camera is off) */}
+      {!isLocal && <audio ref={audioRef} autoPlay playsInline />}
+
       {/* Video Element */}
       <video
         ref={videoRef}
         autoPlay
         playsInline
-        muted={isLocal} // Local preview must be muted to avoid hearing own feedback
+        muted={true} // Audio is handled with high priority by the dedicated audio element above
         className={`w-full h-full object-cover transition-opacity duration-300 ${
           hasVideoTrack ? 'opacity-100' : 'opacity-0 absolute pointer-events-none'
         } ${isLocal ? 'scale-x-[-1]' : ''}`}

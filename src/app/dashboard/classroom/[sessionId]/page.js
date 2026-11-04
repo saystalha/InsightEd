@@ -305,6 +305,25 @@ function ClassroomView({ sessionId, role = 'student' }) {
     }
   }, [peerList, role, showToast]);
 
+  // Resume any blocked audio on user click
+  useEffect(() => {
+    const resumeAllAudio = () => {
+      document.querySelectorAll('audio, video').forEach(media => {
+        if (media.paused && media.srcObject && !media.muted) {
+          media.play().catch(() => {});
+        }
+      });
+    };
+    window.addEventListener('click', resumeAllAudio, { passive: true });
+    window.addEventListener('keydown', resumeAllAudio, { passive: true });
+    window.addEventListener('touchstart', resumeAllAudio, { passive: true });
+    return () => {
+      window.removeEventListener('click', resumeAllAudio);
+      window.removeEventListener('keydown', resumeAllAudio);
+      window.removeEventListener('touchstart', resumeAllAudio);
+    };
+  }, []);
+
   // Ensure remote screen stream binds to video element
   useEffect(() => {
     if (screenVideoRef.current) {
@@ -529,7 +548,13 @@ function ClassroomView({ sessionId, role = 'student' }) {
               {/* Primary High-Resolution Presentation Screen */}
               <div className="flex-1 relative rounded-2xl overflow-hidden bg-[#07090e] border border-white/10 flex items-center justify-center shadow-2xl min-h-0">
                 <video
-                  ref={screenVideoRef}
+                  ref={el => {
+                    screenVideoRef.current = el;
+                    if (el && activeScreenShare && el.srcObject !== activeScreenShare) {
+                      el.srcObject = activeScreenShare;
+                      el.play().catch(() => {});
+                    }
+                  }}
                   autoPlay
                   playsInline
                   muted={isScreenSharing}

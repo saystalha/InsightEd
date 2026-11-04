@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+// Next.js App Router native Response handler
 
 /**
  * In-memory signaling bus for WebRTC peer-to-peer audio, video, and screen sharing.
@@ -20,6 +20,13 @@ function getSessionSignals(sessionId) {
     });
   }
   return signalingStore.get(sid);
+}
+
+let lastMonotonicTime = 0;
+function getMonotonicTimestamp() {
+  const now = Date.now();
+  lastMonotonicTime = now > lastMonotonicTime ? now : lastMonotonicTime + 1;
+  return lastMonotonicTime;
 }
 
 // Clean up sessions older than 2 hours periodically
@@ -51,21 +58,22 @@ export async function POST(request, { params }) {
     const { from, to = 'all', type, data, senderName, senderRole } = body;
 
     if (!from || !type) {
-      return NextResponse.json({ error: 'Missing required signal fields' }, { status: 400 });
+      return Response.json({ error: 'Missing required signal fields' }, { status: 400 });
     }
 
     const session = getSessionSignals(sessionId);
     session.lastActive = Date.now();
 
+    const timestamp = getMonotonicTimestamp();
     const signalItem = {
-      id: `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      id: `${timestamp}_${Math.random().toString(36).substring(2, 9)}`,
       from,
       to,
       type,
       data,
       senderName,
       senderRole,
-      timestamp: Date.now()
+      timestamp
     };
 
     // Keep up to 200 recent signals in memory
@@ -83,10 +91,10 @@ export async function POST(request, { params }) {
       }
     });
 
-    return NextResponse.json({ success: true, signalId: signalItem.id });
+    return Response.json({ success: true, signalId: signalItem.id });
   } catch (err) {
     console.error('Signaling POST error:', err);
-    return NextResponse.json({ error: 'Signal transmission failed' }, { status: 500 });
+    return Response.json({ error: 'Signal transmission failed' }, { status: 500 });
   }
 }
 
@@ -103,7 +111,7 @@ export async function GET(request, { params }) {
     const isSSE = searchParams.get('sse') === 'true';
 
     if (!userId) {
-      return NextResponse.json({ error: 'Missing userId parameter' }, { status: 400 });
+      return Response.json({ error: 'Missing userId parameter' }, { status: 400 });
     }
 
     const session = getSessionSignals(sessionId);
@@ -172,13 +180,17 @@ export async function GET(request, { params }) {
       (s.to === 'all' || s.to === userId)
     );
 
-    return NextResponse.json({
+    const latestTimestamp = session.signals.length > 0
+      ? session.signals[session.signals.length - 1].timestamp
+      : (lastMonotonicTime || Date.now());
+
+    return Response.json({
       success: true,
       signals: filtered,
-      serverTime: Date.now()
+      serverTime: latestTimestamp
     });
   } catch (err) {
     console.error('Signaling GET error:', err);
-    return NextResponse.json({ error: 'Signal fetch failed' }, { status: 500 });
+    return Response.json({ error: 'Signal fetch failed' }, { status: 500 });
   }
 }

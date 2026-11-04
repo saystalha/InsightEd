@@ -501,7 +501,11 @@ export function useClassroomWebRTC({
         if (!res.ok) return;
         const json = await res.json();
         if (json.success && Array.isArray(json.signals)) {
-          if (json.serverTime) lastSignalTimeRef.current = json.serverTime;
+          if (json.signals.length > 0) {
+            lastSignalTimeRef.current = json.signals[json.signals.length - 1].timestamp;
+          } else if (json.serverTime) {
+            lastSignalTimeRef.current = json.serverTime;
+          }
           for (const s of json.signals) {
             if (isSubscribed && handleSignalRef.current) {
               await handleSignalRef.current(s);
