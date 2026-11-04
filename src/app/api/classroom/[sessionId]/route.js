@@ -6,37 +6,33 @@ import AuditLog from '@/models/AuditLog';
 import { cookies } from 'next/headers';
 
 /**
+ * Helper to get the current user or guest fallback
+ */
+async function resolveUser(request) {
+  try {
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get('insighted_session');
+
+    if (sessionCookie && sessionCookie.value) {
+      const user = await User.findById(sessionCookie.value);
+      if (user) return user;
+    }
+  } catch (err) {
+    // Cookie read failed
+  }
+  return null;
+}
+
+/**
  * GET /api/classroom/[sessionId]
- *
  * Fetches the current state of a classroom session.
- * Requires a valid user session. Prunes stale participants who haven't sent a heartbeat.
  */
 export async function GET(request, { params }) {
   try {
     const { sessionId } = await params;
     const uppercaseCode = sessionId.toUpperCase();
 
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('insighted_session');
-
-    if (!sessionCookie || !sessionCookie.value) {
-      return NextResponse.json(
-        { error: 'Unauthorized. Please log in.' },
-        { status: 401 }
-      );
-    }
-
     await connectDB();
-
-    // Verify user session
-    const user = await User.findById(sessionCookie.value);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User session invalid' },
-        { status: 401 }
-      );
-    }
-
     const meeting = await Meeting.findOne({ code: uppercaseCode });
 
     if (!meeting) {
@@ -53,10 +49,9 @@ export async function GET(request, { params }) {
       );
     }
 
-    // Prune stale participants (inactive for more than 15 seconds)
-    // We keep the teacher in the list so they don't disappear if they lag momentarily, but prune students
+    // Prune stale participants (inactive for more than 20 seconds)
     const now = Date.now();
-    const staleLimit = 15000; // 15 seconds
+    const staleLimit = 20000;
     const originalCount = meeting.participants.length;
 
     meeting.participants = meeting.participants.filter(p => {
@@ -64,7 +59,6 @@ export async function GET(request, { params }) {
       return (now - new Date(p.lastSeen).getTime()) < staleLimit;
     });
 
-    // Save pruned list if changed
     if (meeting.participants.length !== originalCount) {
       await meeting.save();
     }
@@ -72,10 +66,9 @@ export async function GET(request, { params }) {
     // Recalculate aggregate stats based on active students
     const activeStudents = meeting.participants.filter(p => p.role === 'student');
     if (activeStudents.length > 0) {
-      const avgScore = activeStudents.reduce((sum, s) => sum + s.score, 0) / activeStudents.length;
+      const avgScore = activeStudents.reduce((sum, s) => sum + (s.score || 75), 0) / activeStudents.length;
       meeting.cfi = Math.round(avgScore);
       meeting.attention = avgScore / 100;
-      // Synthesize confusion and energy based on scores for realistic sandbox metrics
       meeting.confusion = Math.max(0.05, Math.min(0.80, 0.95 - (avgScore / 100)));
       meeting.energy = Math.max(0.20, Math.min(1.0, (avgScore / 100) * 1.1));
       await meeting.save();
@@ -96,27 +89,14 @@ export async function GET(request, { params }) {
 
 /**
  * POST /api/classroom/[sessionId]
- *
- * Handles actions inside a classroom session.
- * Supported actions: join, heartbeat, chat, marker, end.
- * 'marker' and 'end' actions require teacher or admin privileges.
+ * Handles actions inside a classroom session: join, heartbeat, chat, marker, end.
  */
 export async function POST(request, { params }) {
   try {
     const { sessionId } = await params;
     const uppercaseCode = sessionId.toUpperCase();
     const body = await request.json();
-    const { action } = body;
-
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('insighted_session');
-
-    if (!sessionCookie || !sessionCookie.value) {
-      return NextResponse.json(
-        { error: 'Unauthorized. Please log in.' },
-        { status: 401 }
-      );
-    }
+    const { action, guestName, guestRole } = body;
 
     await connectDB();
     const meeting = await Meeting.findOne({ code: uppercaseCode, active: true });
@@ -128,43 +108,40 @@ export async function POST(request, { params }) {
       );
     }
 
-    // Identify current user
-    const user = await User.findById(sessionCookie.value);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User session invalid' },
-        { status: 401 }
-      );
-    }
-
-    const userName = `${user.firstName} ${user.lastName}`;
-    const userInitials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+    // Resolve user (or fallback to guest)
+    const user = await resolveUser(request);
+    const userId = user ? user._id.toString() : (body.peerId || 'guest_' + Math.random().toString(36).substring(2, 9));
+    const userName = user ? `${user.firstName} ${user.lastName}` : (guestName || body.userName || 'Student');
+    const userInitials = user
+      ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+      : userName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'ST';
+    const userRole = user ? (user.role === 'admin' ? 'teacher' : user.role) : (guestRole || body.role || 'student');
 
     // ── ACTION: JOIN ──
     if (action === 'join') {
-      // Check if participant already exists
-      let pIdx = meeting.participants.findIndex(p => p.userId?.toString() === user._id.toString());
+      let pIdx = meeting.participants.findIndex(p => p.userId?.toString() === userId || p.name === userName);
       if (pIdx > -1) {
         meeting.participants[pIdx].lastSeen = new Date();
       } else {
         meeting.participants.push({
-          userId: user._id,
+          userId: user ? user._id : undefined,
           name: userName,
           initials: userInitials,
-          role: user.role === 'admin' ? 'teacher' : user.role, // Admins act as teachers in sessions
+          role: userRole,
           lastSeen: new Date(),
-          score: 75,
+          score: 80,
           handRaised: false,
           camOff: false,
           muted: false
         });
 
-        // Write to audit log for new joiner
-        await AuditLog.create({
-          action: 'CLASSROOM_JOINED',
-          details: `${user.role === 'admin' ? 'Admin' : user.role === 'teacher' ? 'Teacher' : 'Student'} ${userName} (${user.email}) joined live classroom ${uppercaseCode}`,
-          performedBy: user.email,
-        });
+        if (user) {
+          await AuditLog.create({
+            action: 'CLASSROOM_JOINED',
+            details: `${userRole === 'teacher' ? 'Teacher' : 'Student'} ${userName} joined live classroom ${uppercaseCode}`,
+            performedBy: user.email,
+          });
+        }
       }
       await meeting.save();
       return NextResponse.json({ success: true, meeting });
@@ -172,7 +149,7 @@ export async function POST(request, { params }) {
 
     // ── ACTION: HEARTBEAT / STATUS UPDATE ──
     if (action === 'heartbeat') {
-      let pIdx = meeting.participants.findIndex(p => p.userId?.toString() === user._id.toString());
+      let pIdx = meeting.participants.findIndex(p => p.userId?.toString() === userId || p.name === userName);
       if (pIdx > -1) {
         meeting.participants[pIdx].lastSeen = new Date();
         if (body.score !== undefined) meeting.participants[pIdx].score = body.score;
@@ -196,7 +173,7 @@ export async function POST(request, { params }) {
         sender: userName,
         msg,
         time: new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }),
-        role: user.role === 'admin' ? 'teacher' : user.role
+        role: userRole
       });
 
       await meeting.save();
@@ -205,7 +182,7 @@ export async function POST(request, { params }) {
 
     // ── ACTION: MARK TOPIC ──
     if (action === 'marker') {
-      if (user.role !== 'teacher' && user.role !== 'admin') {
+      if (userRole !== 'teacher' && user?.role !== 'admin') {
         return NextResponse.json(
           { error: 'Forbidden. Only instructors can mark classroom topics.' },
           { status: 403 }
@@ -228,7 +205,7 @@ export async function POST(request, { params }) {
 
     // ── ACTION: END SESSION ──
     if (action === 'end') {
-      if (user.role !== 'teacher' && user.role !== 'admin') {
+      if (userRole !== 'teacher' && user?.role !== 'admin') {
         return NextResponse.json(
           { error: 'Forbidden. Only instructors can end a classroom session.' },
           { status: 403 }
@@ -237,12 +214,13 @@ export async function POST(request, { params }) {
       meeting.active = false;
       await meeting.save();
 
-      // Write to audit log
-      await AuditLog.create({
-        action: 'CLASSROOM_ENDED',
-        details: `Live classroom ${uppercaseCode} was ended by ${userName} (${user.email})`,
-        performedBy: user.email,
-      });
+      if (user) {
+        await AuditLog.create({
+          action: 'CLASSROOM_ENDED',
+          details: `Live classroom ${uppercaseCode} was ended by ${userName}`,
+          performedBy: user.email,
+        });
+      }
 
       return NextResponse.json({ success: true, message: 'Meeting session ended successfully' });
     }

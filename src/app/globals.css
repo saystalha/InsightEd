@@ -5,7 +5,7 @@
 
   /* ── PALETTE: Pure White & Light Blue Theme ── */
   --color-navy:        #FFFFFF;   /* main app background (white)*/
-  --color-navy-dark:   #F8FAFC;   /* sidebar / deeper surfaces (light blue-gray)*/
+  --color-navy-dark:   #FF0000;   /* sidebar / deeper surfaces (light blue-gray)*/
   --color-navy-mid:    #E2E8F0;   /* separation borders */
   --color-navy-card:   #FFFFFF;   /* card panels */
   --color-copper:      #1D5BF1;   /* primary accent — solid vibrant blue */
@@ -223,7 +223,7 @@
 
   /* Sidebar deep blue */
   .glass-sidebar {
-    background: #2B3B95;
+    background: #2B3B95;  
     border-right: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 4px 0 32px rgba(0, 0, 0, 0.15);
   }
