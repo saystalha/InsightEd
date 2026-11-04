@@ -54,7 +54,18 @@ export async function GET(request, { params }) {
     const staleLimit = 20000;
     const originalCount = meeting.participants.length;
 
-    meeting.participants = meeting.participants.filter(p => {
+    // Deduplicate participants by name: keep the latest lastSeen
+    const seenNames = new Set();
+    const uniqueParticipants = [];
+    const sorted = [...meeting.participants].sort((a, b) => new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime());
+    for (const p of sorted) {
+      if (!seenNames.has(p.name)) {
+        seenNames.add(p.name);
+        uniqueParticipants.push(p);
+      }
+    }
+
+    meeting.participants = uniqueParticipants.filter(p => {
       if (p.role === 'teacher') return true;
       return (now - new Date(p.lastSeen).getTime()) < staleLimit;
     });

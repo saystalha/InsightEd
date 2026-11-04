@@ -12,7 +12,7 @@ const RTC_CONFIG = {
 
 /**
  * Custom hook to manage WebRTC multi-peer audio, video, and screen sharing
- * with low-latency signaling over Next.js API routes.
+ * with rock-solid, persistent signaling and zero redundant re-joining loops.
  */
 export function useClassroomWebRTC({
   sessionId,
@@ -37,20 +37,43 @@ export function useClassroomWebRTC({
 
   const [connectionStatus, setConnectionStatus] = useState('connecting');
 
-  // PeerConnections ref store: peerId -> RTCPeerConnection
+  // Stable persistent myId for the entire session in this browser tab
+  const myIdRef = useRef(null);
+  if (!myIdRef.current) {
+    if (typeof window !== 'undefined') {
+      const stored = sessionStorage.getItem(`insighted_peer_${sessionId}`);
+      if (stored) {
+        myIdRef.current = stored;
+      } else {
+        const generated = user?.id || user?._id || ('peer_' + Math.random().toString(36).substring(2, 9));
+        sessionStorage.setItem(`insighted_peer_${sessionId}`, generated);
+        myIdRef.current = generated;
+      }
+    } else {
+      myIdRef.current = user?.id || user?._id || 'peer_ssr';
+    }
+  }
+  const myId = myIdRef.current;
+
+  const myName = user?.name || (typeof window !== 'undefined' ? localStorage.getItem('userName') : null) || (user?.role === 'teacher' ? 'Instructor' : 'Student');
+  const myRole = user?.role || 'student';
+
+  // Refs for callbacks & mutable values to prevent useEffect teardowns
+  const callbacksRef = useRef({});
+  callbacksRef.current = { onChatMessage, onPeerJoin, onPeerLeave };
+
+  const myInfoRef = useRef({ id: myId, name: myName, role: myRole });
+  myInfoRef.current = { id: myId, name: myName, role: myRole };
+
+  const peersRef = useRef({});
+  peersRef.current = peers;
+
   const pcsRef = useRef({});
-  // Screen PeerConnections ref store: peerId -> RTCPeerConnection
   const screenPcsRef = useRef({});
   const localStreamRef = useRef(null);
   const localScreenStreamRef = useRef(null);
-  const lastSignalTimeRef = useRef(Date.now() - 5000);
-  const sseRef = useRef(null);
-  const pollIntervalRef = useRef(null);
+  const lastSignalTimeRef = useRef(Date.now() - 3000);
   const processedSignalIdsRef = useRef(new Set());
-
-  const myId = user?.id || user?._id || 'user_' + Math.random().toString(36).substring(2, 9);
-  const myName = user?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'Participant');
-  const myRole = user?.role || 'student';
 
   // Helper to send signal via POST
   const sendSignal = useCallback(async (type, data = {}, to = 'all') => {
@@ -64,14 +87,14 @@ export function useClassroomWebRTC({
           to,
           type,
           data,
-          senderName: myName,
-          senderRole: myRole
+          senderName: myInfoRef.current.name,
+          senderRole: myInfoRef.current.role
         })
       });
     } catch (err) {
       console.warn('Failed to send signal:', type, err);
     }
-  }, [sessionId, myId, myName, myRole]);
+  }, [sessionId, myId]);
 
   // Create an RTCPeerConnection for a remote peer (Camera + Mic)
   const createPeerConnection = useCallback((peerId, peerName, peerRole) => {
@@ -85,7 +108,11 @@ export function useClassroomWebRTC({
     // Add local tracks if available
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => {
-        pc.addTrack(track, localStreamRef.current);
+        try {
+          pc.addTrack(track, localStreamRef.current);
+        } catch (e) {
+          // Track already added
+        }
       });
     }
 
@@ -110,29 +137,36 @@ export function useClassroomWebRTC({
     pc.onconnectionstatechange = () => {
       if (pc.connectionState === 'connected') {
         setConnectionStatus('connected');
-      } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-        // Clean up disconnected peer
-        // Wait momentarily in case of reconnection
       }
     };
 
-    setPeers(prev => ({
-      ...prev,
-      [peerId]: {
-        id: peerId,
-        name: peerName || 'Participant',
-        role: peerRole || 'student',
-        camOff: false,
-        muted: false,
-        handRaised: false,
-        isSpeaking: false
-      }
-    }));
+    setPeers(prev => {
+      // Remove any ghost entry that has the same name but different peerId
+      const cleaned = { ...prev };
+      Object.keys(cleaned).forEach(id => {
+        if (id !== peerId && cleaned[id].name === peerName) {
+          delete cleaned[id];
+        }
+      });
+
+      return {
+        ...cleaned,
+        [peerId]: {
+          id: peerId,
+          name: peerName || 'Participant',
+          role: peerRole || 'student',
+          camOff: false,
+          muted: false,
+          handRaised: false,
+          isSpeaking: false
+        }
+      };
+    });
 
     return pc;
   }, [sendSignal]);
 
-  // Initialize Local Media (Camera & Microphone)
+  // Initialize Local Media (Camera & Microphone) - runs once
   useEffect(() => {
     let active = true;
 
@@ -159,15 +193,16 @@ export function useClassroomWebRTC({
         localStreamRef.current = stream;
         setLocalStream(stream);
 
-        // Add tracks to any already-created peer connections
+        // Add tracks to any active peer connections
         Object.values(pcsRef.current).forEach(pc => {
           stream.getTracks().forEach(track => {
-            pc.addTrack(track, stream);
+            try {
+              pc.addTrack(track, stream);
+            } catch (e) {}
           });
         });
       } catch (err) {
         console.warn('Webcam/mic access error (or denied):', err);
-        // Fallback: try audio-only if camera is blocked
         try {
           const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
           if (active) {
@@ -191,7 +226,7 @@ export function useClassroomWebRTC({
     };
   }, []);
 
-  // Monitor Local Speech with Web Audio API for glowing indicator
+  // Monitor Local Speech with Web Audio API for speaking indicator
   useEffect(() => {
     if (!localStream || muted) {
       setIsSpeaking(false);
@@ -222,8 +257,7 @@ export function useClassroomWebRTC({
         let sum = 0;
         for (let i = 0; i < buffer.length; i++) sum += buffer[i];
         const avg = sum / buffer.length;
-        const speakingNow = avg > 10;
-        setIsSpeaking(speakingNow);
+        setIsSpeaking(avg > 10);
         animId = requestAnimationFrame(checkVolume);
       };
 
@@ -239,23 +273,13 @@ export function useClassroomWebRTC({
     };
   }, [localStream, muted]);
 
-  // Broadcast speaking state change
-  useEffect(() => {
-    sendSignal('peer-status', {
-      muted,
-      camOff,
-      handRaised,
-      isSpeaking
-    });
-  }, [isSpeaking, muted, camOff, handRaised, sendSignal]);
-
-  // Handle incoming signaling messages
-  const handleSignal = useCallback(async (sig) => {
+  // Handle incoming signaling messages with stable ref references
+  const handleSignalRef = useRef();
+  handleSignalRef.current = async (sig) => {
     if (!sig || !sig.type || sig.from === myId) return;
     if (processedSignalIdsRef.current.has(sig.id)) return;
     processedSignalIdsRef.current.add(sig.id);
 
-    // Keep set bounded
     if (processedSignalIdsRef.current.size > 500) {
       processedSignalIdsRef.current.clear();
     }
@@ -264,9 +288,10 @@ export function useClassroomWebRTC({
 
     switch (type) {
       case 'join': {
-        // A new peer joined the room.
-        // As an existing member, initiate an offer to the newcomer.
-        onPeerJoin?.({ id: from, name: senderName, role: senderRole });
+        // Only trigger join notification if peer is new
+        if (!peersRef.current[from]) {
+          callbacksRef.current.onPeerJoin?.({ id: from, name: senderName, role: senderRole });
+        }
         const pc = createPeerConnection(from, senderName, senderRole);
 
         try {
@@ -274,7 +299,7 @@ export function useClassroomWebRTC({
           await pc.setLocalDescription(offer);
           sendSignal('offer', { sdp: offer }, from);
 
-          // If we are currently sharing our screen, also send screen-offer to this new peer
+          // If currently sharing screen, offer screen stream to newcomer
           if (localScreenStreamRef.current) {
             const screenPc = new RTCPeerConnection(RTC_CONFIG);
             screenPcsRef.current[from] = screenPc;
@@ -288,7 +313,7 @@ export function useClassroomWebRTC({
             };
             const scrOffer = await screenPc.createOffer();
             await screenPc.setLocalDescription(scrOffer);
-            sendSignal('screen-offer', { sdp: scrOffer, sharerName: myName }, from);
+            sendSignal('screen-offer', { sdp: scrOffer, sharerName: myInfoRef.current.name }, from);
           }
         } catch (err) {
           console.error('Error creating offer for peer:', from, err);
@@ -297,7 +322,6 @@ export function useClassroomWebRTC({
       }
 
       case 'offer': {
-        // We received an offer from another peer.
         const pc = createPeerConnection(from, senderName, senderRole);
         try {
           await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
@@ -358,9 +382,7 @@ export function useClassroomWebRTC({
         break;
       }
 
-      // Screen Share Signaling
       case 'screen-offer': {
-        // Someone started sharing screen
         const screenPc = new RTCPeerConnection(RTC_CONFIG);
         screenPcsRef.current[from] = screenPc;
 
@@ -424,7 +446,7 @@ export function useClassroomWebRTC({
       }
 
       case 'chat': {
-        onChatMessage?.({
+        callbacksRef.current.onChatMessage?.({
           id: sig.id,
           sender: senderName,
           role: senderRole,
@@ -435,7 +457,9 @@ export function useClassroomWebRTC({
       }
 
       case 'leave': {
-        onPeerLeave?.({ id: from, name: senderName });
+        if (peersRef.current[from]) {
+          callbacksRef.current.onPeerLeave?.({ id: from, name: senderName });
+        }
         if (pcsRef.current[from]) {
           pcsRef.current[from].close();
           delete pcsRef.current[from];
@@ -454,25 +478,22 @@ export function useClassroomWebRTC({
           delete next[from];
           return next;
         });
-        if (screenSharer?.id === from) {
-          setRemoteScreenStream(null);
-          setScreenSharer(null);
-        }
         break;
       }
 
       default:
         break;
     }
-  }, [myId, myName, sendSignal, createPeerConnection, onPeerJoin, onPeerLeave, onChatMessage, screenSharer]);
+  };
 
-  // Connect to Signaling channel (SSE with polling fallback)
+  // Connect to Signaling channel - STRICTLY RUNS ONCE per session
   useEffect(() => {
     if (!sessionId || !myId) return;
 
     let isSubscribed = true;
+    let sseSource = null;
+    let pollTimer = null;
 
-    // Fast polling fallback function
     const pollSignals = async () => {
       try {
         const since = lastSignalTimeRef.current;
@@ -482,66 +503,68 @@ export function useClassroomWebRTC({
         if (json.success && Array.isArray(json.signals)) {
           if (json.serverTime) lastSignalTimeRef.current = json.serverTime;
           for (const s of json.signals) {
-            if (isSubscribed) await handleSignal(s);
+            if (isSubscribed && handleSignalRef.current) {
+              await handleSignalRef.current(s);
+            }
           }
         }
-      } catch (err) {
-        // Silently retry on next poll interval
-      }
+      } catch (err) {}
     };
 
-    // Try EventSource (SSE) first for 0ms latency
     try {
       const sseUrl = `/api/classroom/${sessionId}/signal?userId=${encodeURIComponent(myId)}&sse=true&since=${lastSignalTimeRef.current}`;
-      const eventSource = new EventSource(sseUrl);
-      sseRef.current = eventSource;
+      sseSource = new EventSource(sseUrl);
 
-      eventSource.onmessage = (event) => {
+      sseSource.onmessage = (event) => {
         if (!isSubscribed) return;
         try {
           const sig = JSON.parse(event.data);
-          handleSignal(sig);
-        } catch (e) {
-          // ignore heartbeat / unparseable
-        }
+          if (handleSignalRef.current) handleSignalRef.current(sig);
+        } catch (e) {}
       };
 
-      eventSource.onerror = () => {
-        // Fallback to fast polling if SSE connection drops
-        if (!pollIntervalRef.current) {
-          pollIntervalRef.current = setInterval(pollSignals, 800);
+      sseSource.onerror = () => {
+        if (!pollTimer) {
+          pollTimer = setInterval(pollSignals, 1000);
         }
       };
     } catch (e) {
-      // Start fast polling fallback
-      pollIntervalRef.current = setInterval(pollSignals, 800);
+      pollTimer = setInterval(pollSignals, 1000);
     }
 
-    // Always keep a safety poll every 2.5 seconds to guarantee zero missed signals
-    const safetyPoll = setInterval(pollSignals, 2500);
+    // Safety poll every 3 seconds to guarantee no missed signals
+    const safetyPoll = setInterval(pollSignals, 3000);
 
-    // Announce our presence to the room
+    // Broadcast our join ONCE
     sendSignal('join', {
-      name: myName,
-      role: myRole
+      name: myInfoRef.current.name,
+      role: myInfoRef.current.role
     });
 
     return () => {
       isSubscribed = false;
       clearInterval(safetyPoll);
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-      if (sseRef.current) {
-        sseRef.current.close();
-        sseRef.current = null;
+      if (pollTimer) clearInterval(pollTimer);
+      if (sseSource) {
+        sseSource.close();
       }
       sendSignal('leave');
-      // Close all peer connections
       Object.values(pcsRef.current).forEach(pc => pc.close());
       pcsRef.current = {};
       Object.values(screenPcsRef.current).forEach(pc => pc.close());
       screenPcsRef.current = {};
     };
-  }, [sessionId, myId, myName, myRole, sendSignal, handleSignal]);
+  }, [sessionId, myId, sendSignal]);
+
+  // Broadcast status changes (muted, camOff, handRaised, isSpeaking)
+  useEffect(() => {
+    sendSignal('peer-status', {
+      muted,
+      camOff,
+      handRaised,
+      isSpeaking
+    });
+  }, [isSpeaking, muted, camOff, handRaised, sendSignal]);
 
   // Toggle Microphone Mute
   const toggleMic = useCallback(() => {
@@ -552,10 +575,9 @@ export function useClassroomWebRTC({
           track.enabled = !next;
         });
       }
-      sendSignal('peer-status', { muted: next, camOff, handRaised });
       return next;
     });
-  }, [camOff, handRaised, sendSignal]);
+  }, []);
 
   // Toggle Camera
   const toggleCam = useCallback(() => {
@@ -566,19 +588,14 @@ export function useClassroomWebRTC({
           track.enabled = !next;
         });
       }
-      sendSignal('peer-status', { muted, camOff: next, handRaised });
       return next;
     });
-  }, [muted, handRaised, sendSignal]);
+  }, []);
 
   // Toggle Hand Raise
   const toggleHandRaise = useCallback(() => {
-    setHandRaised(prev => {
-      const next = !prev;
-      sendSignal('peer-status', { muted, camOff, handRaised: next });
-      return next;
-    });
-  }, [muted, camOff, sendSignal]);
+    setHandRaised(prev => !prev);
+  }, []);
 
   // Start Screen Sharing
   const startScreenShare = useCallback(async () => {
@@ -589,20 +606,16 @@ export function useClassroomWebRTC({
 
     try {
       const scrStream = await navigator.mediaDevices.getDisplayMedia({
-        video: {
-          cursor: 'always',
-          frameRate: { ideal: 30, max: 60 }
-        },
+        video: { cursor: 'always', frameRate: { ideal: 30, max: 60 } },
         audio: true
       });
 
       localScreenStreamRef.current = scrStream;
       setLocalScreenStream(scrStream);
       setIsScreenSharing(true);
-      setScreenSharer({ id: myId, name: myName });
+      setScreenSharer({ id: myId, name: myInfoRef.current.name });
 
-      // Create screen connection to every connected peer
-      const peerIds = Object.keys(peers);
+      const peerIds = Object.keys(peersRef.current);
       for (const peerId of peerIds) {
         const screenPc = new RTCPeerConnection(RTC_CONFIG);
         screenPcsRef.current[peerId] = screenPc;
@@ -619,17 +632,16 @@ export function useClassroomWebRTC({
 
         const offer = await screenPc.createOffer();
         await screenPc.setLocalDescription(offer);
-        sendSignal('screen-offer', { sdp: offer, sharerName: myName }, peerId);
+        sendSignal('screen-offer', { sdp: offer, sharerName: myInfoRef.current.name }, peerId);
       }
 
-      // Handle user ending screen share from browser system banner
       scrStream.getVideoTracks()[0].onended = () => {
         stopScreenShare();
       };
     } catch (err) {
       console.warn('Screen share cancelled or failed:', err);
     }
-  }, [myId, myName, peers, sendSignal]);
+  }, [myId, sendSignal]);
 
   // Stop Screen Sharing
   const stopScreenShare = useCallback(() => {
@@ -639,18 +651,15 @@ export function useClassroomWebRTC({
     }
     setLocalScreenStream(null);
     setIsScreenSharing(false);
-    if (screenSharer?.id === myId) {
-      setScreenSharer(null);
-    }
+    setScreenSharer(null);
 
-    // Close screen peer connections
     Object.values(screenPcsRef.current).forEach(pc => pc.close());
     screenPcsRef.current = {};
 
     sendSignal('screen-stop');
-  }, [myId, screenSharer, sendSignal]);
+  }, [sendSignal]);
 
-  // Send Chat message via WebRTC signal
+  // Send Chat message
   const sendChatMessage = useCallback((text) => {
     if (!text?.trim()) return;
     const msgObj = {

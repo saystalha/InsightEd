@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from 'react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { useClassroomWebRTC } from '@/lib/useClassroomWebRTC';
 import MeetingVideoTile from '@/components/MeetingVideoTile';
@@ -97,15 +97,16 @@ function ClassroomView({ sessionId, role = 'student' }) {
   const [pinnedPeerId, setPinnedPeerId] = useState(null);
 
   const screenVideoRef = useRef(null);
+  const prevHandsRef = useRef({});
 
   // Show Toast helper
-  const showToast = (message, icon = 'ℹ️') => {
+  const showToast = useCallback((message, icon = 'ℹ️') => {
     const id = Date.now() + Math.random();
     setToasts(prev => [...prev, { id, message, icon }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 4500);
-  };
+  }, []);
 
   // Retrieve authenticated profile
   useEffect(() => {
@@ -114,12 +115,15 @@ function ClassroomView({ sessionId, role = 'student' }) {
       .then(data => {
         if (data.authenticated && data.user) {
           setUserProfile(data.user);
+          localStorage.setItem('userName', `${data.user.firstName} ${data.user.lastName}`);
         }
       })
       .catch(err => console.warn('Could not load user profile:', err));
   }, []);
 
+  // Determine stable user info immediately
   const currentUser = useMemo(() => {
+    const storedName = typeof window !== 'undefined' ? localStorage.getItem('userName') : null;
     if (userProfile) {
       return {
         id: userProfile._id,
@@ -128,14 +132,14 @@ function ClassroomView({ sessionId, role = 'student' }) {
       };
     }
     return {
-      id: 'usr_' + Math.random().toString(36).substring(2, 8),
-      name: role === 'teacher' ? 'Instructor' : 'Student',
+      id: storedName ? `usr_${storedName.replace(/\s+/g, '_').toLowerCase()}` : (role === 'teacher' ? 'usr_teacher' : 'usr_student'),
+      name: storedName || (role === 'teacher' ? 'Instructor' : 'Student'),
       role
     };
   }, [userProfile, role]);
 
   // Handle incoming real-time chat messages
-  const handleIncomingChatMessage = (msg) => {
+  const handleIncomingChatMessage = useCallback((msg) => {
     setChatMessages(prev => {
       if (prev.some(m => m.id === msg.id)) return prev;
       return [...prev, msg];
@@ -144,7 +148,15 @@ function ClassroomView({ sessionId, role = 'student' }) {
     if (sidebarTab !== 'chat') {
       setUnreadChatCount(c => c + 1);
     }
-  };
+  }, [sidebarTab]);
+
+  const onPeerJoin = useCallback((peer) => {
+    showToast(`${peer.name} joined the class`, '👤');
+  }, [showToast]);
+
+  const onPeerLeave = useCallback((peer) => {
+    showToast(`${peer.name} left the class`, '👋');
+  }, [showToast]);
 
   // Initialize WebRTC
   const {
@@ -172,12 +184,8 @@ function ClassroomView({ sessionId, role = 'student' }) {
     sessionId,
     user: currentUser,
     onChatMessage: handleIncomingChatMessage,
-    onPeerJoin: (peer) => {
-      showToast(`${peer.name} joined the class`, '👤');
-    },
-    onPeerLeave: (peer) => {
-      showToast(`${peer.name} left the class`, '👋');
-    }
+    onPeerJoin,
+    onPeerLeave
   });
 
   // Track session duration
@@ -186,13 +194,18 @@ function ClassroomView({ sessionId, role = 'student' }) {
     return () => clearInterval(timer);
   }, []);
 
-  // Poll database meeting session state
+  // Poll database meeting session state - STRICTLY runs periodically without effect restarts
   useEffect(() => {
+    if (!sessionId) return;
+
+    let isMounted = true;
+
     async function fetchSessionState() {
       try {
         const res = await fetch(`/api/classroom/${sessionId}`);
+        if (!res.ok) return;
         const data = await res.json();
-        if (res.ok && data.success) {
+        if (isMounted && data.success) {
           const meeting = data.meeting;
           setMeetingTitle(meeting.title || 'InsightEd Classroom');
           setCfi(meeting.cfi || 75);
@@ -218,12 +231,10 @@ function ClassroomView({ sessionId, role = 'student' }) {
         } else if (data.active === false) {
           setIsSessionEndedModalOpen(true);
         }
-      } catch (err) {
-        console.warn('Session sync poll error:', err);
-      }
+      } catch (err) {}
     }
 
-    // Join room endpoint
+    // Join room in DB once
     fetch(`/api/classroom/${sessionId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -235,14 +246,19 @@ function ClassroomView({ sessionId, role = 'student' }) {
       })
     })
       .then(() => fetchSessionState())
-      .catch(err => console.error('Join session error:', err));
+      .catch(() => {});
 
-    const pollInterval = setInterval(fetchSessionState, 3500);
-    return () => clearInterval(pollInterval);
+    const pollInterval = setInterval(fetchSessionState, 4000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
   }, [sessionId, myId, myName, myRole, role]);
 
   // Keep heartbeat alive in MongoDB
   useEffect(() => {
+    if (!sessionId) return;
     const hbInterval = setInterval(() => {
       fetch(`/api/classroom/${sessionId}`, {
         method: 'POST',
@@ -259,20 +275,35 @@ function ClassroomView({ sessionId, role = 'student' }) {
           score: Math.round(metrics.attention * 100)
         })
       }).catch(() => {});
-    }, 4000);
+    }, 4500);
     return () => clearInterval(hbInterval);
   }, [sessionId, myId, myName, myRole, camOff, muted, handRaised, isSpeaking, metrics.attention]);
 
-  // Handle hand raised toast for teacher
+  // Filter out duplicate peers by name and self
+  const peerList = useMemo(() => {
+    const list = Object.values(peers).filter(p => p.id !== myId && p.name !== myName);
+    const seen = new Set();
+    const unique = [];
+    for (const p of list) {
+      if (!seen.has(p.name)) {
+        seen.add(p.name);
+        unique.push(p);
+      }
+    }
+    return unique;
+  }, [peers, myId, myName]);
+
+  // Handle hand raised notification for teacher without loops
   useEffect(() => {
     if (role === 'teacher') {
-      Object.values(peers).forEach(p => {
-        if (p.handRaised) {
+      peerList.forEach(p => {
+        if (p.handRaised && !prevHandsRef.current[p.id]) {
           showToast(`${p.name} raised their hand`, '✋');
         }
+        prevHandsRef.current[p.id] = p.handRaised;
       });
     }
-  }, [peers, role]);
+  }, [peerList, role, showToast]);
 
   // Ensure remote screen stream binds to video element
   useEffect(() => {
@@ -394,11 +425,7 @@ function ClassroomView({ sessionId, role = 'student' }) {
     setTimeout(() => setCopiedCode(false), 2000);
   };
 
-  // Remote participants list
-  const peerList = Object.values(peers);
   const totalCount = peerList.length + 1; // +1 for self
-
-  // Active screen sharing stream
   const activeScreenShare = isScreenSharing ? localScreenStream : remoteScreenStream;
   const presentingUser = isScreenSharing ? { name: 'You' } : screenSharer;
 
@@ -505,7 +532,7 @@ function ClassroomView({ sessionId, role = 'student' }) {
                   ref={screenVideoRef}
                   autoPlay
                   playsInline
-                  muted={isScreenSharing} // Mute self to prevent feedback
+                  muted={isScreenSharing}
                   className="w-full h-full object-contain"
                 />
 
