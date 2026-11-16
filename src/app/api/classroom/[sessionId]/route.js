@@ -3,6 +3,7 @@ import connectDB from '@/lib/db';
 import User from '@/models/User';
 import Meeting from '@/models/Meeting';
 import AuditLog from '@/models/AuditLog';
+import Signal from '@/models/Signal';
 import { cookies } from 'next/headers';
 
 /**
@@ -106,7 +107,17 @@ export async function POST(request, { params }) {
   try {
     const { sessionId } = await params;
     const uppercaseCode = sessionId.toUpperCase();
-    const body = await request.json();
+
+    let body = {};
+    try {
+      body = await request.json();
+    } catch (e) {
+      try {
+        const raw = await request.text();
+        if (raw) body = JSON.parse(raw);
+      } catch (err2) {}
+    }
+
     const { action, guestName, guestRole } = body;
 
     await connectDB();
@@ -214,9 +225,55 @@ export async function POST(request, { params }) {
       return NextResponse.json({ success: true, topicMarkers: meeting.topicMarkers });
     }
 
+    // ── ACTION: LEAVE ──
+    if (action === 'leave') {
+      const isTeacher = userRole === 'teacher' || user?.role === 'admin' || guestRole === 'teacher' || body.role === 'teacher';
+      if (isTeacher) {
+        // When host leaves or closes tab, end the session automatically for everyone
+        meeting.active = false;
+        await meeting.save();
+        try {
+          await Signal.create({
+            sessionId: uppercaseCode,
+            from: userId || 'host',
+            to: 'all',
+            type: 'session-ended',
+            senderName: userName || 'Instructor',
+            senderRole: 'teacher',
+            timestamp: Date.now() + 10,
+            createdAt: new Date()
+          });
+        } catch (sigErr) {}
+        return NextResponse.json({ success: true, message: 'Classroom ended because host left' });
+      }
+
+      meeting.participants = meeting.participants.filter(p => {
+        const matchId = p.userId && userId && p.userId.toString() === userId.toString();
+        const matchName = p.name === userName;
+        return !matchId && !matchName;
+      });
+      await meeting.save();
+
+      try {
+        await Signal.create({
+          sessionId: uppercaseCode,
+          from: userId,
+          to: 'all',
+          type: 'leave',
+          senderName: userName,
+          senderRole: userRole || 'student',
+          timestamp: Date.now() + 10,
+          createdAt: new Date()
+        });
+      } catch (sigErr) {}
+
+      return NextResponse.json({ success: true, message: 'Participant left' });
+    }
+
     // ── ACTION: END SESSION ──
     if (action === 'end') {
-      if (userRole !== 'teacher' && user?.role !== 'admin') {
+      const isTeacher = userRole === 'teacher' || user?.role === 'admin' || guestRole === 'teacher' || body.role === 'teacher';
+      if (!isTeacher) {
         return NextResponse.json(
           { error: 'Forbidden. Only instructors can end a classroom session.' },
           { status: 403 }
@@ -224,6 +281,19 @@ export async function POST(request, { params }) {
       }
       meeting.active = false;
       await meeting.save();
+
+      try {
+        await Signal.create({
+          sessionId: uppercaseCode,
+          from: userId || 'host',
+          to: 'all',
+          type: 'session-ended',
+          senderName: userName || 'Instructor',
+          senderRole: 'teacher',
+          timestamp: Date.now() + 10,
+          createdAt: new Date()
+        });
+      } catch (sigErr) {}
 
       if (user) {
         await AuditLog.create({

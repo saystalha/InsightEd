@@ -1,26 +1,5 @@
-// Next.js App Router native Response handler
-
-/**
- * In-memory signaling bus for WebRTC peer-to-peer audio, video, and screen sharing.
- * Stored on globalThis to persist across hot reloads in Next.js development.
- */
-if (!globalThis.__classroomSignaling) {
-  globalThis.__classroomSignaling = new Map();
-}
-
-const signalingStore = globalThis.__classroomSignaling;
-
-function getSessionSignals(sessionId) {
-  const sid = sessionId.toUpperCase();
-  if (!signalingStore.has(sid)) {
-    signalingStore.set(sid, {
-      signals: [],
-      subscribers: new Set(),
-      lastActive: Date.now()
-    });
-  }
-  return signalingStore.get(sid);
-}
+import connectDB from '@/lib/db';
+import Signal from '@/models/Signal';
 
 let lastMonotonicTime = 0;
 function getMonotonicTimestamp() {
@@ -29,31 +8,14 @@ function getMonotonicTimestamp() {
   return lastMonotonicTime;
 }
 
-// Clean up sessions older than 2 hours periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [sid, data] of signalingStore.entries()) {
-    if (now - data.lastActive > 2 * 60 * 60 * 1000) {
-      signalingStore.delete(sid);
-    }
-  }
-}, 60 * 1000);
-
 /**
  * POST /api/classroom/[sessionId]/signal
- * Sends a signal message:
- * {
- *   from: string (userId/peerId),
- *   to?: string (peerId or 'all'),
- *   type: 'join' | 'offer' | 'answer' | 'ice-candidate' | 'screen-share' | 'leave' | 'chat',
- *   data: any,
- *   senderName?: string,
- *   senderRole?: string
- * }
+ * Dispatches signaling message into MongoDB (and in-memory broadcast)
  */
 export async function POST(request, { params }) {
   try {
     const { sessionId } = await params;
+    const uppercaseCode = sessionId.toUpperCase();
     const body = await request.json();
     const { from, to = 'all', type, data, senderName, senderRole } = body;
 
@@ -61,37 +23,22 @@ export async function POST(request, { params }) {
       return Response.json({ error: 'Missing required signal fields' }, { status: 400 });
     }
 
-    const session = getSessionSignals(sessionId);
-    session.lastActive = Date.now();
-
     const timestamp = getMonotonicTimestamp();
-    const signalItem = {
-      id: `${timestamp}_${Math.random().toString(36).substring(2, 9)}`,
+
+    await connectDB();
+    const newSignal = await Signal.create({
+      sessionId: uppercaseCode,
       from,
       to,
       type,
       data,
       senderName,
       senderRole,
-      timestamp
-    };
-
-    // Keep up to 200 recent signals in memory
-    session.signals.push(signalItem);
-    if (session.signals.length > 200) {
-      session.signals.shift();
-    }
-
-    // Notify any active SSE subscribers
-    session.subscribers.forEach(callback => {
-      try {
-        callback(signalItem);
-      } catch (err) {
-        // Subscriber might have disconnected
-      }
+      timestamp,
+      createdAt: new Date()
     });
 
-    return Response.json({ success: true, signalId: signalItem.id });
+    return Response.json({ success: true, signalId: newSignal._id });
   } catch (err) {
     console.error('Signaling POST error:', err);
     return Response.json({ error: 'Signal transmission failed' }, { status: 500 });
@@ -99,94 +46,54 @@ export async function POST(request, { params }) {
 }
 
 /**
- * GET /api/classroom/[sessionId]/signal?userId=...&since=...&sse=true/false
- * Polls or streams signaling messages targeted at userId or broadcast to 'all'.
+ * GET /api/classroom/[sessionId]/signal?userId=...&since=...
+ * Retrieves unread signaling messages for userId or broadcast to 'all'.
  */
 export async function GET(request, { params }) {
   try {
     const { sessionId } = await params;
+    const uppercaseCode = sessionId.toUpperCase();
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const since = parseInt(searchParams.get('since') || '0', 10);
-    const isSSE = searchParams.get('sse') === 'true';
 
     if (!userId) {
       return Response.json({ error: 'Missing userId parameter' }, { status: 400 });
     }
 
-    const session = getSessionSignals(sessionId);
-    session.lastActive = Date.now();
+    await connectDB();
 
-    if (isSSE) {
-      // Server-Sent Events stream for instant low-latency signaling
-      const stream = new ReadableStream({
-        start(controller) {
-          const encoder = new TextEncoder();
+    const query = {
+      sessionId: uppercaseCode,
+      from: { $ne: userId },
+      $or: [{ to: 'all' }, { to: userId }],
+    };
 
-          // Send any signals that occurred since timestamp
-          const pending = session.signals.filter(s =>
-            s.timestamp > since &&
-            s.from !== userId &&
-            (s.to === 'all' || s.to === userId)
-          );
-
-          pending.forEach(sig => {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(sig)}\n\n`));
-          });
-
-          // Callback for future signals
-          const onSignal = (sig) => {
-            if (sig.from !== userId && (sig.to === 'all' || sig.to === userId)) {
-              try {
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify(sig)}\n\n`));
-              } catch (e) {
-                session.subscribers.delete(onSignal);
-              }
-            }
-          };
-
-          session.subscribers.add(onSignal);
-
-          // Heartbeat to keep connection open
-          const interval = setInterval(() => {
-            try {
-              controller.enqueue(encoder.encode(': heartbeat\n\n'));
-            } catch (e) {
-              clearInterval(interval);
-              session.subscribers.delete(onSignal);
-            }
-          }, 15000);
-
-          request.signal.addEventListener('abort', () => {
-            clearInterval(interval);
-            session.subscribers.delete(onSignal);
-          });
-        }
-      });
-
-      return new Response(stream, {
-        headers: {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache, no-transform',
-          'Connection': 'keep-alive'
-        }
-      });
+    if (since > 0) {
+      query.timestamp = { $gt: since };
     }
 
-    // Standard fast polling fallback
-    const filtered = session.signals.filter(s =>
-      s.timestamp > since &&
-      s.from !== userId &&
-      (s.to === 'all' || s.to === userId)
-    );
+    const signals = await Signal.find(query)
+      .sort({ timestamp: 1 })
+      .limit(100)
+      .lean();
 
-    const latestTimestamp = session.signals.length > 0
-      ? session.signals[session.signals.length - 1].timestamp
+    const latestTimestamp = signals.length > 0
+      ? signals[signals.length - 1].timestamp
       : (lastMonotonicTime || Date.now());
 
     return Response.json({
       success: true,
-      signals: filtered,
+      signals: signals.map(s => ({
+        id: s._id.toString(),
+        from: s.from,
+        to: s.to,
+        type: s.type,
+        data: s.data,
+        senderName: s.senderName,
+        senderRole: s.senderRole,
+        timestamp: s.timestamp
+      })),
       serverTime: latestTimestamp
     });
   } catch (err) {

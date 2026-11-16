@@ -45,17 +45,16 @@ export default function MeetingVideoTile({
     ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
     : 'P';
 
-  // Check if video track is active
   const hasVideoTrack = stream && stream.getVideoTracks().length > 0 && stream.getVideoTracks()[0].enabled && !camOff;
 
   return (
     <div
-      className={`relative rounded-2xl overflow-hidden aspect-video bg-[#181b24] border transition-all duration-300 group flex items-center justify-center select-none shadow-xl ${
+      className={`relative rounded-xl sm:rounded-2xl overflow-hidden bg-[#0F172A] border transition-all duration-300 group flex items-center justify-center select-none shadow-md w-full h-full max-h-full ${
         isSpeaking
-          ? 'border-blue-500 ring-2 ring-blue-500/30 shadow-[0_0_24px_rgba(59,130,246,0.35)]'
+          ? 'border-blue-500 ring-2 ring-blue-500/40 shadow-[0_0_20px_rgba(59,130,246,0.30)]'
           : handRaised
-          ? 'border-amber-400 ring-2 ring-amber-400/30'
-          : 'border-white/10 hover:border-white/20'
+          ? 'border-amber-400 ring-2 ring-amber-400/40'
+          : 'border-slate-800 hover:border-slate-700'
       }`}
     >
       {/* Dedicated audio element for remote stream (ensures voice is heard even if camera is off) */}
@@ -74,45 +73,45 @@ export default function MeetingVideoTile({
 
       {/* Fallback Avatar when Camera is Off */}
       {!hasVideoTrack && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#1a1e2b] via-[#141722] to-[#0e1017]">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-[#1E293B] via-[#0F172A] to-[#020617] p-2">
           {/* Speaking ripple aura */}
           {isSpeaking && (
-            <div className="absolute w-28 h-28 rounded-full bg-blue-500/20 animate-ping" style={{ animationDuration: '1.8s' }} />
+            <div className="absolute w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-blue-500/20 animate-ping" style={{ animationDuration: '1.8s' }} />
           )}
           <div
-            className={`w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-black shadow-2xl transition-all duration-300 ${
+            className={`w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-white text-lg sm:text-2xl font-black shadow-xl transition-all duration-300 ${
               role === 'teacher'
                 ? 'bg-gradient-to-br from-blue-600 to-indigo-700'
                 : 'bg-gradient-to-br from-slate-600 to-slate-800'
-            } ${isSpeaking ? 'ring-4 ring-blue-400 scale-105' : 'ring-2 ring-white/10'}`}
+            } ${isSpeaking ? 'ring-3 ring-blue-400 scale-105' : 'ring-2 ring-white/10'}`}
           >
             {initials}
           </div>
-          <span className="text-[11px] font-semibold text-white/50 mt-3 tracking-wide flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-white/30" />
+          <span className="text-[10px] sm:text-[11px] font-semibold text-slate-400 mt-2 tracking-wide flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
             Camera off
           </span>
         </div>
       )}
 
       {/* Bottom Name & Role Pill */}
-      <div className="absolute bottom-3 left-3 flex items-center gap-2 max-w-[85%] z-10">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-white shadow-lg">
+      <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 max-w-[85%] z-10">
+        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-black/65 backdrop-blur-md border border-white/10 text-white shadow-md">
           {/* Speaking wave icon */}
           {isSpeaking && (
-            <span className="flex items-center gap-0.5 h-3">
-              <span className="w-0.5 h-3 bg-blue-400 rounded-full animate-pulse" />
-              <span className="w-0.5 h-2 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.15s' }} />
-              <span className="w-0.5 h-3.5 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }} />
+            <span className="flex items-center gap-0.5 h-2.5 sm:h-3">
+              <span className="w-0.5 h-2.5 bg-blue-400 rounded-full animate-pulse" />
+              <span className="w-0.5 h-1.5 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.15s' }} />
+              <span className="w-0.5 h-3 bg-blue-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }} />
             </span>
           )}
 
-          <span className="text-xs font-bold truncate max-w-[140px]">
+          <span className="text-[11px] sm:text-xs font-bold truncate max-w-[100px] sm:max-w-[140px]">
             {name} {isLocal && '(You)'}
           </span>
 
           {role === 'teacher' && (
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-400 bg-blue-500/20 px-2 py-0.5 rounded-md border border-blue-400/30">
+            <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-blue-300 bg-blue-500/25 px-1.5 py-0.2 rounded border border-blue-400/30">
               Host
             </span>
           )}
@@ -120,16 +119,16 @@ export default function MeetingVideoTile({
       </div>
 
       {/* Top Right Status Badges (Muted, Hand Raised, Pin) */}
-      <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+      <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10">
         {handRaised && (
-          <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center text-sm shadow-lg shadow-amber-500/30 animate-bounce">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-amber-500 text-white flex items-center justify-center text-xs sm:text-sm shadow-md animate-bounce">
             ✋
           </div>
         )}
 
         {muted && (
-          <div className="w-8 h-8 rounded-full bg-red-500/90 text-white flex items-center justify-center shadow-lg border border-red-400/40" title="Microphone Muted">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-red-500/90 text-white flex items-center justify-center shadow-md border border-red-400/40" title="Microphone Muted">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="1" y1="1" x2="23" y2="23" />
               <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
               <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23M12 19v4M8 23h8" />
@@ -140,14 +139,14 @@ export default function MeetingVideoTile({
         {onPin && (
           <button
             onClick={onPin}
-            className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all ${
               isPinned
                 ? 'bg-blue-600 text-white'
                 : 'bg-black/60 text-white/70 hover:text-white opacity-0 group-hover:opacity-100 backdrop-blur-md border border-white/10'
             }`}
-            title={isPinned ? "Unpin tile" : "Pin tile to spotlight"}
+            title={isPinned ? "Unpin tile" : "Pin tile"}
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill={isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill={isPinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
               <path d="M12 2v8m0 0l-3 4h6l-3-4zm0 8v4" />
             </svg>
           </button>

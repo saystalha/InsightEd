@@ -6,20 +6,25 @@ const RTC_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' }
-  ]
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
+    { urls: 'stun:global.stun.twilio.com:3478' }
+  ],
+  iceCandidatePoolSize: 10
 };
 
 /**
- * Custom hook to manage WebRTC multi-peer audio, video, and screen sharing
- * with rock-solid, persistent signaling and zero redundant re-joining loops.
+ * Robust WebRTC multi-peer audio, video, and screen sharing hook
+ * powered by MongoDB signaling (compatible with Vercel serverless deployments).
  */
 export function useClassroomWebRTC({
   sessionId,
   user,
   onChatMessage,
   onPeerJoin,
-  onPeerLeave
+  onPeerLeave,
+  onSessionEnded
 }) {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState({}); // peerId -> MediaStream
@@ -37,45 +42,44 @@ export function useClassroomWebRTC({
 
   const [connectionStatus, setConnectionStatus] = useState('connecting');
 
-  // Stable persistent myId for the entire session in this browser tab
-  const myIdRef = useRef(null);
-  if (!myIdRef.current) {
+  // Stable persistent peerId for this tab using useState initializer (React 19 pure)
+  const [myId] = useState(() => {
+    if (user?.id || user?._id) return user.id || user._id;
     if (typeof window !== 'undefined') {
       const stored = sessionStorage.getItem(`insighted_peer_${sessionId}`);
-      if (stored) {
-        myIdRef.current = stored;
-      } else {
-        const generated = user?.id || user?._id || ('peer_' + Math.random().toString(36).substring(2, 9));
-        sessionStorage.setItem(`insighted_peer_${sessionId}`, generated);
-        myIdRef.current = generated;
-      }
-    } else {
-      myIdRef.current = user?.id || user?._id || 'peer_ssr';
+      if (stored) return stored;
+      const gen = 'peer_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+      sessionStorage.setItem(`insighted_peer_${sessionId}`, gen);
+      return gen;
     }
-  }
-  const myId = myIdRef.current;
+    return 'peer_client';
+  });
 
   const myName = user?.name || (typeof window !== 'undefined' ? localStorage.getItem('userName') : null) || (user?.role === 'teacher' ? 'Instructor' : 'Student');
   const myRole = user?.role || 'student';
 
-  // Refs for callbacks & mutable values to prevent useEffect teardowns
-  const callbacksRef = useRef({});
-  callbacksRef.current = { onChatMessage, onPeerJoin, onPeerLeave };
-
+  const callbacksRef = useRef({ onChatMessage, onPeerJoin, onPeerLeave, onSessionEnded });
   const myInfoRef = useRef({ id: myId, name: myName, role: myRole });
-  myInfoRef.current = { id: myId, name: myName, role: myRole };
+  const peersRef = useRef(peers);
 
-  const peersRef = useRef({});
-  peersRef.current = peers;
+  // Synchronize refs inside useEffect (React 19 compliant)
+  useEffect(() => {
+    callbacksRef.current = { onChatMessage, onPeerJoin, onPeerLeave, onSessionEnded };
+    myInfoRef.current = { id: myId, name: myName, role: myRole };
+    peersRef.current = peers;
+  }, [onChatMessage, onPeerJoin, onPeerLeave, onSessionEnded, myId, myName, myRole, peers]);
 
   const pcsRef = useRef({});
   const screenPcsRef = useRef({});
+  const iceCandidatesQueueRef = useRef({});
+  const screenIceQueueRef = useRef({});
+
   const localStreamRef = useRef(null);
   const localScreenStreamRef = useRef(null);
-  const lastSignalTimeRef = useRef(Date.now() - 3000);
+  const lastSignalTimeRef = useRef(0);
   const processedSignalIdsRef = useRef(new Set());
 
-  // Helper to send signal via POST
+  // Helper to send signals via POST
   const sendSignal = useCallback(async (type, data = {}, to = 'all') => {
     if (!sessionId || !myId) return;
     try {
@@ -92,11 +96,11 @@ export function useClassroomWebRTC({
         })
       });
     } catch (err) {
-      console.warn('Failed to send signal:', type, err);
+      console.warn('Signal send failed:', type, err);
     }
   }, [sessionId, myId]);
 
-  // Create an RTCPeerConnection for a remote peer (Camera + Mic)
+  // Create PeerConnection for camera and mic
   const createPeerConnection = useCallback((peerId, peerName, peerRole) => {
     if (pcsRef.current[peerId]) {
       return pcsRef.current[peerId];
@@ -104,15 +108,14 @@ export function useClassroomWebRTC({
 
     const pc = new RTCPeerConnection(RTC_CONFIG);
     pcsRef.current[peerId] = pc;
+    iceCandidatesQueueRef.current[peerId] = [];
 
-    // Add local tracks if available
+    // Add local media tracks if available
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => {
         try {
           pc.addTrack(track, localStreamRef.current);
-        } catch (e) {
-          // Track already added
-        }
+        } catch (e) {}
       });
     }
 
@@ -141,7 +144,7 @@ export function useClassroomWebRTC({
     };
 
     setPeers(prev => {
-      // Remove any ghost entry that has the same name but different peerId
+      // Clean up any stale duplicate entry with same name
       const cleaned = { ...prev };
       Object.keys(cleaned).forEach(id => {
         if (id !== peerId && cleaned[id].name === peerName) {
@@ -166,7 +169,7 @@ export function useClassroomWebRTC({
     return pc;
   }, [sendSignal]);
 
-  // Initialize Local Media (Camera & Microphone) - runs once
+  // Initialize Local Media (Camera & Microphone)
   useEffect(() => {
     let active = true;
 
@@ -193,7 +196,7 @@ export function useClassroomWebRTC({
         localStreamRef.current = stream;
         setLocalStream(stream);
 
-        // Add tracks to any active peer connections
+        // Attach tracks to existing peer connections
         Object.values(pcsRef.current).forEach(pc => {
           stream.getTracks().forEach(track => {
             try {
@@ -226,11 +229,11 @@ export function useClassroomWebRTC({
     };
   }, []);
 
-  // Monitor Local Speech with Web Audio API for speaking indicator
+  // Monitor Speech Volume for speaking indicator
   useEffect(() => {
     if (!localStream || muted) {
-      setIsSpeaking(false);
-      return;
+      const timer = setTimeout(() => setIsSpeaking(false), 0);
+      return () => clearTimeout(timer);
     }
 
     const audioTrack = localStream.getAudioTracks()[0];
@@ -273,9 +276,10 @@ export function useClassroomWebRTC({
     };
   }, [localStream, muted]);
 
-  // Handle incoming signaling messages with stable ref references
-  const handleSignalRef = useRef();
-  handleSignalRef.current = async (sig) => {
+  // Signal handler with ICE candidate queueing
+  const handleSignalRef = useRef(null);
+
+  const handleSignal = async (sig) => {
     if (!sig || !sig.type || sig.from === myId) return;
     if (processedSignalIdsRef.current.has(sig.id)) return;
     processedSignalIdsRef.current.add(sig.id);
@@ -288,7 +292,6 @@ export function useClassroomWebRTC({
 
     switch (type) {
       case 'join': {
-        // Only trigger join notification if peer is new
         if (!peersRef.current[from]) {
           callbacksRef.current.onPeerJoin?.({ id: from, name: senderName, role: senderRole });
         }
@@ -303,6 +306,8 @@ export function useClassroomWebRTC({
           if (localScreenStreamRef.current) {
             const screenPc = new RTCPeerConnection(RTC_CONFIG);
             screenPcsRef.current[from] = screenPc;
+            screenIceQueueRef.current[from] = [];
+
             localScreenStreamRef.current.getTracks().forEach(t => {
               screenPc.addTrack(t, localScreenStreamRef.current);
             });
@@ -325,6 +330,17 @@ export function useClassroomWebRTC({
         const pc = createPeerConnection(from, senderName, senderRole);
         try {
           await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+
+          // Flush buffered ICE candidates
+          if (iceCandidatesQueueRef.current[from]) {
+            for (const cand of iceCandidatesQueueRef.current[from]) {
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(cand));
+              } catch (e) {}
+            }
+            iceCandidatesQueueRef.current[from] = [];
+          }
+
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
           sendSignal('answer', { sdp: answer }, from);
@@ -339,6 +355,15 @@ export function useClassroomWebRTC({
         if (pc && pc.signalingState !== 'stable') {
           try {
             await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+
+            if (iceCandidatesQueueRef.current[from]) {
+              for (const cand of iceCandidatesQueueRef.current[from]) {
+                try {
+                  await pc.addIceCandidate(new RTCIceCandidate(cand));
+                } catch (e) {}
+              }
+              iceCandidatesQueueRef.current[from] = [];
+            }
           } catch (err) {
             console.error('Error setting remote description for answer:', from, err);
           }
@@ -348,11 +373,18 @@ export function useClassroomWebRTC({
 
       case 'ice-candidate': {
         const pc = pcsRef.current[from];
-        if (pc && data.candidate) {
-          try {
-            await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-          } catch (err) {
-            console.warn('Error adding ice candidate:', err);
+        if (data.candidate) {
+          if (pc && pc.remoteDescription) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } catch (err) {
+              console.warn('Error adding ice candidate:', err);
+            }
+          } else {
+            if (!iceCandidatesQueueRef.current[from]) {
+              iceCandidatesQueueRef.current[from] = [];
+            }
+            iceCandidatesQueueRef.current[from].push(data.candidate);
           }
         }
         break;
@@ -385,6 +417,7 @@ export function useClassroomWebRTC({
       case 'screen-offer': {
         const screenPc = new RTCPeerConnection(RTC_CONFIG);
         screenPcsRef.current[from] = screenPc;
+        screenIceQueueRef.current[from] = [];
 
         screenPc.ontrack = (event) => {
           const [scrStream] = event.streams;
@@ -402,6 +435,16 @@ export function useClassroomWebRTC({
 
         try {
           await screenPc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+
+          if (screenIceQueueRef.current[from]) {
+            for (const cand of screenIceQueueRef.current[from]) {
+              try {
+                await screenPc.addIceCandidate(new RTCIceCandidate(cand));
+              } catch (e) {}
+            }
+            screenIceQueueRef.current[from] = [];
+          }
+
           const scrAnswer = await screenPc.createAnswer();
           await screenPc.setLocalDescription(scrAnswer);
           sendSignal('screen-answer', { sdp: scrAnswer }, from);
@@ -416,6 +459,15 @@ export function useClassroomWebRTC({
         if (screenPc && screenPc.signalingState !== 'stable') {
           try {
             await screenPc.setRemoteDescription(new RTCSessionDescription(data.sdp));
+
+            if (screenIceQueueRef.current[from]) {
+              for (const cand of screenIceQueueRef.current[from]) {
+                try {
+                  await screenPc.addIceCandidate(new RTCIceCandidate(cand));
+                } catch (e) {}
+              }
+              screenIceQueueRef.current[from] = [];
+            }
           } catch (err) {
             console.error('Error setting remote description for screen answer:', err);
           }
@@ -425,11 +477,18 @@ export function useClassroomWebRTC({
 
       case 'screen-ice': {
         const screenPc = screenPcsRef.current[from];
-        if (screenPc && data.candidate) {
-          try {
-            await screenPc.addIceCandidate(new RTCIceCandidate(data.candidate));
-          } catch (err) {
-            console.warn('Error adding screen ice candidate:', err);
+        if (data.candidate) {
+          if (screenPc && screenPc.remoteDescription) {
+            try {
+              await screenPc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } catch (err) {
+              console.warn('Error adding screen ice candidate:', err);
+            }
+          } else {
+            if (!screenIceQueueRef.current[from]) {
+              screenIceQueueRef.current[from] = [];
+            }
+            screenIceQueueRef.current[from].push(data.candidate);
           }
         }
         break;
@@ -478,6 +537,15 @@ export function useClassroomWebRTC({
           delete next[from];
           return next;
         });
+        if (screenSharer?.id === from) {
+          setRemoteScreenStream(null);
+          setScreenSharer(null);
+        }
+        break;
+      }
+
+      case 'session-ended': {
+        callbacksRef.current.onSessionEnded?.();
         break;
       }
 
@@ -486,12 +554,15 @@ export function useClassroomWebRTC({
     }
   };
 
-  // Connect to Signaling channel - STRICTLY RUNS ONCE per session
+  useEffect(() => {
+    handleSignalRef.current = handleSignal;
+  });
+
+  // Connect to Signaling channel - Runs ONCE on mount
   useEffect(() => {
     if (!sessionId || !myId) return;
 
     let isSubscribed = true;
-    let sseSource = null;
     let pollTimer = null;
 
     const pollSignals = async () => {
@@ -515,31 +586,11 @@ export function useClassroomWebRTC({
       } catch (err) {}
     };
 
-    try {
-      const sseUrl = `/api/classroom/${sessionId}/signal?userId=${encodeURIComponent(myId)}&sse=true&since=${lastSignalTimeRef.current}`;
-      sseSource = new EventSource(sseUrl);
+    // Fast polling every 900ms to ensure near real-time response on Vercel
+    pollTimer = setInterval(pollSignals, 900);
+    pollSignals();
 
-      sseSource.onmessage = (event) => {
-        if (!isSubscribed) return;
-        try {
-          const sig = JSON.parse(event.data);
-          if (handleSignalRef.current) handleSignalRef.current(sig);
-        } catch (e) {}
-      };
-
-      sseSource.onerror = () => {
-        if (!pollTimer) {
-          pollTimer = setInterval(pollSignals, 1000);
-        }
-      };
-    } catch (e) {
-      pollTimer = setInterval(pollSignals, 1000);
-    }
-
-    // Safety poll every 3 seconds to guarantee no missed signals
-    const safetyPoll = setInterval(pollSignals, 3000);
-
-    // Broadcast our join ONCE
+    // Broadcast our join
     sendSignal('join', {
       name: myInfoRef.current.name,
       role: myInfoRef.current.role
@@ -547,11 +598,7 @@ export function useClassroomWebRTC({
 
     return () => {
       isSubscribed = false;
-      clearInterval(safetyPoll);
       if (pollTimer) clearInterval(pollTimer);
-      if (sseSource) {
-        sseSource.close();
-      }
       sendSignal('leave');
       Object.values(pcsRef.current).forEach(pc => pc.close());
       pcsRef.current = {};
@@ -560,7 +607,7 @@ export function useClassroomWebRTC({
     };
   }, [sessionId, myId, sendSignal]);
 
-  // Broadcast status changes (muted, camOff, handRaised, isSpeaking)
+  // Broadcast status changes
   useEffect(() => {
     sendSignal('peer-status', {
       muted,
@@ -601,10 +648,26 @@ export function useClassroomWebRTC({
     setHandRaised(prev => !prev);
   }, []);
 
+  // Stop Screen Sharing (declared before startScreenShare)
+  const stopScreenShare = useCallback(() => {
+    if (localScreenStreamRef.current) {
+      localScreenStreamRef.current.getTracks().forEach(t => t.stop());
+      localScreenStreamRef.current = null;
+    }
+    setLocalScreenStream(null);
+    setIsScreenSharing(false);
+    setScreenSharer(null);
+
+    Object.values(screenPcsRef.current).forEach(pc => pc.close());
+    screenPcsRef.current = {};
+
+    sendSignal('screen-stop');
+  }, [sendSignal]);
+
   // Start Screen Sharing
   const startScreenShare = useCallback(async () => {
     if (!navigator.mediaDevices?.getDisplayMedia) {
-      alert('Screen sharing is not supported by your browser.');
+      alert('Screen sharing is not supported on this browser (e.g. mobile devices). You can still view screens shared by others.');
       return;
     }
 
@@ -623,6 +686,7 @@ export function useClassroomWebRTC({
       for (const peerId of peerIds) {
         const screenPc = new RTCPeerConnection(RTC_CONFIG);
         screenPcsRef.current[peerId] = screenPc;
+        screenIceQueueRef.current[peerId] = [];
 
         scrStream.getTracks().forEach(track => {
           screenPc.addTrack(track, scrStream);
@@ -645,23 +709,7 @@ export function useClassroomWebRTC({
     } catch (err) {
       console.warn('Screen share cancelled or failed:', err);
     }
-  }, [myId, sendSignal]);
-
-  // Stop Screen Sharing
-  const stopScreenShare = useCallback(() => {
-    if (localScreenStreamRef.current) {
-      localScreenStreamRef.current.getTracks().forEach(t => t.stop());
-      localScreenStreamRef.current = null;
-    }
-    setLocalScreenStream(null);
-    setIsScreenSharing(false);
-    setScreenSharer(null);
-
-    Object.values(screenPcsRef.current).forEach(pc => pc.close());
-    screenPcsRef.current = {};
-
-    sendSignal('screen-stop');
-  }, [sendSignal]);
+  }, [myId, sendSignal, stopScreenShare]);
 
   // Send Chat message
   const sendChatMessage = useCallback((text) => {
