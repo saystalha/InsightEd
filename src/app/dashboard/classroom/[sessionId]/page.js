@@ -15,6 +15,82 @@ function Icon({ d, size = 18, fill = 'none', className = '', ...rest }) {
   );
 }
 
+function ScreenShareTile({ share, featured = false, isPinned = false, onPin, onStop }) {
+  const videoRef = useRef(null);
+  const audioRef = useRef(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.srcObject = share.stream;
+    video.play().catch(() => {});
+    return () => {
+      video.srcObject = null;
+    };
+  }, [share.stream]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || share.isLocal || !share.stream.getAudioTracks().length) return;
+    audio.srcObject = share.stream;
+    audio.play().catch(() => {});
+    return () => {
+      audio.srcObject = null;
+    };
+  }, [share.isLocal, share.stream]);
+
+  return (
+    <div className={`relative w-full h-full min-h-0 overflow-hidden rounded-xl sm:rounded-2xl bg-black border shadow-lg ${
+      isPinned ? 'border-blue-500 ring-2 ring-blue-500/40' : 'border-slate-800'
+    }`}>
+      {!share.isLocal && (
+        <audio
+          ref={audioRef}
+          autoPlay
+          playsInline
+          className="absolute w-px h-px opacity-0 pointer-events-none"
+        />
+      )}
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="w-full h-full object-contain"
+      />
+      <div className="absolute top-2 left-2 px-2.5 py-1 rounded-lg bg-black/75 text-white text-[11px] font-bold">
+        {share.name}{share.isLocal ? ' (You)' : ''} is presenting
+      </div>
+      <div className="absolute top-2 right-2 flex gap-1.5">
+        <button
+          onClick={onPin}
+          className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors ${
+            isPinned ? 'bg-blue-600 text-white' : 'bg-black/70 text-white hover:bg-black'
+          }`}
+          aria-pressed={isPinned}
+          title={isPinned ? 'Unpin presentation' : 'Pin presentation'}
+        >
+          {isPinned ? 'Pinned' : 'Pin'}
+        </button>
+        {share.isLocal && onStop && (
+          <button
+            onClick={onStop}
+            className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white text-[11px] font-bold"
+            title="Stop presenting"
+          >
+            Stop
+          </button>
+        )}
+      </div>
+      {featured && (
+        <div className="absolute bottom-2 left-2 px-2 py-1 rounded-lg bg-black/60 text-white/80 text-[10px]">
+          Click Pin on another presentation to bring it to the front
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Circular Gauge (CFI) ─────────────── */
 function CircularGauge({ value = 75, size = 100 }) {
   const r = size / 2 - 9;
@@ -95,8 +171,8 @@ function ClassroomView({ sessionId, role = 'student' }) {
   const [isEndModalOpen, setIsEndModalOpen] = useState(false);
   const [isSessionEndedModalOpen, setIsSessionEndedModalOpen] = useState(false);
   const [pinnedPeerId, setPinnedPeerId] = useState(null);
+  const [pinnedScreenShareId, setPinnedScreenShareId] = useState(null);
 
-  const screenVideoRef = useRef(null);
   const prevHandsRef = useRef({});
 
   // Show Toast
@@ -171,9 +247,7 @@ function ClassroomView({ sessionId, role = 'student' }) {
     isSpeaking,
     handRaised,
     isScreenSharing,
-    localScreenStream,
-    remoteScreenStream,
-    screenSharer,
+    screenShares,
     toggleMic,
     toggleCam,
     toggleHandRaise,
@@ -186,6 +260,7 @@ function ClassroomView({ sessionId, role = 'student' }) {
     onChatMessage: handleIncomingChatMessage,
     onPeerJoin,
     onPeerLeave,
+    onMediaError: message => showToast(message, '⚠️'),
     onSessionEnded: () => setIsSessionEndedModalOpen(true)
   });
 
@@ -479,8 +554,13 @@ function ClassroomView({ sessionId, role = 'student' }) {
   };
 
   const totalCount = peerList.length + 1; // +1 for self
-  const activeScreenShare = isScreenSharing ? localScreenStream : remoteScreenStream;
-  const presentingUser = isScreenSharing ? { name: 'You' } : screenSharer;
+  const screenShareList = Object.values(screenShares);
+  const featuredScreenShare = screenShareList.find(
+    share => share.shareId === pinnedScreenShareId
+  ) || screenShareList[0];
+  const otherScreenShares = screenShareList.filter(
+    share => share.shareId !== featuredScreenShare?.shareId
+  );
 
   return (
     <div className="fixed inset-0 w-full h-[100dvh] max-h-[100dvh] flex flex-col overflow-hidden bg-[#F8FAFC] text-slate-800 font-sans select-none">
@@ -576,45 +656,40 @@ function ClassroomView({ sessionId, role = 'student' }) {
         {/* Video Canvas Workspace */}
         <div className="flex-1 flex flex-col justify-center items-center p-2 sm:p-4 overflow-hidden relative min-h-0 w-full">
           
-          {activeScreenShare ? (
+          {screenShareList.length > 0 ? (
             /* ── PRESENTATION / SCREEN SHARING MODE ── */
             <div className="w-full h-full flex flex-col gap-2 min-h-0">
-              
-              {/* Primary Presentation Screen */}
-              <div className="flex-1 relative rounded-xl sm:rounded-2xl overflow-hidden bg-black border border-slate-800 flex items-center justify-center shadow-lg min-h-0">
-                <video
-                  ref={el => {
-                    screenVideoRef.current = el;
-                    if (el && activeScreenShare && el.srcObject !== activeScreenShare) {
-                      el.srcObject = activeScreenShare;
-                      el.play().catch(() => {});
-                    }
-                  }}
-                  autoPlay
-                  playsInline
-                  muted={isScreenSharing}
-                  className="w-full h-full object-contain"
+              <div className="flex-1 min-h-0">
+                <ScreenShareTile
+                  share={featuredScreenShare}
+                  featured={screenShareList.length > 1}
+                  isPinned={featuredScreenShare.shareId === pinnedScreenShareId}
+                  onPin={() => setPinnedScreenShareId(current => (
+                    current === featuredScreenShare.shareId ? null : featuredScreenShare.shareId
+                  ))}
+                  onStop={featuredScreenShare.isLocal ? stopScreenShare : null}
                 />
-
-                {/* Presenter Pill */}
-                <div className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/75 backdrop-blur-md border border-white/10 text-xs font-bold text-white shadow-md">
-                  <Icon d="M2 3h20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z M12 17v4 M8 21h8" size={13} className="text-blue-400" />
-                  <span className="truncate max-w-[160px] sm:max-w-none">{presentingUser?.name} is sharing screen</span>
-                </div>
-
-                {isScreenSharing && (
-                  <button
-                    onClick={stopScreenShare}
-                    className="absolute bottom-3 right-3 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 text-white transition-all shadow-md active:scale-95 flex items-center gap-1.5"
-                  >
-                    <Icon d="M18 6 6 18M6 6l12 12" size={13} />
-                    Stop Presenting
-                  </button>
-                )}
               </div>
 
-              {/* Bottom Thumbnail Strip */}
-              <div className="h-[90px] sm:h-[110px] flex gap-2 overflow-x-auto pb-1 flex-shrink-0 w-full items-center justify-center">
+              {otherScreenShares.length > 0 && (
+                <div className="h-[90px] sm:h-[110px] flex gap-2 overflow-x-auto pb-1 flex-shrink-0 w-full">
+                  {otherScreenShares.map(share => (
+                    <div key={share.shareId} className="w-[180px] sm:w-[240px] h-full flex-shrink-0">
+                      <ScreenShareTile
+                        share={share}
+                        isPinned={share.shareId === pinnedScreenShareId}
+                        onPin={() => setPinnedScreenShareId(current => (
+                          current === share.shareId ? null : share.shareId
+                        ))}
+                        onStop={share.isLocal ? stopScreenShare : null}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Participant video strip */}
+              <div className="h-[90px] sm:h-[110px] flex gap-2 overflow-x-auto pb-1 flex-shrink-0 w-full">
                 <div className="w-[120px] sm:w-[160px] h-full flex-shrink-0">
                   <MeetingVideoTile
                     stream={localStream}

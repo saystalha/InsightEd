@@ -70,7 +70,7 @@ export async function GET(request, { params }) {
     };
 
     if (since > 0) {
-      query.timestamp = { $gt: since };
+      query.timestamp = { $gte: since };
     }
 
     const signals = await Signal.find(query)

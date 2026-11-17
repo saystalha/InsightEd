@@ -19,25 +19,55 @@ export default function MeetingVideoTile({
 
   // Bind video element
   useEffect(() => {
-    if (videoRef.current) {
-      if (stream) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play().catch(() => {});
-      } else {
-        videoRef.current.srcObject = null;
-      }
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+
+    if (stream) {
+      videoEl.srcObject = stream;
+      // Force play (needed after autoplay policy blocks)
+      const playPromise = videoEl.play();
+      if (playPromise) playPromise.catch(() => {});
+    } else {
+      videoEl.srcObject = null;
     }
+
+    return () => {
+      if (videoEl) videoEl.srcObject = null;
+    };
   }, [stream]);
 
-  // Bind dedicated audio element for remote participants to guarantee voice playback
+  // Bind dedicated audio element for remote participants to guarantee voice playback.
+  // This is separate from video because video.muted=true (we don't want echo for local),
+  // so remote audio needs its own element.
   useEffect(() => {
-    if (audioRef.current) {
-      if (stream && !isLocal) {
-        audioRef.current.srcObject = stream;
-        audioRef.current.play().catch(() => {});
-      } else {
-        audioRef.current.srcObject = null;
+    const audioEl = audioRef.current;
+    if (!audioEl) return;
+
+    if (stream && !isLocal) {
+      audioEl.srcObject = stream;
+      audioEl.volume = 1.0;
+      const playPromise = audioEl.play();
+      if (playPromise) {
+        playPromise.catch(() => {
+          // Autoplay blocked — will be unblocked by user interaction handler in page.js
+        });
       }
+    } else {
+      audioEl.srcObject = null;
+    }
+
+    // Also listen for new audio tracks being added to the stream
+    if (stream && !isLocal) {
+      const handleTrackAdded = () => {
+        if (audioEl.srcObject !== stream) {
+          audioEl.srcObject = stream;
+        }
+        audioEl.play().catch(() => {});
+      };
+      stream.addEventListener('addtrack', handleTrackAdded);
+      return () => {
+        stream.removeEventListener('addtrack', handleTrackAdded);
+      };
     }
   }, [stream, isLocal]);
 
@@ -57,15 +87,22 @@ export default function MeetingVideoTile({
           : 'border-slate-800 hover:border-slate-700'
       }`}
     >
-      {/* Dedicated audio element for remote stream (ensures voice is heard even if camera is off) */}
-      {!isLocal && <audio ref={audioRef} autoPlay playsInline />}
+      {/* Dedicated audio element for remote stream — ensures voice is heard even if camera is off */}
+      {!isLocal && (
+        <audio
+          ref={audioRef}
+          autoPlay
+          playsInline
+          style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }}
+        />
+      )}
 
       {/* Video Element */}
       <video
         ref={videoRef}
         autoPlay
         playsInline
-        muted={true} // Audio is handled with high priority by the dedicated audio element above
+        muted={true}  /* Audio is handled by the dedicated audio element above */
         className={`w-full h-full object-cover transition-opacity duration-300 ${
           hasVideoTrack ? 'opacity-100' : 'opacity-0 absolute pointer-events-none'
         } ${isLocal ? 'scale-x-[-1]' : ''}`}
