@@ -10,7 +10,6 @@ function getMonotonicTimestamp() {
 
 /**
  * POST /api/classroom/[sessionId]/signal
- * Dispatches signaling message into MongoDB (and in-memory broadcast)
  */
 export async function POST(request, { params }) {
   try {
@@ -35,7 +34,7 @@ export async function POST(request, { params }) {
       senderName,
       senderRole,
       timestamp,
-      createdAt: new Date()
+      createdAt: new Date(),
     });
 
     return Response.json({ success: true, signalId: newSignal._id });
@@ -47,7 +46,6 @@ export async function POST(request, { params }) {
 
 /**
  * GET /api/classroom/[sessionId]/signal?userId=...&since=...
- * Retrieves unread signaling messages for userId or broadcast to 'all'.
  */
 export async function GET(request, { params }) {
   try {
@@ -61,30 +59,37 @@ export async function GET(request, { params }) {
       return Response.json({ error: 'Missing userId parameter' }, { status: 400 });
     }
 
+    // Initial cursor handshake: return current server timestamp immediately without reading old signals
+    if (since === 0) {
+      return Response.json({
+        success: true,
+        signals: [],
+        serverTime: getMonotonicTimestamp(),
+      });
+    }
+
     await connectDB();
 
     const query = {
       sessionId: uppercaseCode,
       from: { $ne: userId },
       $or: [{ to: 'all' }, { to: userId }],
+      timestamp: { $gte: since },
     };
-
-    if (since > 0) {
-      query.timestamp = { $gte: since };
-    }
 
     const signals = await Signal.find(query)
       .sort({ timestamp: 1 })
       .limit(100)
       .lean();
 
-    const latestTimestamp = signals.length > 0
-      ? signals[signals.length - 1].timestamp
-      : (lastMonotonicTime || Date.now());
+    const latestTimestamp =
+      signals.length > 0
+        ? signals[signals.length - 1].timestamp
+        : lastMonotonicTime || Date.now();
 
     return Response.json({
       success: true,
-      signals: signals.map(s => ({
+      signals: signals.map((s) => ({
         id: s._id.toString(),
         from: s.from,
         to: s.to,
@@ -92,9 +97,9 @@ export async function GET(request, { params }) {
         data: s.data,
         senderName: s.senderName,
         senderRole: s.senderRole,
-        timestamp: s.timestamp
+        timestamp: s.timestamp,
       })),
-      serverTime: latestTimestamp
+      serverTime: latestTimestamp,
     });
   } catch (err) {
     console.error('Signaling GET error:', err);

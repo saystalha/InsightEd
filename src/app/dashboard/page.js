@@ -192,7 +192,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
         </div>
         {open && (
           <span className="font-black text-[1.05rem] tracking-tight whitespace-nowrap text-white">
-            <span style={{color:'#3B82F6'}}>IN</span><span>sightEd</span>
+            <span style={{ color: '#3B82F6' }}>IN</span><span>sightEd</span>
           </span>
         )}
       </div>
@@ -233,17 +233,16 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
               key={item.id}
               id={item.id}
               onClick={() => setActive(item.id)}
-              className={`relative flex items-center gap-3 rounded-xl transition-all duration-200 group text-left border active:scale-[0.96] ${
-                isActive 
-                  ? "bg-[#3B82F6] border-transparent text-white font-bold shadow-[0_2px_8px_rgba(59,130,246,0.15)]" 
-                  : "border-transparent text-white/70 hover:bg-white/10 hover:text-white"
-              } ${open ? "px-3 py-2.5" : "w-10 h-10 mx-auto justify-center"}`}
+              className={`relative flex items-center gap-3 rounded-xl transition-all duration-200 group text-left border active:scale-[0.96] ${isActive
+                ? "bg-[#3B82F6] border-transparent text-white font-bold shadow-[0_2px_8px_rgba(59,130,246,0.15)]"
+                : "border-transparent text-white/70 hover:bg-white/10 hover:text-white"
+                } ${open ? "px-3 py-2.5" : "w-10 h-10 mx-auto justify-center"}`}
             >
-              <span className="flex-shrink-0" style={{color: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.60)"}}>
+              <span className="flex-shrink-0" style={{ color: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.60)" }}>
                 <SvgIcon paths={item.icon} size={18} />
               </span>
               {open && (
-                <span className="text-[0.87rem] font-semibold whitespace-nowrap transition-transform duration-200 group-hover:translate-x-0.5" style={{color: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.75)"}}>  
+                <span className="text-[0.87rem] font-semibold whitespace-nowrap transition-transform duration-200 group-hover:translate-x-0.5" style={{ color: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.75)" }}>
                   {item.label}
                 </span>
               )}
@@ -292,11 +291,10 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
           <>
             <div className="fixed inset-0 z-40 cursor-default" onClick={() => setDropdownOpen(false)} />
             <div
-              className={`absolute z-50 p-1.5 flex flex-col gap-0.5 animate-modal-in ${
-                open 
-                  ? "bottom-[76px] left-2.5 right-2.5" 
-                  : "bottom-3 left-[72px] w-52"
-              }`}
+              className={`absolute z-50 p-1.5 flex flex-col gap-0.5 animate-modal-in ${open
+                ? "bottom-[76px] left-2.5 right-2.5"
+                : "bottom-3 left-[72px] w-52"
+                }`}
               style={{
                 background: "rgba(255, 255, 255, 0.98)",
                 backdropFilter: "blur(20px)",
@@ -312,7 +310,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                   {role}
                 </span>
               </div>
-              
+
               <button
                 onClick={() => {
                   onProfileClick();
@@ -323,14 +321,14 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                 <SvgIcon paths={["M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2", "M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]} size={13} />
                 My Profile
               </button>
-              
+
               {actualRole === "admin" && (
                 <>
                   {role !== "admin" && (
                     <button
                       onClick={() => {
                         setRole("admin");
-                        try { localStorage.setItem('userRole', 'admin'); } catch (e) {}
+                        try { localStorage.setItem('userRole', 'admin'); } catch (e) { }
                         setActive("nav-overview");
                         setDropdownOpen(false);
                       }}
@@ -344,7 +342,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                     <button
                       onClick={() => {
                         setRole("teacher");
-                        try { localStorage.setItem('userRole', 'teacher'); } catch (e) {}
+                        try { localStorage.setItem('userRole', 'teacher'); } catch (e) { }
                         setActive("nav-dashboard");
                         setDropdownOpen(false);
                       }}
@@ -358,7 +356,7 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                     <button
                       onClick={() => {
                         setRole("student");
-                        try { localStorage.setItem('userRole', 'student'); } catch (e) {}
+                        try { localStorage.setItem('userRole', 'student'); } catch (e) { }
                         setActive("nav-dashboard");
                         setDropdownOpen(false);
                       }}
@@ -370,9 +368,9 @@ function Sidebar({ open, setOpen, active, setActive, role, setRole, actualRole, 
                   )}
                 </>
               )}
-              
+
               <div className="h-px bg-[rgba(59, 130, 246,0.12)] my-1" />
-              
+
               <button
                 onClick={onLogout}
                 className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all"
@@ -638,7 +636,7 @@ export default function DashboardPage() {
           setAssignedTeacher(user.teacher || null);
           setAssignedSubject(user.mappedSubject || "");
           setMyStudents(user.students || []);
-          
+
           const savedRole = localStorage.getItem('userRole');
           if (user.role === 'admin' && savedRole && (savedRole === 'teacher' || savedRole === 'student' || savedRole === 'admin')) {
             setRole(savedRole);
@@ -656,7 +654,7 @@ export default function DashboardPage() {
               setActiveTab('nav-dashboard');
             }
           }
-          
+
           localStorage.setItem('userName', fullName);
           localStorage.setItem('userEmail', user.email);
         } else {
@@ -689,7 +687,7 @@ export default function DashboardPage() {
         setProfileError(data.error || "Failed to update profile");
         return;
       }
-      
+
       setProfileSuccess("Profile updated successfully!");
       const user = data.user;
       setCurrentUser(user);
@@ -699,7 +697,7 @@ export default function DashboardPage() {
       localStorage.setItem('userName', fullName);
       localStorage.setItem('userEmail', user.email);
       setProfileForm(prev => ({ ...prev, password: "", currentPassword: "" }));
-      
+
       setTimeout(() => {
         setIsProfileModalOpen(false);
       }, 1000);
@@ -759,12 +757,12 @@ export default function DashboardPage() {
         fetchAuditLogs();
         fetchRelationships();
       }, 0);
-      
+
       const interval = setInterval(() => {
         fetchActiveMeetings();
         fetchAuditLogs();
       }, 10000);
-      
+
       return () => {
         clearTimeout(timer);
         clearInterval(interval);
@@ -779,12 +777,12 @@ export default function DashboardPage() {
         fetchTeacherMeetings(userName);
         fetchActiveMeetings();
       }, 0);
-      
+
       const interval = setInterval(() => {
         fetchTeacherMeetings(userName);
         fetchActiveMeetings();
       }, 10000);
-      
+
       return () => {
         clearTimeout(timer);
         clearInterval(interval);
@@ -794,12 +792,12 @@ export default function DashboardPage() {
         fetchStudentMeetings(userName);
         fetchActiveMeetings();
       }, 0);
-      
+
       const interval = setInterval(() => {
         fetchStudentMeetings(userName);
         fetchActiveMeetings();
       }, 10000);
-      
+
       return () => {
         clearTimeout(timer);
         clearInterval(interval);
@@ -828,7 +826,7 @@ export default function DashboardPage() {
     e.preventDefault();
     setCrudError("");
     setCrudSuccess("");
-    
+
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
@@ -862,7 +860,7 @@ export default function DashboardPage() {
     e.preventDefault();
     setCrudError("");
     setCrudSuccess("");
-    
+
     try {
       const res = await fetch("/api/admin/users", {
         method: "POST",
@@ -902,7 +900,7 @@ export default function DashboardPage() {
     e.preventDefault();
     setCrudError("");
     setCrudSuccess("");
-    
+
     try {
       const res = await fetch(`/api/admin/users/${selectedUser._id}`, {
         method: "PUT",
@@ -936,7 +934,7 @@ export default function DashboardPage() {
   const handleDeleteUser = async () => {
     setCrudError("");
     setCrudSuccess("");
-    
+
     try {
       const res = await fetch(`/api/admin/users/${selectedUser._id}`, {
         method: "DELETE",
@@ -964,12 +962,12 @@ export default function DashboardPage() {
     e.preventDefault();
     setCrudError("");
     setCrudSuccess("");
-    
+
     if (!selectedStudentId || !selectedTeacherId || !selectedSubject) {
       setCrudError("Please select a student, a teacher, and a course/subject.");
       return;
     }
-    
+
     try {
       const res = await fetch("/api/admin/relationships", {
         method: "POST",
@@ -1004,7 +1002,7 @@ export default function DashboardPage() {
   const handleUnmapRelationship = async (studentId) => {
     setCrudError("");
     setCrudSuccess("");
-    
+
     try {
       const res = await fetch(`/api/admin/relationships?studentId=${studentId}`, {
         method: "DELETE",
@@ -1073,7 +1071,7 @@ export default function DashboardPage() {
         {/* Background Orbs */}
         <div className="fixed -top-32 -right-32 w-[500px] h-[500px] rounded-full pointer-events-none orb-navy" />
         <div className="fixed -bottom-40 -left-40 w-[400px] h-[400px] rounded-full pointer-events-none orb-navy" />
-        
+
         <div className="relative z-10 flex flex-col items-center gap-4 animate-pulse">
           <div className="w-12 h-12 rounded-full border-[3px] border-[rgba(59, 130, 246,0.15)] border-t-[#3B82F6] animate-spin" />
           <p className="text-[0.9rem] font-semibold text-mist tracking-wide">
@@ -1439,7 +1437,14 @@ export default function DashboardPage() {
               {greeting}, {firstName}! 👋
             </h1>
             <p className="text-[0.8rem] text-mist">
-              Wednesday, 21 May 2026
+              <p className="text-[0.8rem] text-mist">
+                {new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </p>
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -1468,11 +1473,11 @@ export default function DashboardPage() {
               >
                 {initials}
               </button>
-              
+
               {userDropdownOpen && (
                 <>
                   <div className="fixed inset-0 z-40 cursor-default" onClick={() => setUserDropdownOpen(false)} />
-                  <div 
+                  <div
                     className="absolute right-0 mt-2.5 w-56 rounded-[16px] z-50 p-1.5 flex flex-col gap-0.5 animate-modal-in"
                     style={{
                       background: "rgba(255, 255, 255, 0.98)",
@@ -1488,7 +1493,7 @@ export default function DashboardPage() {
                         {role}
                       </span>
                     </div>
-                    
+
                     <button
                       onClick={() => {
                         setProfileForm({
@@ -1509,14 +1514,14 @@ export default function DashboardPage() {
                       <SvgIcon paths={["M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2", "M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"]} size={13} />
                       My Profile
                     </button>
-                    
+
                     {actualRole === "admin" && (
                       <>
                         {role !== "admin" && (
                           <button
                             onClick={() => {
                               setRole("admin");
-                              try { localStorage.setItem('userRole', 'admin'); } catch (e) {}
+                              try { localStorage.setItem('userRole', 'admin'); } catch (e) { }
                               setActiveTab("nav-overview");
                               setUserDropdownOpen(false);
                             }}
@@ -1530,7 +1535,7 @@ export default function DashboardPage() {
                           <button
                             onClick={() => {
                               setRole("teacher");
-                              try { localStorage.setItem('userRole', 'teacher'); } catch (e) {}
+                              try { localStorage.setItem('userRole', 'teacher'); } catch (e) { }
                               setActiveTab("nav-dashboard");
                               setUserDropdownOpen(false);
                             }}
@@ -1544,7 +1549,7 @@ export default function DashboardPage() {
                           <button
                             onClick={() => {
                               setRole("student");
-                              try { localStorage.setItem('userRole', 'student'); } catch (e) {}
+                              try { localStorage.setItem('userRole', 'student'); } catch (e) { }
                               setActiveTab("nav-dashboard");
                               setUserDropdownOpen(false);
                             }}
@@ -1556,9 +1561,9 @@ export default function DashboardPage() {
                         )}
                       </>
                     )}
-                    
+
                     <div className="h-px bg-[rgba(59, 130, 246,0.12)] my-1" />
-                    
+
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-2 px-3 py-2 text-[0.78rem] text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-all"
@@ -1577,7 +1582,7 @@ export default function DashboardPage() {
           {role === 'admin' ? (
             activeTab === 'nav-overview' ? (
               <div className="flex flex-col gap-6 animate-fadeUp">
-                          {/* Admin Stats Grid - Spans Full Width */}
+                {/* Admin Stats Grid - Spans Full Width */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                   {adminStats.map((st) => (
                     <div key={st.id} className="relative overflow-hidden rounded-[22px] p-6 card-navy flex flex-col justify-between border border-black/5 hover:-translate-y-0.5 transition-all">
@@ -1626,10 +1631,10 @@ export default function DashboardPage() {
                                   <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
                                       <div className="w-10 h-10 rounded-xl flex items-center justify-center text-[0.85rem] font-black text-snow select-none"
-                                           style={{
-                                             background: `linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(255, 255, 255, 0.4) 100%)`,
-                                             border: "1px solid rgba(59, 130, 246, 0.3)"
-                                           }}>
+                                        style={{
+                                          background: `linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(255, 255, 255, 0.4) 100%)`,
+                                          border: "1px solid rgba(59, 130, 246, 0.3)"
+                                        }}>
                                         {initialStr}
                                       </div>
                                       <div>
@@ -1658,7 +1663,7 @@ export default function DashboardPage() {
                                     </span>
                                   </td>
                                   <td className="px-6 py-4 text-right">
-                                    <Link href={`/dashboard/classroom/${m.code}?role=teacher`} className="btn-primary px-4 py-2 rounded-xl text-[0.78rem] font-bold inline-flex items-center gap-1">
+                                    <Link href={`/dashboard/classroom/${m.code}?role=observer`} className="btn-primary px-4 py-2 rounded-xl text-[0.78rem] font-bold inline-flex items-center gap-1">
                                       Join Meet
                                     </Link>
                                   </td>
@@ -1670,8 +1675,8 @@ export default function DashboardPage() {
                       </table>
                     </div>
                   </div>
-                  </div>
                 </div>
+              </div>
             ) : activeTab === 'nav-faculty' ? (
               <div className="flex flex-col gap-6 animate-fadeUp">
                 {/* Faculty Hub Header */}
@@ -1680,7 +1685,7 @@ export default function DashboardPage() {
                     <h2 className="text-[1.25rem] font-black text-snow">Faculty Hub</h2>
                     <p className="text-[0.8rem] text-mist font-medium">Provision teacher accounts and assign primary subjects.</p>
                   </div>
-                  
+
                   <button
                     onClick={() => handleOpenCreateModal('teacher')}
                     className="btn-primary px-5 py-3 rounded-xl font-bold text-[0.85rem] flex items-center gap-2"
@@ -1853,7 +1858,7 @@ export default function DashboardPage() {
                     <h2 className="text-[1.25rem] font-black text-snow">Academic Enrollment</h2>
                     <p className="text-[0.8rem] text-mist font-medium">Enroll official students and assign unique academic IDs (roll numbers).</p>
                   </div>
-                  
+
                   <button
                     onClick={() => handleOpenCreateModal('student')}
                     className="btn-primary px-5 py-3 rounded-xl font-bold text-[0.85rem] flex items-center gap-2"
@@ -2160,7 +2165,7 @@ export default function DashboardPage() {
                     <h2 className="text-[1.25rem] font-black text-snow">System Audit Logs</h2>
                     <p className="text-[0.8rem] text-mist font-medium">Real-time sync logs documenting platform transactions and actions.</p>
                   </div>
-                  
+
                   <button
                     onClick={fetchAuditLogs}
                     className="btn-secondary px-4 py-2.5 rounded-xl font-bold text-[0.8rem] flex items-center gap-1.5 border border-black/10 text-snow"
@@ -2195,15 +2200,14 @@ export default function DashboardPage() {
                                 {new Date(log.createdAt).toLocaleString()}
                               </td>
                               <td className="px-6 py-4">
-                                <span className={`inline-block text-[0.65rem] font-extrabold px-2.5 py-0.5 rounded-full capitalize ${
-                                  log.action.includes('PROVISIONED') || log.action.includes('MAPPED')
-                                    ? 'bg-blue-500/10 text-blue-400 border border-blue-500/25'
-                                    : log.action.includes('DELETED') || log.action.includes('UNMAPPED')
-                                      ? 'bg-red-500/10 text-red-400 border border-red-500/25'
-                                      : log.action.includes('CREATED')
-                                        ? 'bg-teal-500/10 text-teal-400 border border-teal-500/25'
-                                        : 'bg-amber-500/10 text-amber-400 border border-amber-500/25'
-                                }`}>
+                                <span className={`inline-block text-[0.65rem] font-extrabold px-2.5 py-0.5 rounded-full capitalize ${log.action.includes('PROVISIONED') || log.action.includes('MAPPED')
+                                  ? 'bg-blue-500/10 text-blue-400 border border-blue-500/25'
+                                  : log.action.includes('DELETED') || log.action.includes('UNMAPPED')
+                                    ? 'bg-red-500/10 text-red-400 border border-red-500/25'
+                                    : log.action.includes('CREATED')
+                                      ? 'bg-teal-500/10 text-teal-400 border border-teal-500/25'
+                                      : 'bg-amber-500/10 text-amber-400 border border-amber-500/25'
+                                  }`}>
                                   {log.action}
                                 </span>
                               </td>
@@ -2225,7 +2229,7 @@ export default function DashboardPage() {
               <div className="card-navy rounded-[24px] p-8 border border-black/5 max-w-2xl animate-fadeUp">
                 <h2 className="text-[1.2rem] font-black text-snow mb-2">System Configuration</h2>
                 <p className="text-[0.82rem] text-mist mb-6">Manage platform parameters and global administrative configurations.</p>
-                
+
                 <div className="flex flex-col gap-5">
                   <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
                     <div>
@@ -2265,7 +2269,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 animate-fadeUp">
               {/* Left Main Dashboard Area */}
               <div className="xl:col-span-3 flex flex-col gap-6">
-                
+
                 {/* Header Title Block */}
                 <div>
                   <h2 className="text-[1.35rem] font-black text-snow">My Classroom Sessions</h2>
@@ -2277,7 +2281,7 @@ export default function DashboardPage() {
                   {/* Card 1: Total Sessions */}
                   <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
-                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
                       <SvgIcon paths={["M15 10l4.553-2.069A1 1 0 0 1 21 8.914V15.086a1 1 0 0 1-1.447.914L15 14M3 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"]} size={17} />
                     </div>
                     <div>
@@ -2290,7 +2294,7 @@ export default function DashboardPage() {
                   {/* Card 2: Average CFI */}
                   <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
-                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
                       <SvgIcon paths={["M22 12h-4l-3 9L9 3l-3 9H2"]} size={17} />
                     </div>
                     <div>
@@ -2303,7 +2307,7 @@ export default function DashboardPage() {
                   {/* Card 3: Students Reached */}
                   <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
-                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
                       <SvgIcon paths={["M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2", "M23 21v-2a4 4 0 0 0-3-3.87", "M16 3.13a4 4 0 0 1 0 7.75"]} size={17} />
                     </div>
                     <div>
@@ -2316,7 +2320,7 @@ export default function DashboardPage() {
                   {/* Card 4: Engagement Alerts */}
                   <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
-                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
                       <SvgIcon paths={["M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9", "M13.73 21a2 2 0 0 1-3.46 0"]} size={17} />
                     </div>
                     <div>
@@ -2344,7 +2348,7 @@ export default function DashboardPage() {
                       className="neu-input w-full pl-10 pr-4 py-2.5 rounded-xl text-[0.85rem] outline-none"
                     />
                   </div>
-                  
+
                   {/* Select Dropdown Filters */}
                   <div className="flex flex-wrap gap-2.5 items-center">
                     <select
@@ -2430,9 +2434,9 @@ export default function DashboardPage() {
                         ) : (
                           paginatedTeacherMeetings.map((m) => {
                             const studentParticipants = m.participants.filter(p => p.role === 'student');
-                            const totalRegistryCount = myStudents.length || 50; 
+                            const totalRegistryCount = myStudents.length || 50;
                             const attendancePercent = totalRegistryCount > 0 ? Math.round((studentParticipants.length / totalRegistryCount) * 100) : 0;
-                            
+
                             // Calculate CFI variables
                             const cfiVal = m.cfi || 75;
                             const radius = 14;
@@ -2489,7 +2493,7 @@ export default function DashboardPage() {
                                   <td className="px-6 py-4">
                                     <div className="flex items-center gap-3">
                                       <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
-                                           style={{ background: avatarGradient, border: "1px solid rgba(255,255,255,0.08)" }}>
+                                        style={{ background: avatarGradient, border: "1px solid rgba(255,255,255,0.08)" }}>
                                         {m.title.slice(0, 2).toUpperCase()}
                                       </div>
                                       <div>
@@ -2525,7 +2529,7 @@ export default function DashboardPage() {
                                       <svg className="w-9 h-9 transform -rotate-90 flex-shrink-0" viewBox="0 0 36 36">
                                         <circle cx="18" cy="18" r={radius} className="stroke-white/5" strokeWidth="3" fill="transparent" />
                                         <circle cx="18" cy="18" r={radius} className={cfiColorClass.split(" ")[0]} strokeWidth="3" fill="transparent"
-                                                strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
+                                          strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" />
                                       </svg>
                                       <div className="flex flex-col">
                                         <span className="text-[0.82rem] font-bold text-snow">{cfiVal}%</span>
@@ -2685,11 +2689,10 @@ export default function DashboardPage() {
                           <button
                             key={pNum}
                             onClick={() => setTeacherCurrentPage(pNum)}
-                            className={`px-3 py-1.5 rounded-lg text-[0.74rem] font-bold transition-all ${
-                              teacherCurrentPage === pNum
-                                ? "bg-[#3B82F6] text-white border border-[#3B82F6]"
-                                : "text-snow border border-black/10 bg-black/5 hover:bg-black/5"
-                            }`}
+                            className={`px-3 py-1.5 rounded-lg text-[0.74rem] font-bold transition-all ${teacherCurrentPage === pNum
+                              ? "bg-[#3B82F6] text-white border border-[#3B82F6]"
+                              : "text-snow border border-black/10 bg-black/5 hover:bg-black/5"
+                              }`}
                           >
                             {pNum}
                           </button>
@@ -2748,11 +2751,10 @@ export default function DashboardPage() {
                           className="p-3 rounded-xl bg-black/[0.02] border border-black/5 hover:border-[#3B82F6]/20 transition-all flex flex-col gap-1.5"
                         >
                           <div className="flex items-center justify-between">
-                            <span className={`text-[0.7rem] font-bold px-2 py-0.5 rounded ${
-                              alt.type === "Attention Required"
-                                ? "bg-red-500/10 text-red-400 border border-red-500/15"
-                                : "bg-orange-500/10 text-orange-400 border border-orange-500/15"
-                            }`}>
+                            <span className={`text-[0.7rem] font-bold px-2 py-0.5 rounded ${alt.type === "Attention Required"
+                              ? "bg-red-500/10 text-red-400 border border-red-500/15"
+                              : "bg-orange-500/10 text-orange-400 border border-orange-500/15"
+                              }`}>
                               {alt.type}
                             </span>
                             <span className="text-[0.66rem] text-mist/60 font-mono">{alt.dateStr}, {alt.time}</span>
@@ -2798,7 +2800,7 @@ export default function DashboardPage() {
                   <h3 className="text-[0.95rem] font-bold text-snow">Cognitive Fatigue Index (CFI) Historical Trend</h3>
                   <p className="text-[0.74rem] text-mist">Tracking the 5 most recent classroom sessions (oldest to newest).</p>
                 </div>
-                
+
                 {teacherMeetings.length === 0 ? (
                   <div className="h-48 flex items-center justify-center text-[0.8rem] text-mist italic bg-white/[0.01] rounded-xl border border-black/5">
                     No meeting data available to display trend graphs.
@@ -2813,10 +2815,10 @@ export default function DashboardPage() {
                             <div className="absolute bottom-full mb-2 bg-[#FFFFFF] border border-[#3B82F6]/30 px-2.5 py-1 rounded text-[0.7rem] font-bold text-snow opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg whitespace-nowrap z-10">
                               {meet.title} · {cfiVal}%
                             </div>
-                            <div 
+                            <div
                               className="w-full sm:w-16 rounded-t-lg transition-all duration-500 hover:brightness-125"
-                              style={{ 
-                                height: `${cfiVal}%`, 
+                              style={{
+                                height: `${cfiVal}%`,
                                 background: "linear-gradient(180deg, #3B82F6 0%, #1D4ED8 100%)",
                                 boxShadow: "0 0 15px rgba(59, 130, 246, 0.2)"
                               }}
@@ -3078,7 +3080,7 @@ export default function DashboardPage() {
                           p.camOff ? "Yes" : "No",
                           p.muted ? "Yes" : "No"
                         ]);
-                        const csvContent = "data:text/csv;charset=utf-8," 
+                        const csvContent = "data:text/csv;charset=utf-8,"
                           + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
                         const encodedUri = encodeURI(csvContent);
                         const link = document.createElement("a");
@@ -3218,7 +3220,7 @@ export default function DashboardPage() {
                   <h3 className="text-[0.95rem] font-bold text-snow">My Cognitive Fatigue Index (CFI) Trend</h3>
                   <p className="text-[0.74rem] text-mist">Tracking your personal engagement score across the 5 most recent sessions (oldest to newest).</p>
                 </div>
-                
+
                 {teacherMeetings.length === 0 ? (
                   <div className="h-48 flex items-center justify-center text-[0.8rem] text-mist italic bg-white/[0.01] rounded-xl border border-black/5">
                     You have not attended any classes yet. Join a session to generate engagement reports!
@@ -3236,10 +3238,10 @@ export default function DashboardPage() {
                               {meet.title} · {cfiVal}% Engagement
                             </div>
                             {/* Bar */}
-                            <div 
+                            <div
                               className="w-full sm:w-16 rounded-t-lg transition-all duration-500 hover:brightness-125"
-                              style={{ 
-                                height: `${cfiVal}%`, 
+                              style={{
+                                height: `${cfiVal}%`,
                                 background: "linear-gradient(180deg, #3B82F6 0%, #1D4ED8 100%)",
                                 boxShadow: "0 0 15px rgba(59, 130, 246, 0.2)"
                               }}
@@ -3311,7 +3313,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 animate-fadeUp">
               {/* Left Main Dashboard Area */}
               <div className="xl:col-span-3 flex flex-col gap-6">
-                
+
                 {/* Header Title Block */}
                 <div>
                   <h2 className="text-[1.35rem] font-black text-snow">My Classroom Reports</h2>
@@ -3323,7 +3325,7 @@ export default function DashboardPage() {
                   {/* Card 1: Attended */}
                   <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
-                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
                       <SvgIcon paths={["M15 10l4.553-2.069A1 1 0 0 1 21 8.914V15.086a1 1 0 0 1-1.447.914L15 14M3 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z"]} size={17} />
                     </div>
                     <div>
@@ -3336,7 +3338,7 @@ export default function DashboardPage() {
                   {/* Card 2: Avg Engagement */}
                   <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
-                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
                       <SvgIcon paths={["M22 12h-4l-3 9L9 3l-3 9H2"]} size={17} />
                     </div>
                     <div>
@@ -3349,7 +3351,7 @@ export default function DashboardPage() {
                   {/* Card 3: Monitored Time */}
                   <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
-                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
                       <SvgIcon paths={["M12 8v4l3 3", "M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"]} size={17} />
                     </div>
                     <div>
@@ -3362,7 +3364,7 @@ export default function DashboardPage() {
                   {/* Card 4: Reports Checked */}
                   <div className="flex flex-col gap-3 p-5 rounded-[18px] card-navy border border-black/5 hover:-translate-y-0.5 transition-all">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
-                         style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
+                      style={{ background: "rgba(59, 130, 246,0.15)", border: "1px solid rgba(59, 130, 246,0.3)" }}>
                       <SvgIcon paths={["M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2", "M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2", "M9 12l2 2 4-4"]} size={17} />
                     </div>
                     <div>
@@ -3390,7 +3392,7 @@ export default function DashboardPage() {
                       className="neu-input w-full pl-10 pr-4 py-2.5 rounded-xl text-[0.85rem] outline-none"
                     />
                   </div>
-                  
+
                   {/* Dropdown Filters */}
                   <div className="flex flex-wrap gap-2.5 items-center">
                     <select
@@ -3453,311 +3455,310 @@ export default function DashboardPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-black/5">
-                      {filteredStudentMeetings.length === 0 ? (
-                        <tr>
-                          <td colSpan="5" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
-                            No classroom session reports found matching your criteria.
-                          </td>
-                        </tr>
-                      ) : (
-                        paginatedStudentMeetings.map((m) => {
-                          const myParticipant = m.participants.find(p => p.name === userName);
-                          const myScore = myParticipant ? myParticipant.score : 75;
-                          const classCfi = m.cfi || 75;
+                        {filteredStudentMeetings.length === 0 ? (
+                          <tr>
+                            <td colSpan="5" className="px-6 py-10 text-center text-[0.85rem] text-mist font-medium">
+                              No classroom session reports found matching your criteria.
+                            </td>
+                          </tr>
+                        ) : (
+                          paginatedStudentMeetings.map((m) => {
+                            const myParticipant = m.participants.find(p => p.name === userName);
+                            const myScore = myParticipant ? myParticipant.score : 75;
+                            const classCfi = m.cfi || 75;
 
-                          // Personal score progress variables
-                          const personalRadius = 14;
-                          const personalCirc = 2 * Math.PI * personalRadius;
-                          const personalOffset = personalCirc - (myScore / 100) * personalCirc;
+                            // Personal score progress variables
+                            const personalRadius = 14;
+                            const personalCirc = 2 * Math.PI * personalRadius;
+                            const personalOffset = personalCirc - (myScore / 100) * personalCirc;
 
-                          // Class Avg progress variables
-                          const classRadius = 14;
-                          const classCirc = 2 * Math.PI * classRadius;
-                          const classOffset = classCirc - (classCfi / 100) * classCirc;
+                            // Class Avg progress variables
+                            const classRadius = 14;
+                            const classCirc = 2 * Math.PI * classRadius;
+                            const classOffset = classCirc - (classCfi / 100) * classCirc;
 
-                          // CFI display elements
-                          let myCfiColorClass = "stroke-[#3B82F6] text-[#3B82F6]";
-                          let myBgClass = "bg-[#3B82F6]";
-                          if (myScore < 55) {
-                            myCfiColorClass = "stroke-red-400 text-red-400";
-                            myBgClass = "bg-red-500";
-                          } else if (myScore < 70) {
-                            myCfiColorClass = "stroke-orange-400 text-orange-400";
-                            myBgClass = "bg-orange-500";
-                          } else if (myScore < 85) {
-                            myCfiColorClass = "stroke-amber-400 text-amber-400";
-                            myBgClass = "bg-amber-500";
-                          }
+                            // CFI display elements
+                            let myCfiColorClass = "stroke-[#3B82F6] text-[#3B82F6]";
+                            let myBgClass = "bg-[#3B82F6]";
+                            if (myScore < 55) {
+                              myCfiColorClass = "stroke-red-400 text-red-400";
+                              myBgClass = "bg-red-500";
+                            } else if (myScore < 70) {
+                              myCfiColorClass = "stroke-orange-400 text-orange-400";
+                              myBgClass = "bg-orange-500";
+                            } else if (myScore < 85) {
+                              myCfiColorClass = "stroke-amber-400 text-amber-400";
+                              myBgClass = "bg-amber-500";
+                            }
 
-                          let classCfiColorClass = "stroke-[#3B82F6] text-[#3B82F6]";
-                          if (classCfi < 70) classCfiColorClass = "stroke-orange-400 text-orange-400";
+                            let classCfiColorClass = "stroke-[#3B82F6] text-[#3B82F6]";
+                            if (classCfi < 70) classCfiColorClass = "stroke-orange-400 text-orange-400";
 
-                          const gradients = [
-                            "linear-gradient(135deg, #3b82f6, #1e3a8a)",
-                            "linear-gradient(135deg, #1d4ed8, #0f172a)",
-                            "linear-gradient(135deg, #2563eb, #1e293b)",
-                            "linear-gradient(135deg, #60a5fa, #172554)",
-                            "linear-gradient(135deg, #3a86ff, #023e8a)"
-                          ];
-                          const gradientIndex = m.title.charCodeAt(0) % gradients.length;
-                          const avatarGradient = gradients[gradientIndex];
+                            const gradients = [
+                              "linear-gradient(135deg, #3b82f6, #1e3a8a)",
+                              "linear-gradient(135deg, #1d4ed8, #0f172a)",
+                              "linear-gradient(135deg, #2563eb, #1e293b)",
+                              "linear-gradient(135deg, #60a5fa, #172554)",
+                              "linear-gradient(135deg, #3a86ff, #023e8a)"
+                            ];
+                            const gradientIndex = m.title.charCodeAt(0) % gradients.length;
+                            const avatarGradient = gradients[gradientIndex];
 
-                          return (
-                            <Fragment key={m._id}>
-                              <tr className="hover:bg-white/[0.01] transition-colors">
-                                {/* Class Info */}
-                                <td className="px-6 py-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
-                                         style={{ background: avatarGradient, border: "1px solid rgba(255,255,255,0.08)" }}>
-                                      {m.title.slice(0, 2).toUpperCase()}
-                                    </div>
-                                    <div>
-                                      <div className="text-[0.88rem] font-bold text-snow cursor-default">{m.title}</div>
-                                      <div className="flex items-center gap-2 mt-1">
-                                        <span className="px-1.5 py-0.5 rounded text-[0.66rem] font-bold bg-[rgba(59, 130, 246,0.12)] border border-[rgba(59, 130, 246,0.22)] text-amber-400 font-mono">
-                                          {m.code}
-                                        </span>
-                                        <span className="text-[0.72rem] text-mist">{new Date(m.createdAt).toLocaleDateString()}</span>
+                            return (
+                              <Fragment key={m._id}>
+                                <tr className="hover:bg-white/[0.01] transition-colors">
+                                  {/* Class Info */}
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
+                                        style={{ background: avatarGradient, border: "1px solid rgba(255,255,255,0.08)" }}>
+                                        {m.title.slice(0, 2).toUpperCase()}
                                       </div>
-                                    </div>
-                                  </div>
-                                </td>
-
-                                {/* Instructor */}
-                                <td className="px-6 py-4">
-                                  <div className="flex items-center gap-2.5">
-                                    <div className="w-7 h-7 rounded-full flex items-center justify-center bg-black/5 border border-black/10 font-bold text-snow text-[0.7rem] flex-shrink-0">
-                                      {m.teacherName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
-                                    </div>
-                                    <span className="text-[0.84rem] text-snow font-medium">{m.teacherName}</span>
-                                  </div>
-                                </td>
-
-                                {/* Class Avg CFI */}
-                                <td className="px-6 py-4">
-                                  <div className="flex items-center gap-2.5">
-                                    <svg className="w-9 h-9 transform -rotate-90 flex-shrink-0" viewBox="0 0 36 36">
-                                      <circle cx="18" cy="18" r={classRadius} className="stroke-white/5" strokeWidth="3" fill="transparent" />
-                                      <circle cx="18" cy="18" r={classRadius} className={classCfiColorClass} strokeWidth="3" fill="transparent"
-                                              strokeDasharray={classCirc} strokeDashoffset={classOffset} strokeLinecap="round" />
-                                    </svg>
-                                    <span className="text-[0.82rem] font-bold text-snow font-mono">{classCfi}%</span>
-                                  </div>
-                                </td>
-
-                                {/* My Engagement */}
-                                <td className="px-6 py-4">
-                                  <div className="flex items-center gap-3">
-                                    <svg className="w-9 h-9 transform -rotate-90 flex-shrink-0" viewBox="0 0 36 36">
-                                      <circle cx="18" cy="18" r={personalRadius} className="stroke-white/5" strokeWidth="3" fill="transparent" />
-                                      <circle cx="18" cy="18" r={personalRadius} className={myCfiColorClass.split(" ")[0]} strokeWidth="3" fill="transparent"
-                                              strokeDasharray={personalCirc} strokeDashoffset={personalOffset} strokeLinecap="round" />
-                                    </svg>
-                                    <div className="flex flex-col">
-                                      <span className="text-[0.82rem] font-bold text-snow">{myScore}%</span>
-                                      <div className="w-12 h-0.5 rounded-full bg-black/5 overflow-hidden mt-0.5">
-                                        <div className={`h-full ${myBgClass}`} style={{ width: `${myScore}%` }} />
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
-
-                                {/* Action */}
-                                <td className="px-6 py-4 text-right">
-                                  <button
-                                    onClick={() => setExpandedMeetingId(expandedMeetingId === m._id ? null : m._id)}
-                                    className="px-3.5 py-1.5 rounded-lg text-[0.72rem] font-extrabold uppercase tracking-wider text-mist hover:text-snow hover:bg-black/5 border border-black/10 transition-all"
-                                  >
-                                    {expandedMeetingId === m._id ? "Hide Details" : "View Report"}
-                                  </button>
-                                </td>
-                              </tr>
-
-                              {/* Expanded Report Details Drawer */}
-                              {expandedMeetingId === m._id && (
-                                <tr className="bg-white/[0.01]">
-                                  <td colSpan="5" className="px-6 py-5">
-                                    <div className="flex flex-col gap-5 p-5 rounded-xl border border-white/[0.04] bg-black/[0.01] animate-slide-down">
-                                      <h4 className="text-[0.9rem] font-extrabold text-[#3B82F6] border-b border-black/5 pb-2">Session Summary Matrix</h4>
-                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        {/* Status */}
-                                        <div className="flex flex-col gap-2.5">
-                                          <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Device Check Log</h5>
-                                          <div className="flex flex-col gap-2.5 p-3 rounded bg-black/[0.02] border border-black/5 text-[0.76rem]">
-                                            <div className="flex justify-between">
-                                              <span className="text-mist">Camera Feed Analyzed:</span>
-                                              <span className={`font-bold ${myParticipant?.camOff ? 'text-red-400' : 'text-blue-400'}`}>
-                                                {myParticipant?.camOff ? 'Offline' : 'Online (Active)'}
-                                              </span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-mist">Audio Status:</span>
-                                              <span className={`font-bold ${myParticipant?.muted ? 'text-red-400' : 'text-blue-400'}`}>
-                                                {myParticipant?.muted ? 'Muted' : 'Unmuted'}
-                                              </span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span className="text-mist">Interaction Score:</span>
-                                              <span className="font-bold text-snow">{myScore}% Engagement</span>
-                                            </div>
-                                          </div>
-                                        </div>
-                                        {/* Chat Messages */}
-                                        <div className="flex flex-col gap-2.5">
-                                          <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Class Chat Logs ({m.messages?.length || 0})</h5>
-                                          <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
-                                            {!m.messages || m.messages.length === 0 ? (
-                                              <p className="text-[0.74rem] text-mist italic">No messages sent in this session.</p>
-                                            ) : (
-                                              m.messages.map((msg, idx) => (
-                                                <div key={idx} className="p-2 rounded bg-black/[0.02] border border-black/5 text-[0.74rem]">
-                                                  <div className="flex justify-between font-bold text-snow mb-0.5">
-                                                    <span>{msg.sender}</span>
-                                                    <span className="text-mist text-[0.66rem]">{msg.time}</span>
-                                                  </div>
-                                                  <p className="text-mist">{msg.msg}</p>
-                                                </div>
-                                              ))
-                                            )}
-                                          </div>
-                                        </div>
-                                        {/* Topic Markers */}
-                                        <div className="flex flex-col gap-2.5">
-                                          <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Teacher Topic Markers ({m.topicMarkers?.length || 0})</h5>
-                                          <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
-                                            {!m.topicMarkers || m.topicMarkers.length === 0 ? (
-                                              <p className="text-[0.74rem] text-mist italic">No topic markers set in this session.</p>
-                                            ) : (
-                                              m.topicMarkers.map((marker, idx) => (
-                                                <div key={idx} className="flex justify-between items-center p-2 rounded bg-black/[0.02] border border-black/5 text-[0.74rem]">
-                                                  <span className="font-semibold text-snow">&quot;{marker.label}&quot;</span>
-                                                  <span className="text-[#3B82F6] font-bold">{marker.time}</span>
-                                                </div>
-                                              ))
-                                            )}
-                                          </div>
+                                      <div>
+                                        <div className="text-[0.88rem] font-bold text-snow cursor-default">{m.title}</div>
+                                        <div className="flex items-center gap-2 mt-1">
+                                          <span className="px-1.5 py-0.5 rounded text-[0.66rem] font-bold bg-[rgba(59, 130, 246,0.12)] border border-[rgba(59, 130, 246,0.22)] text-amber-400 font-mono">
+                                            {m.code}
+                                          </span>
+                                          <span className="text-[0.72rem] text-mist">{new Date(m.createdAt).toLocaleDateString()}</span>
                                         </div>
                                       </div>
                                     </div>
                                   </td>
-                                </tr>
-                              )}
-                            </Fragment>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
 
-                {/* Pagination Footer */}
-                {studentReportTotalPages > 1 && (
-                  <div className="px-6 py-4 border-t border-[rgba(59, 130, 246,0.12)] bg-[rgba(255, 255, 255,0.1)] flex items-center justify-between">
-                    <span className="text-[0.76rem] text-mist">
-                      Showing page {studentReportCurrentPage} of {studentReportTotalPages} ({filteredStudentMeetings.length} reports total)
-                    </span>
-                    <div className="flex gap-2">
-                      <button
-                        disabled={studentReportCurrentPage === 1}
-                        onClick={() => setStudentReportCurrentPage(studentReportCurrentPage - 1)}
-                        className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-black/10 bg-black/5 hover:bg-black/5 disabled:opacity-40 disabled:pointer-events-none transition-all"
-                      >
-                        Previous
-                      </button>
-                      {Array.from({ length: studentReportTotalPages }, (_, i) => i + 1).map((pNum) => (
+                                  {/* Instructor */}
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-2.5">
+                                      <div className="w-7 h-7 rounded-full flex items-center justify-center bg-black/5 border border-black/10 font-bold text-snow text-[0.7rem] flex-shrink-0">
+                                        {m.teacherName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+                                      </div>
+                                      <span className="text-[0.84rem] text-snow font-medium">{m.teacherName}</span>
+                                    </div>
+                                  </td>
+
+                                  {/* Class Avg CFI */}
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-2.5">
+                                      <svg className="w-9 h-9 transform -rotate-90 flex-shrink-0" viewBox="0 0 36 36">
+                                        <circle cx="18" cy="18" r={classRadius} className="stroke-white/5" strokeWidth="3" fill="transparent" />
+                                        <circle cx="18" cy="18" r={classRadius} className={classCfiColorClass} strokeWidth="3" fill="transparent"
+                                          strokeDasharray={classCirc} strokeDashoffset={classOffset} strokeLinecap="round" />
+                                      </svg>
+                                      <span className="text-[0.82rem] font-bold text-snow font-mono">{classCfi}%</span>
+                                    </div>
+                                  </td>
+
+                                  {/* My Engagement */}
+                                  <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                      <svg className="w-9 h-9 transform -rotate-90 flex-shrink-0" viewBox="0 0 36 36">
+                                        <circle cx="18" cy="18" r={personalRadius} className="stroke-white/5" strokeWidth="3" fill="transparent" />
+                                        <circle cx="18" cy="18" r={personalRadius} className={myCfiColorClass.split(" ")[0]} strokeWidth="3" fill="transparent"
+                                          strokeDasharray={personalCirc} strokeDashoffset={personalOffset} strokeLinecap="round" />
+                                      </svg>
+                                      <div className="flex flex-col">
+                                        <span className="text-[0.82rem] font-bold text-snow">{myScore}%</span>
+                                        <div className="w-12 h-0.5 rounded-full bg-black/5 overflow-hidden mt-0.5">
+                                          <div className={`h-full ${myBgClass}`} style={{ width: `${myScore}%` }} />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </td>
+
+                                  {/* Action */}
+                                  <td className="px-6 py-4 text-right">
+                                    <button
+                                      onClick={() => setExpandedMeetingId(expandedMeetingId === m._id ? null : m._id)}
+                                      className="px-3.5 py-1.5 rounded-lg text-[0.72rem] font-extrabold uppercase tracking-wider text-mist hover:text-snow hover:bg-black/5 border border-black/10 transition-all"
+                                    >
+                                      {expandedMeetingId === m._id ? "Hide Details" : "View Report"}
+                                    </button>
+                                  </td>
+                                </tr>
+
+                                {/* Expanded Report Details Drawer */}
+                                {expandedMeetingId === m._id && (
+                                  <tr className="bg-white/[0.01]">
+                                    <td colSpan="5" className="px-6 py-5">
+                                      <div className="flex flex-col gap-5 p-5 rounded-xl border border-white/[0.04] bg-black/[0.01] animate-slide-down">
+                                        <h4 className="text-[0.9rem] font-extrabold text-[#3B82F6] border-b border-black/5 pb-2">Session Summary Matrix</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                          {/* Status */}
+                                          <div className="flex flex-col gap-2.5">
+                                            <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Device Check Log</h5>
+                                            <div className="flex flex-col gap-2.5 p-3 rounded bg-black/[0.02] border border-black/5 text-[0.76rem]">
+                                              <div className="flex justify-between">
+                                                <span className="text-mist">Camera Feed Analyzed:</span>
+                                                <span className={`font-bold ${myParticipant?.camOff ? 'text-red-400' : 'text-blue-400'}`}>
+                                                  {myParticipant?.camOff ? 'Offline' : 'Online (Active)'}
+                                                </span>
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-mist">Audio Status:</span>
+                                                <span className={`font-bold ${myParticipant?.muted ? 'text-red-400' : 'text-blue-400'}`}>
+                                                  {myParticipant?.muted ? 'Muted' : 'Unmuted'}
+                                                </span>
+                                              </div>
+                                              <div className="flex justify-between">
+                                                <span className="text-mist">Interaction Score:</span>
+                                                <span className="font-bold text-snow">{myScore}% Engagement</span>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          {/* Chat Messages */}
+                                          <div className="flex flex-col gap-2.5">
+                                            <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Class Chat Logs ({m.messages?.length || 0})</h5>
+                                            <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
+                                              {!m.messages || m.messages.length === 0 ? (
+                                                <p className="text-[0.74rem] text-mist italic">No messages sent in this session.</p>
+                                              ) : (
+                                                m.messages.map((msg, idx) => (
+                                                  <div key={idx} className="p-2 rounded bg-black/[0.02] border border-black/5 text-[0.74rem]">
+                                                    <div className="flex justify-between font-bold text-snow mb-0.5">
+                                                      <span>{msg.sender}</span>
+                                                      <span className="text-mist text-[0.66rem]">{msg.time}</span>
+                                                    </div>
+                                                    <p className="text-mist">{msg.msg}</p>
+                                                  </div>
+                                                ))
+                                              )}
+                                            </div>
+                                          </div>
+                                          {/* Topic Markers */}
+                                          <div className="flex flex-col gap-2.5">
+                                            <h5 className="text-[0.78rem] font-bold text-snow uppercase tracking-wider">Teacher Topic Markers ({m.topicMarkers?.length || 0})</h5>
+                                            <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto dark-scroll pr-1">
+                                              {!m.topicMarkers || m.topicMarkers.length === 0 ? (
+                                                <p className="text-[0.74rem] text-mist italic">No topic markers set in this session.</p>
+                                              ) : (
+                                                m.topicMarkers.map((marker, idx) => (
+                                                  <div key={idx} className="flex justify-between items-center p-2 rounded bg-black/[0.02] border border-black/5 text-[0.74rem]">
+                                                    <span className="font-semibold text-snow">&quot;{marker.label}&quot;</span>
+                                                    <span className="text-[#3B82F6] font-bold">{marker.time}</span>
+                                                  </div>
+                                                ))
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </Fragment>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Footer */}
+                  {studentReportTotalPages > 1 && (
+                    <div className="px-6 py-4 border-t border-[rgba(59, 130, 246,0.12)] bg-[rgba(255, 255, 255,0.1)] flex items-center justify-between">
+                      <span className="text-[0.76rem] text-mist">
+                        Showing page {studentReportCurrentPage} of {studentReportTotalPages} ({filteredStudentMeetings.length} reports total)
+                      </span>
+                      <div className="flex gap-2">
                         <button
-                          key={pNum}
-                          onClick={() => setStudentReportCurrentPage(pNum)}
-                          className={`px-3 py-1.5 rounded-lg text-[0.74rem] font-bold transition-all ${
-                            studentReportCurrentPage === pNum
+                          disabled={studentReportCurrentPage === 1}
+                          onClick={() => setStudentReportCurrentPage(studentReportCurrentPage - 1)}
+                          className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-black/10 bg-black/5 hover:bg-black/5 disabled:opacity-40 disabled:pointer-events-none transition-all"
+                        >
+                          Previous
+                        </button>
+                        {Array.from({ length: studentReportTotalPages }, (_, i) => i + 1).map((pNum) => (
+                          <button
+                            key={pNum}
+                            onClick={() => setStudentReportCurrentPage(pNum)}
+                            className={`px-3 py-1.5 rounded-lg text-[0.74rem] font-bold transition-all ${studentReportCurrentPage === pNum
                               ? "bg-[#3B82F6] text-white border border-[#3B82F6]"
                               : "text-snow border border-black/10 bg-black/5 hover:bg-black/5"
-                          }`}
+                              }`}
+                          >
+                            {pNum}
+                          </button>
+                        ))}
+                        <button
+                          disabled={studentReportCurrentPage === studentReportTotalPages}
+                          onClick={() => setStudentReportCurrentPage(studentReportCurrentPage + 1)}
+                          className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-black/10 bg-black/5 hover:bg-black/5 disabled:opacity-40 disabled:pointer-events-none transition-all"
                         >
-                          {pNum}
+                          Next
                         </button>
-                      ))}
-                      <button
-                        disabled={studentReportCurrentPage === studentReportTotalPages}
-                        onClick={() => setStudentReportCurrentPage(studentReportCurrentPage + 1)}
-                        className="px-3 py-1.5 rounded-lg text-[0.74rem] font-bold text-snow border border-black/10 bg-black/5 hover:bg-black/5 disabled:opacity-40 disabled:pointer-events-none transition-all"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Right Sidebar Columns Area */}
-            <div className="xl:col-span-1 flex flex-col gap-6">
-              {/* Join Session CTA Button */}
-              <Link
-                href="/dashboard/join-meeting"
-                className="w-full btn-primary px-5 py-4 rounded-2xl font-bold text-[0.88rem] flex items-center justify-center gap-2 hover:shadow-[0_10px_25px_rgba(59, 130, 246,0.25)] hover:-translate-y-0.5 transition-all text-white"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                  <polyline points="10 17 15 12 10 7" />
-                  <line x1="15" y1="12" x2="3" y2="12" />
-                </svg>
-                Join Classroom Session
-              </Link>
-
-              {/* Assigned Instructor sidebar card */}
-              <div className="rounded-[20px] overflow-hidden card-navy border border-black/5 flex flex-col">
-                <div className="px-5 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
-                  <h2 className="text-[0.95rem] font-bold text-snow">
-                    Assigned Instructor
-                  </h2>
-                </div>
-                <div className="p-5 flex flex-col gap-4">
-                  {assignedTeacher ? (
-                    <>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
-                          style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
-                          {(assignedTeacher.firstName[0] + assignedTeacher.lastName[0]).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[0.88rem] font-bold text-snow truncate">
-                            Prof. {assignedTeacher.firstName} {assignedTeacher.lastName}
-                          </p>
-                          <p className="text-[0.74rem] text-mist truncate">
-                            {assignedTeacher.email}
-                          </p>
-                        </div>
                       </div>
-                      
-                      <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-black/[0.02] border border-white/[0.04]">
-                        <div className="flex justify-between text-[0.76rem]">
-                          <span className="text-mist">Department:</span>
-                          <span className="font-semibold text-snow">{assignedTeacher.department || 'General'}</span>
-                        </div>
-                        <div className="flex justify-between text-[0.76rem]">
-                          <span className="text-mist">Course Enrolled:</span>
-                          <span className="font-semibold text-teal-400">{assignedSubject || 'General class'}</span>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-6 text-[0.82rem] text-mist flex flex-col items-center gap-2">
-                      <span className="text-[1.3rem]">💼</span>
-                      No instructor assigned yet.
-                      <p className="text-[0.7rem] text-mist/60">Contact administration to register your academic mapping.</p>
                     </div>
                   )}
                 </div>
               </div>
+
+              {/* Right Sidebar Columns Area */}
+              <div className="xl:col-span-1 flex flex-col gap-6">
+                {/* Join Session CTA Button */}
+                <Link
+                  href="/dashboard/join-meeting"
+                  className="w-full btn-primary px-5 py-4 rounded-2xl font-bold text-[0.88rem] flex items-center justify-center gap-2 hover:shadow-[0_10px_25px_rgba(59, 130, 246,0.25)] hover:-translate-y-0.5 transition-all text-white"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                  </svg>
+                  Join Classroom Session
+                </Link>
+
+                {/* Assigned Instructor sidebar card */}
+                <div className="rounded-[20px] overflow-hidden card-navy border border-black/5 flex flex-col">
+                  <div className="px-5 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
+                    <h2 className="text-[0.95rem] font-bold text-snow">
+                      Assigned Instructor
+                    </h2>
+                  </div>
+                  <div className="p-5 flex flex-col gap-4">
+                    {assignedTeacher ? (
+                      <>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
+                            style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
+                            {(assignedTeacher.firstName[0] + assignedTeacher.lastName[0]).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[0.88rem] font-bold text-snow truncate">
+                              Prof. {assignedTeacher.firstName} {assignedTeacher.lastName}
+                            </p>
+                            <p className="text-[0.74rem] text-mist truncate">
+                              {assignedTeacher.email}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-black/[0.02] border border-white/[0.04]">
+                          <div className="flex justify-between text-[0.76rem]">
+                            <span className="text-mist">Department:</span>
+                            <span className="font-semibold text-snow">{assignedTeacher.department || 'General'}</span>
+                          </div>
+                          <div className="flex justify-between text-[0.76rem]">
+                            <span className="text-mist">Course Enrolled:</span>
+                            <span className="font-semibold text-teal-400">{assignedSubject || 'General class'}</span>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-6 text-[0.82rem] text-mist flex flex-col items-center gap-2">
+                        <span className="text-[1.3rem]">💼</span>
+                        No instructor assigned yet.
+                        <p className="text-[0.7rem] text-mist/60">Contact administration to register your academic mapping.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
           ) : activeTab === 'nav-settings' ? (
             <div className="card-navy rounded-[24px] p-8 border border-black/5 max-w-2xl">
               <h2 className="text-[1.2rem] font-black text-snow mb-2">System Configuration</h2>
               <p className="text-[0.82rem] text-mist mb-6">Manage platform parameters and global administrative configurations.</p>
-              
+
               <div className="flex flex-col gap-5">
                 <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
                   <div>
@@ -3797,629 +3798,629 @@ export default function DashboardPage() {
               {/* ── PRIMARY ACTION CARDS ─────────────────── */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {role === "teacher" ? (
-              <>
-                {/* Create / Start Meeting */}
-                <Link
-                  href="/dashboard/create-meeting"
-                  id="cta-create-meeting"
-                  className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)]"
-                  style={{
-                    background: "linear-gradient(135deg,#FFFFFF 0%,#FFFFFF 100%)",
-                    border: "1px solid rgba(59, 130, 246,0.25)",
-                  }}
-                >
-                  <div
-                    className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
-                    style={{
-                      background:
-                        "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
-                    }}
-                  />
-                  <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
-                    style={{
-                      background: "rgba(59, 130, 246,0.15)",
-                      border: "1px solid rgba(59, 130, 246,0.30)",
-                    }}
-                  >
-                    <svg
-                      width="22"
-                      height="22"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polygon points="23 7 16 12 23 17 23 7" />
-                      <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
-                      Start a New Meeting
-                    </h2>
-                    <p className="text-[0.87rem] text-mist leading-[1.6]">
-                      Create a classroom session instantly. Get a 6-digit code to
-                      share with students.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
-                    Create Meeting
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </Link>
-
-                {/* Join Meeting */}
-                <Link
-                  href="/dashboard/join-meeting"
-                  id="cta-join-meeting"
-                  className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)] card-navy"
-                >
-                  <div
-                    className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
-                    style={{
-                      background:
-                        "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
-                    }}
-                  />
-                  <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
-                    style={{
-                      background: "rgba(59, 130, 246,0.15)",
-                      border: "1px solid rgba(59, 130, 246,0.30)",
-                    }}
-                  >
-                    <svg
-                      width="22"
-                      height="22"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                      <polyline points="10 17 15 12 10 7" />
-                      <line x1="15" y1="12" x2="3" y2="12" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
-                      Join a Meeting
-                    </h2>
-                    <p className="text-[0.87rem] text-mist leading-[1.6]">
-                      Enter a 6-digit class code or browse live sessions to join
-                      your classroom.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
-                    Join Now
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </Link>
-              </>
-            ) : role === "admin" ? (
-              <>
-                {/* Manage User Database */}
-                <button
-                  onClick={() => setActiveTab("nav-database")}
-                  id="cta-manage-db"
-                  className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)]"
-                  style={{
-                    background: "linear-gradient(135deg,#FFFFFF 0%,#FFFFFF 100%)",
-                    border: "1px solid rgba(59, 130, 246,0.25)",
-                  }}
-                >
-                  <div
-                    className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
-                    style={{
-                      background: "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
-                    }}
-                  />
-                  <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
-                    style={{
-                      background: "rgba(59, 130, 246,0.15)",
-                      border: "1px solid rgba(59, 130, 246,0.30)",
-                    }}
-                  >
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                      <rect x="3" y="3" width="7" height="9" rx="1" />
-                      <rect x="14" y="3" width="7" height="5" rx="1" />
-                      <rect x="14" y="12" width="7" height="9" rx="1" />
-                      <rect x="3" y="16" width="7" height="5" rx="1" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
-                      Manage User Database
-                    </h2>
-                    <p className="text-[0.87rem] text-mist leading-[1.6]">
-                      Perform CRUD operations on user accounts, promote teachers or admins, and update credentials.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
-                    Open Database Console
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </button>
-
-                {/* System Settings Console */}
-                <button
-                  onClick={() => setActiveTab("nav-settings")}
-                  id="cta-system-settings"
-                  className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)] card-navy"
-                >
-                  <div
-                    className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
-                    style={{
-                      background: "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
-                    }}
-                  />
-                  <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
-                    style={{
-                      background: "rgba(59, 130, 246,0.15)",
-                      border: "1px solid rgba(59, 130, 246,0.30)",
-                    }}
-                  >
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="3" />
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
-                      System Settings
-                    </h2>
-                    <p className="text-[0.87rem] text-mist leading-[1.6]">
-                      Monitor server status, database connections, and review general system health metrics.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
-                    Configure System
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </button>
-              </>
-            ) : (
-              <>
-                {/* Join Meeting (Highlighted Primary for Student) */}
-                <Link
-                  href="/dashboard/join-meeting"
-                  id="cta-join-meeting-student"
-                  className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)]"
-                  style={{
-                    background: "linear-gradient(135deg,#FFFFFF 0%,#FFFFFF 100%)",
-                    border: "1px solid rgba(59, 130, 246,0.25)",
-                  }}
-                >
-                  <div
-                    className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
-                    style={{
-                      background:
-                        "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
-                    }}
-                  />
-                  <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
-                    style={{
-                      background: "rgba(59, 130, 246,0.15)",
-                      border: "1px solid rgba(59, 130, 246,0.30)",
-                    }}
-                  >
-                    <svg
-                      width="22"
-                      height="22"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                      <polyline points="10 17 15 12 10 7" />
-                      <line x1="15" y1="12" x2="3" y2="12" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
-                      Join a Meeting
-                    </h2>
-                    <p className="text-[0.87rem] text-mist leading-[1.6]">
-                      Enter a 6-digit class code or browse active classes to enter your live virtual classroom session.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
-                    Join Classroom
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </Link>
-
-                {/* View Reports (Secondary for Student) */}
-                <button
-                  onClick={() => showNotification("success", "Performance Analytics module is coming soon!")}
-                  id="cta-view-reports"
-                  className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)] card-navy"
-                >
-                  <div
-                    className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
-                    style={{
-                      background:
-                        "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
-                    }}
-                  />
-                  <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
-                    style={{
-                      background: "rgba(59, 130, 246,0.15)",
-                      border: "1px solid rgba(59, 130, 246,0.30)",
-                    }}
-                  >
-                    <svg
-                      width="22"
-                      height="22"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                      <polyline points="14 2 14 8 20 8" />
-                      <line x1="16" y1="13" x2="8" y2="13" />
-                      <line x1="16" y1="17" x2="8" y2="17" />
-                      <line x1="10" y1="9" x2="8" y2="9" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
-                      View My Reports
-                    </h2>
-                    <p className="text-[0.87rem] text-mist leading-[1.6]">
-                      Review your personal local engagement history, class performance scores, and study progression details.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
-                    Open Analytics
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M5 12h14M12 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* ── STATS ROW ─────────────────────────────── */}
-          <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-            {(role === "teacher" ? teacherStats : studentStats).map((card) => (
-              <div
-                key={card.id}
-                id={card.id}
-                className="flex flex-col gap-3 p-5 rounded-[18px] transition-all hover:-translate-y-0.5 card-navy"
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
-                  style={{
-                    background: "rgba(59, 130, 246,0.15)",
-                    border: "1px solid rgba(59, 130, 246,0.30)",
-                  }}
-                >
-                  <SvgIcon paths={card.icon} size={17} />
-                </div>
-                <div>
-                  <p className="text-[0.77rem] text-mist font-medium mb-0.5">
-                    {card.label}
-                  </p>
-                  <p className="text-[1.75rem] font-black text-snow leading-none">
-                    {card.value}
-                  </p>
-                </div>
-                <span className="text-[0.72rem] font-semibold px-2 py-0.5 rounded-full self-start badge-copper">
-                  {card.delta}
-                </span>
-              </div>
-            ))}
-          </div>
-
-          {/* ── LIVE CLASSES + UPCOMING ─────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* Live Classes */}
-            <div
-              id="live-classes-card"
-              className="lg:col-span-2 rounded-[20px] overflow-hidden card-navy"
-            >
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
-                <div className="flex items-center gap-2.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] animate-pulse" />
-                  <h2 className="text-[0.95rem] font-bold text-snow">
-                    Live Classes
-                  </h2>
-                  <span className="text-[0.72rem] font-bold text-snow px-2 py-0.5 rounded-full badge-copper">
-                    {LIVE_CLASSES.length} active
-                  </span>
-                </div>
-                <Link
-                  href="/dashboard/join-meeting"
-                  className="text-[0.8rem] font-semibold text-mist hover:text-snow transition-colors"
-                >
-                  Join one →
-                </Link>
-              </div>
-              <div className="divide-y divide-[rgba(59, 130, 246,0.12)]">
-                {activeMeetings.length === 0 ? (
-                  <div className="px-6 py-10 text-center text-[0.85rem] text-mist flex flex-col items-center gap-2">
-                    <span className="text-[1.5rem]">🏫</span>
-                    No live classroom sessions active currently.
-                  </div>
-                ) : (
-                  activeMeetings.map((cls) => (
-                    <div
-                      key={cls._id}
-                      id={cls._id}
-                      className="flex items-center gap-4 px-6 py-4 hover:bg-[rgba(59, 130, 246,0.06)] transition-colors"
+                  <>
+                    {/* Create / Start Meeting */}
+                    <Link
+                      href="/dashboard/create-meeting"
+                      id="cta-create-meeting"
+                      className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)]"
+                      style={{
+                        background: "linear-gradient(135deg,#FFFFFF 0%,#FFFFFF 100%)",
+                        border: "1px solid rgba(59, 130, 246,0.25)",
+                      }}
                     >
                       <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center text-snow font-black text-[0.78rem] flex-shrink-0"
+                        className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
                         style={{
                           background:
-                            "linear-gradient(135deg,rgba(59, 130, 246,0.22),rgba(59, 130, 246,0.08))",
-                          border: "1px solid rgba(59, 130, 246,0.28)",
+                            "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
                         }}
-                      >
-                        {cls.title.slice(0, 3).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[0.88rem] font-semibold text-snow truncate">
-                          {cls.title}
-                        </p>
-                        <p className="text-[0.76rem] text-mist">
-                          {cls.teacherName} · {cls.participants.filter(p => p.role === 'student').length} students · active
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-[0.72rem] font-bold text-snow px-2 py-1 rounded-lg bg-[rgba(59, 130, 246,0.16)] border border-[rgba(59, 130, 246,0.25)] font-mono tracking-wider">
-                          {cls.code}
-                        </span>
-                        <Link
-                          href={`/dashboard/classroom/${cls.code}?role=${role}`}
-                          className="px-3.5 py-1.5 rounded-xl text-[0.78rem] font-bold text-white btn-primary whitespace-nowrap"
-                        >
-                          Join
-                        </Link>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* My Students Roster (Only for Teacher role) */}
-            {role === "teacher" && (
-              <div className="rounded-[20px] overflow-hidden card-navy flex flex-col">
-                <div className="px-5 py-4 border-b border-[rgba(59, 130, 246,0.14)] flex items-center justify-between">
-                  <h2 className="text-[0.95rem] font-bold text-snow">
-                    My Students
-                  </h2>
-                  <span className="text-[0.72rem] font-bold text-snow px-2 py-0.5 rounded-full badge-copper">
-                    {myStudents.length} mapped
-                  </span>
-                </div>
-                <div className="divide-y divide-[rgba(59, 130, 246,0.12)] overflow-y-auto max-h-[300px]">
-                  {myStudents.length === 0 ? (
-                    <div className="px-5 py-10 text-center text-[0.82rem] text-mist flex flex-col items-center gap-2">
-                      <span className="text-[1.3rem]">👨‍🎓</span>
-                      No students mapped to you yet.
-                    </div>
-                  ) : (
-                    myStudents.map((stud) => (
-                      <div key={stud._id} className="flex items-center gap-3 px-5 py-3 hover:bg-white/[0.01] transition-colors">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-snow text-xs flex-shrink-0"
-                          style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
-                          {(stud.firstName[0] + stud.lastName[0]).toUpperCase()}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[0.82rem] font-bold text-snow truncate">
-                            {stud.firstName} {stud.lastName}
-                          </p>
-                          <p className="text-[0.7rem] text-mist truncate">
-                            {stud.rollNumber || 'No Roll #'} · {stud.degreeBatch || 'No Batch'}
-                          </p>
-                        </div>
-                        <span className="px-2 py-0.5 rounded text-[0.64rem] font-extrabold text-teal-400 bg-teal-500/10 border border-teal-500/25 flex-shrink-0">
-                          {stud.mappedSubject || 'Class'}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Assigned Instructor Card (Only for Student role) */}
-            {role === "student" && (
-              <div className="rounded-[20px] overflow-hidden card-navy flex flex-col">
-                <div className="px-5 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
-                  <h2 className="text-[0.95rem] font-bold text-snow">
-                    Assigned Instructor
-                  </h2>
-                </div>
-                <div className="p-5 flex flex-col gap-4">
-                  {assignedTeacher ? (
-                    <>
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
-                          style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
-                          {(assignedTeacher.firstName[0] + assignedTeacher.lastName[0]).toUpperCase()}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[0.88rem] font-bold text-snow truncate">
-                            Prof. {assignedTeacher.firstName} {assignedTeacher.lastName}
-                          </p>
-                          <p className="text-[0.74rem] text-mist truncate">
-                            {assignedTeacher.email}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-black/[0.02] border border-white/[0.04]">
-                        <div className="flex justify-between text-[0.76rem]">
-                          <span className="text-mist">Department:</span>
-                          <span className="font-semibold text-snow">{assignedTeacher.department || 'General'}</span>
-                        </div>
-                        <div className="flex justify-between text-[0.76rem]">
-                          <span className="text-mist">Course Enrolled:</span>
-                          <span className="font-semibold text-teal-400">{assignedSubject || 'General class'}</span>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-6 text-[0.82rem] text-mist flex flex-col items-center gap-2">
-                      <span className="text-[1.3rem]">💼</span>
-                      No instructor assigned yet.
-                      <p className="text-[0.7rem] text-mist/60">Contact administration to register your academic mapping.</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ── RECENT SESSIONS ──────────────────────── */}
-          <div
-            id="recent-sessions-card"
-            className="rounded-[20px] overflow-hidden card-navy"
-          >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
-              <h2 className="text-[0.95rem] font-bold text-snow">
-                Recent Sessions
-              </h2>
-              <button className="text-[0.8rem] font-semibold text-mist hover:text-snow transition-colors">
-                View all →
-              </button>
-            </div>
-            <div className="divide-y divide-[rgba(59, 130, 246,0.12)]">
-              {(() => {
-                const endedStudentMeetings = role === "student" ? teacherMeetings.filter(m => !m.active) : [];
-                const endedMeetingsForRole = role === "teacher" ? endedTeacherMeetings : endedStudentMeetings;
-
-                if (endedMeetingsForRole.length === 0) {
-                  return (
-                    <div className="px-6 py-10 text-center text-[0.85rem] text-mist flex flex-col items-center gap-2">
-                      <span className="text-[1.5rem]">🎥</span>
-                      No recent classroom sessions found.
-                    </div>
-                  );
-                }
-
-                return endedMeetingsForRole.map((s) => {
-                  const myParticipant = s.participants.find(p => p.name === userName);
-                  const displayScore = role === "teacher" ? s.cfi : (myParticipant ? myParticipant.score : 75);
-
-                  return (
-                    <div
-                      key={s._id}
-                      id={s._id}
-                      className="flex items-center gap-4 px-6 py-4 hover:bg-[rgba(59, 130, 246,0.06)] transition-colors"
-                    >
+                      />
                       <div
-                        className="w-9 h-9 rounded-xl flex items-center justify-center text-snow flex-shrink-0"
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
                         style={{
                           background: "rgba(59, 130, 246,0.15)",
                           border: "1px solid rgba(59, 130, 246,0.30)",
                         }}
                       >
-                        <SvgIcon
-                          paths={[
-                            "M15 10l4.553-2.069A1 1 0 0 1 21 8.914V15.086a1 1 0 0 1-1.447.914L15 14M3 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z",
-                          ]}
-                          size={16}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[0.88rem] font-semibold text-snow truncate">
-                          {s.title}
-                        </p>
-                        <p className="text-[0.76rem] text-mist">
-                          {new Date(s.createdAt).toLocaleDateString()} · {s.teacherName}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3 flex-shrink-0">
-                        <ScoreBadge score={displayScore || 75} />
-                        <button
-                          onClick={() => {
-                            if (role === "teacher") {
-                              setExpandedMeetingId(s._id);
-                              setActiveTab("nav-meetings");
-                            } else {
-                              setExpandedMeetingId(s._id);
-                              setActiveTab("nav-reports");
-                            }
-                          }}
-                          className="text-[0.78rem] font-semibold text-mist hover:text-snow transition-colors"
+                        <svg
+                          width="22"
+                          height="22"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
                         >
-                          View Report →
-                        </button>
+                          <polygon points="23 7 16 12 23 17 23 7" />
+                          <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                        </svg>
                       </div>
+                      <div>
+                        <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
+                          Start a New Meeting
+                        </h2>
+                        <p className="text-[0.87rem] text-mist leading-[1.6]">
+                          Create a classroom session instantly. Get a 6-digit code to
+                          share with students.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
+                        Create Meeting
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
+
+                    {/* Join Meeting */}
+                    <Link
+                      href="/dashboard/join-meeting"
+                      id="cta-join-meeting"
+                      className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)] card-navy"
+                    >
+                      <div
+                        className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
+                        style={{
+                          background:
+                            "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
+                        }}
+                      />
+                      <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
+                        style={{
+                          background: "rgba(59, 130, 246,0.15)",
+                          border: "1px solid rgba(59, 130, 246,0.30)",
+                        }}
+                      >
+                        <svg
+                          width="22"
+                          height="22"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                          <polyline points="10 17 15 12 10 7" />
+                          <line x1="15" y1="12" x2="3" y2="12" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
+                          Join a Meeting
+                        </h2>
+                        <p className="text-[0.87rem] text-mist leading-[1.6]">
+                          Enter a 6-digit class code or browse live sessions to join
+                          your classroom.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
+                        Join Now
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
+                  </>
+                ) : role === "admin" ? (
+                  <>
+                    {/* Manage User Database */}
+                    <button
+                      onClick={() => setActiveTab("nav-database")}
+                      id="cta-manage-db"
+                      className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)]"
+                      style={{
+                        background: "linear-gradient(135deg,#FFFFFF 0%,#FFFFFF 100%)",
+                        border: "1px solid rgba(59, 130, 246,0.25)",
+                      }}
+                    >
+                      <div
+                        className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
+                        style={{
+                          background: "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
+                        }}
+                      />
+                      <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
+                        style={{
+                          background: "rgba(59, 130, 246,0.15)",
+                          border: "1px solid rgba(59, 130, 246,0.30)",
+                        }}
+                      >
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                          <rect x="3" y="3" width="7" height="9" rx="1" />
+                          <rect x="14" y="3" width="7" height="5" rx="1" />
+                          <rect x="14" y="12" width="7" height="9" rx="1" />
+                          <rect x="3" y="16" width="7" height="5" rx="1" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
+                          Manage User Database
+                        </h2>
+                        <p className="text-[0.87rem] text-mist leading-[1.6]">
+                          Perform CRUD operations on user accounts, promote teachers or admins, and update credentials.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
+                        Open Database Console
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </button>
+
+                    {/* System Settings Console */}
+                    <button
+                      onClick={() => setActiveTab("nav-settings")}
+                      id="cta-system-settings"
+                      className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)] card-navy"
+                    >
+                      <div
+                        className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
+                        style={{
+                          background: "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
+                        }}
+                      />
+                      <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
+                        style={{
+                          background: "rgba(59, 130, 246,0.15)",
+                          border: "1px solid rgba(59, 130, 246,0.30)",
+                        }}
+                      >
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="3" />
+                          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
+                          System Settings
+                        </h2>
+                        <p className="text-[0.87rem] text-mist leading-[1.6]">
+                          Monitor server status, database connections, and review general system health metrics.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
+                        Configure System
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* Join Meeting (Highlighted Primary for Student) */}
+                    <Link
+                      href="/dashboard/join-meeting"
+                      id="cta-join-meeting-student"
+                      className="group relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)]"
+                      style={{
+                        background: "linear-gradient(135deg,#FFFFFF 0%,#FFFFFF 100%)",
+                        border: "1px solid rgba(59, 130, 246,0.25)",
+                      }}
+                    >
+                      <div
+                        className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
+                        style={{
+                          background:
+                            "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
+                        }}
+                      />
+                      <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
+                        style={{
+                          background: "rgba(59, 130, 246,0.15)",
+                          border: "1px solid rgba(59, 130, 246,0.30)",
+                        }}
+                      >
+                        <svg
+                          width="22"
+                          height="22"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                          <polyline points="10 17 15 12 10 7" />
+                          <line x1="15" y1="12" x2="3" y2="12" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
+                          Join a Meeting
+                        </h2>
+                        <p className="text-[0.87rem] text-mist leading-[1.6]">
+                          Enter a 6-digit class code or browse active classes to enter your live virtual classroom session.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
+                        Join Classroom
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </Link>
+
+                    {/* View Reports (Secondary for Student) */}
+                    <button
+                      onClick={() => showNotification("success", "Performance Analytics module is coming soon!")}
+                      id="cta-view-reports"
+                      className="group text-left relative overflow-hidden rounded-[24px] p-8 flex flex-col gap-4 transition-all hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(59, 130, 246,0.25)] card-navy"
+                    >
+                      <div
+                        className="absolute -top-8 -right-8 w-36 h-36 rounded-full pointer-events-none"
+                        style={{
+                          background:
+                            "radial-gradient(circle,rgba(59, 130, 246,0.15) 0%,transparent 70%)",
+                        }}
+                      />
+                      <div
+                        className="w-12 h-12 rounded-2xl flex items-center justify-center text-snow"
+                        style={{
+                          background: "rgba(59, 130, 246,0.15)",
+                          border: "1px solid rgba(59, 130, 246,0.30)",
+                        }}
+                      >
+                        <svg
+                          width="22"
+                          height="22"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                          <line x1="10" y1="9" x2="8" y2="9" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-[1.25rem] font-black text-snow mb-1.5">
+                          View My Reports
+                        </h2>
+                        <p className="text-[0.87rem] text-mist leading-[1.6]">
+                          Review your personal local engagement history, class performance scores, and study progression details.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[0.82rem] font-bold text-mist group-hover:text-snow transition-colors mt-auto">
+                        Open Analytics
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* ── STATS ROW ─────────────────────────────── */}
+              <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+                {(role === "teacher" ? teacherStats : studentStats).map((card) => (
+                  <div
+                    key={card.id}
+                    id={card.id}
+                    className="flex flex-col gap-3 p-5 rounded-[18px] transition-all hover:-translate-y-0.5 card-navy"
+                  >
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-snow"
+                      style={{
+                        background: "rgba(59, 130, 246,0.15)",
+                        border: "1px solid rgba(59, 130, 246,0.30)",
+                      }}
+                    >
+                      <SvgIcon paths={card.icon} size={17} />
                     </div>
-                  );
-                });
-              })()}
-            </div>
-          </div>
-          </>
+                    <div>
+                      <p className="text-[0.77rem] text-mist font-medium mb-0.5">
+                        {card.label}
+                      </p>
+                      <p className="text-[1.75rem] font-black text-snow leading-none">
+                        {card.value}
+                      </p>
+                    </div>
+                    <span className="text-[0.72rem] font-semibold px-2 py-0.5 rounded-full self-start badge-copper">
+                      {card.delta}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* ── LIVE CLASSES + UPCOMING ─────────────── */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                {/* Live Classes */}
+                <div
+                  id="live-classes-card"
+                  className="lg:col-span-2 rounded-[20px] overflow-hidden card-navy"
+                >
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#3B82F6] animate-pulse" />
+                      <h2 className="text-[0.95rem] font-bold text-snow">
+                        Live Classes
+                      </h2>
+                      <span className="text-[0.72rem] font-bold text-snow px-2 py-0.5 rounded-full badge-copper">
+                        {activeMeetings.length} active
+                      </span>
+                    </div>
+                    <Link
+                      href="/dashboard/join-meeting"
+                      className="text-[0.8rem] font-semibold text-mist hover:text-snow transition-colors"
+                    >
+                      Join one →
+                    </Link>
+                  </div>
+                  <div className="divide-y divide-[rgba(59, 130, 246,0.12)]">
+                    {activeMeetings.length === 0 ? (
+                      <div className="px-6 py-10 text-center text-[0.85rem] text-mist flex flex-col items-center gap-2">
+                        <span className="text-[1.5rem]">🏫</span>
+                        No live classroom sessions active currently.
+                      </div>
+                    ) : (
+                      activeMeetings.map((cls) => (
+                        <div
+                          key={cls._id}
+                          id={cls._id}
+                          className="flex items-center gap-4 px-6 py-4 hover:bg-[rgba(59, 130, 246,0.06)] transition-colors"
+                        >
+                          <div
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-snow font-black text-[0.78rem] flex-shrink-0"
+                            style={{
+                              background:
+                                "linear-gradient(135deg,rgba(59, 130, 246,0.22),rgba(59, 130, 246,0.08))",
+                              border: "1px solid rgba(59, 130, 246,0.28)",
+                            }}
+                          >
+                            {cls.title.slice(0, 3).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[0.88rem] font-semibold text-snow truncate">
+                              {cls.title}
+                            </p>
+                            <p className="text-[0.76rem] text-mist">
+                              {cls.teacherName} · {cls.participants.filter(p => p.role === 'student').length} students · active
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="text-[0.72rem] font-bold text-snow px-2 py-1 rounded-lg bg-[rgba(59, 130, 246,0.16)] border border-[rgba(59, 130, 246,0.25)] font-mono tracking-wider">
+                              {cls.code}
+                            </span>
+                            <Link
+                              href={`/dashboard/classroom/${cls.code}?role=${role}`}
+                              className="px-3.5 py-1.5 rounded-xl text-[0.78rem] font-bold text-white btn-primary whitespace-nowrap"
+                            >
+                              Join
+                            </Link>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* My Students Roster (Only for Teacher role) */}
+                {role === "teacher" && (
+                  <div className="rounded-[20px] overflow-hidden card-navy flex flex-col">
+                    <div className="px-5 py-4 border-b border-[rgba(59, 130, 246,0.14)] flex items-center justify-between">
+                      <h2 className="text-[0.95rem] font-bold text-snow">
+                        My Students
+                      </h2>
+                      <span className="text-[0.72rem] font-bold text-snow px-2 py-0.5 rounded-full badge-copper">
+                        {myStudents.length} mapped
+                      </span>
+                    </div>
+                    <div className="divide-y divide-[rgba(59, 130, 246,0.12)] overflow-y-auto max-h-[300px]">
+                      {myStudents.length === 0 ? (
+                        <div className="px-5 py-10 text-center text-[0.82rem] text-mist flex flex-col items-center gap-2">
+                          <span className="text-[1.3rem]">👨‍🎓</span>
+                          No students mapped to you yet.
+                        </div>
+                      ) : (
+                        myStudents.map((stud) => (
+                          <div key={stud._id} className="flex items-center gap-3 px-5 py-3 hover:bg-white/[0.01] transition-colors">
+                            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-snow text-xs flex-shrink-0"
+                              style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
+                              {(stud.firstName[0] + stud.lastName[0]).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[0.82rem] font-bold text-snow truncate">
+                                {stud.firstName} {stud.lastName}
+                              </p>
+                              <p className="text-[0.7rem] text-mist truncate">
+                                {stud.rollNumber || 'No Roll #'} · {stud.degreeBatch || 'No Batch'}
+                              </p>
+                            </div>
+                            <span className="px-2 py-0.5 rounded text-[0.64rem] font-extrabold text-teal-400 bg-teal-500/10 border border-teal-500/25 flex-shrink-0">
+                              {stud.mappedSubject || 'Class'}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Assigned Instructor Card (Only for Student role) */}
+                {role === "student" && (
+                  <div className="rounded-[20px] overflow-hidden card-navy flex flex-col">
+                    <div className="px-5 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
+                      <h2 className="text-[0.95rem] font-bold text-snow">
+                        Assigned Instructor
+                      </h2>
+                    </div>
+                    <div className="p-5 flex flex-col gap-4">
+                      {assignedTeacher ? (
+                        <>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-snow text-sm flex-shrink-0"
+                              style={{ background: "linear-gradient(135deg,#3B82F6,#FFFFFF)" }}>
+                              {(assignedTeacher.firstName[0] + assignedTeacher.lastName[0]).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-[0.88rem] font-bold text-snow truncate">
+                                Prof. {assignedTeacher.firstName} {assignedTeacher.lastName}
+                              </p>
+                              <p className="text-[0.74rem] text-mist truncate">
+                                {assignedTeacher.email}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-2 p-3.5 rounded-xl bg-black/[0.02] border border-white/[0.04]">
+                            <div className="flex justify-between text-[0.76rem]">
+                              <span className="text-mist">Department:</span>
+                              <span className="font-semibold text-snow">{assignedTeacher.department || 'General'}</span>
+                            </div>
+                            <div className="flex justify-between text-[0.76rem]">
+                              <span className="text-mist">Course Enrolled:</span>
+                              <span className="font-semibold text-teal-400">{assignedSubject || 'General class'}</span>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-center py-6 text-[0.82rem] text-mist flex flex-col items-center gap-2">
+                          <span className="text-[1.3rem]">💼</span>
+                          No instructor assigned yet.
+                          <p className="text-[0.7rem] text-mist/60">Contact administration to register your academic mapping.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* ── RECENT SESSIONS ──────────────────────── */}
+              <div
+                id="recent-sessions-card"
+                className="rounded-[20px] overflow-hidden card-navy"
+              >
+                <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(59, 130, 246,0.14)]">
+                  <h2 className="text-[0.95rem] font-bold text-snow">
+                    Recent Sessions
+                  </h2>
+                  <button className="text-[0.8rem] font-semibold text-mist hover:text-snow transition-colors">
+                    View all →
+                  </button>
+                </div>
+                <div className="divide-y divide-[rgba(59, 130, 246,0.12)]">
+                  {(() => {
+                    const endedStudentMeetings = role === "student" ? teacherMeetings.filter(m => !m.active) : [];
+                    const endedMeetingsForRole = role === "teacher" ? endedTeacherMeetings : endedStudentMeetings;
+
+                    if (endedMeetingsForRole.length === 0) {
+                      return (
+                        <div className="px-6 py-10 text-center text-[0.85rem] text-mist flex flex-col items-center gap-2">
+                          <span className="text-[1.5rem]">🎥</span>
+                          No recent classroom sessions found.
+                        </div>
+                      );
+                    }
+
+                    return endedMeetingsForRole.map((s) => {
+                      const myParticipant = s.participants.find(p => p.name === userName);
+                      const displayScore = role === "teacher" ? s.cfi : (myParticipant ? myParticipant.score : 75);
+
+                      return (
+                        <div
+                          key={s._id}
+                          id={s._id}
+                          className="flex items-center gap-4 px-6 py-4 hover:bg-[rgba(59, 130, 246,0.06)] transition-colors"
+                        >
+                          <div
+                            className="w-9 h-9 rounded-xl flex items-center justify-center text-snow flex-shrink-0"
+                            style={{
+                              background: "rgba(59, 130, 246,0.15)",
+                              border: "1px solid rgba(59, 130, 246,0.30)",
+                            }}
+                          >
+                            <SvgIcon
+                              paths={[
+                                "M15 10l4.553-2.069A1 1 0 0 1 21 8.914V15.086a1 1 0 0 1-1.447.914L15 14M3 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8z",
+                              ]}
+                              size={16}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[0.88rem] font-semibold text-snow truncate">
+                              {s.title}
+                            </p>
+                            <p className="text-[0.76rem] text-mist">
+                              {new Date(s.createdAt).toLocaleDateString()} · {s.teacherName}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-3 flex-shrink-0">
+                            <ScoreBadge score={displayScore || 75} />
+                            <button
+                              onClick={() => {
+                                if (role === "teacher") {
+                                  setExpandedMeetingId(s._id);
+                                  setActiveTab("nav-meetings");
+                                } else {
+                                  setExpandedMeetingId(s._id);
+                                  setActiveTab("nav-reports");
+                                }
+                              }}
+                              className="text-[0.78rem] font-semibold text-mist hover:text-snow transition-colors"
+                            >
+                              View Report →
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            </>
           )}
         </div>
       </main>
@@ -4431,7 +4432,7 @@ export default function DashboardPage() {
           <div className="relative card-navy rounded-[24px] max-w-[460px] w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
             <h3 className="text-[1.25rem] font-black text-snow mb-1">My Profile & Settings</h3>
             <p className="text-[0.8rem] text-mist mb-6">View and update your account details.</p>
-            
+
             {profileSuccess && (
               <div className="mb-4 px-4 py-3 rounded-xl text-[0.82rem] font-semibold text-blue-500 bg-[rgba(59,130,246,0.10)] border border-[rgba(59,130,246,0.20)]">
                 ✓ {profileSuccess}
@@ -4581,7 +4582,7 @@ export default function DashboardPage() {
           <div className="relative card-navy rounded-[24px] max-w-[460px] max-h-[90vh] overflow-y-auto w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
             <h3 className="text-[1.25rem] font-black text-snow mb-1">Create New User</h3>
             <p className="text-[0.8rem] text-mist mb-6">Register a new user directly into the database.</p>
-            
+
             <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
@@ -4748,7 +4749,7 @@ export default function DashboardPage() {
             <p className="text-[0.8rem] text-mist mb-6">
               Create a student account and link directly under <strong>Instructor {selectedTeacherForStudent.firstName} {selectedTeacherForStudent.lastName}</strong>.
             </p>
-            
+
             <form onSubmit={handleAddStudentSubmit} className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
@@ -4870,7 +4871,7 @@ export default function DashboardPage() {
           <div className="relative card-navy rounded-[24px] max-w-[460px] max-h-[90vh] overflow-y-auto w-full p-8 border border-[rgba(59, 130, 246,0.25)] shadow-2xl animate-modal-in">
             <h3 className="text-[1.25rem] font-black text-snow mb-1">Edit User Profile</h3>
             <p className="text-[0.8rem] text-mist mb-6">Modify user credentials and system access permissions.</p>
-            
+
             <form onSubmit={handleEditUser} className="flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
@@ -5034,7 +5035,7 @@ export default function DashboardPage() {
             <p className="text-[0.85rem] text-mist leading-relaxed mb-6">
               Are you sure you want to permanently delete <strong className="text-white font-bold">{selectedUser.firstName} {selectedUser.lastName}</strong> ({selectedUser.email})? This action is irreversible.
             </p>
-            
+
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -5064,7 +5065,7 @@ export default function DashboardPage() {
             <p className="text-[0.85rem] text-mist leading-relaxed mb-6">
               Are you sure you want to end this classroom session (<strong className="text-white font-bold">{meetingCodeToEnd}</strong>)? This will disconnect all students immediately.
             </p>
-            
+
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -5088,14 +5089,13 @@ export default function DashboardPage() {
       {/* ── FLOATING NOTIFICATION TOAST ─────────────────── */}
       {notification && (
         <div className="fixed top-6 right-6 z-50 animate-modal-in">
-          <div className={`flex items-center gap-3 px-5 py-4 rounded-2xl border shadow-2xl ${
-            notification.type === 'success' 
-              ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' 
-              : 'bg-red-500/10 border-red-500/20 text-red-400'
-          }`}>
+          <div className={`flex items-center gap-3 px-5 py-4 rounded-2xl border shadow-2xl ${notification.type === 'success'
+            ? 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+            : 'bg-red-500/10 border-red-500/20 text-red-400'
+            }`}>
             <span className="text-lg font-bold">{notification.type === 'success' ? '✓' : '⚠'}</span>
             <p className="text-[0.88rem] font-bold text-snow">{notification.message}</p>
-            <button 
+            <button
               onClick={() => setNotification(null)}
               className="text-snow/40 hover:text-snow text-[0.8rem] ml-2 font-bold"
             >

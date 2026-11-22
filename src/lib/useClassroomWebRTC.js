@@ -1,68 +1,56 @@
+// lib/useClassroomWebRTC.js
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { getCleanVoiceConstraints, optimizeOpusForVoice } from '@/lib/webrtcAudio';
 
-/**
- * ICE configuration with STUN + free TURN relay servers.
- * STUN alone fails behind symmetric NATs (most mobile carriers / corporate networks).
- * The free OpenRelay TURN servers ensure media always gets through.
- */
 const RTC_CONFIG = {
   iceServers: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
     { urls: 'stun:global.stun.twilio.com:3478' },
-    // Free OpenRelay TURN servers — relay fallback for symmetric NATs
     {
       urls: 'turn:openrelay.metered.ca:80',
       username: 'openrelayproject',
-      credential: 'openrelayproject'
+      credential: 'openrelayproject',
     },
     {
       urls: 'turn:openrelay.metered.ca:443',
       username: 'openrelayproject',
-      credential: 'openrelayproject'
+      credential: 'openrelayproject',
     },
     {
       urls: 'turn:openrelay.metered.ca:443?transport=tcp',
       username: 'openrelayproject',
-      credential: 'openrelayproject'
-    }
+      credential: 'openrelayproject',
+    },
   ],
   iceCandidatePoolSize: 10,
-  iceTransportPolicy: 'all'
-};
-
-const AUDIO_CAPTURE_CONSTRAINTS = {
-  echoCancellation: { ideal: true },
-  noiseSuppression: { ideal: true },
-  autoGainControl: { ideal: false },
-  channelCount: { ideal: 1 },
-  sampleRate: { ideal: 48000 }
+  iceTransportPolicy: 'all',
 };
 
 const getScreenConnectionKey = (peerId, shareId) => `${peerId}|${shareId}`;
 
-/**
- * Robust WebRTC multi-peer audio, video, and screen sharing hook
- * powered by MongoDB signaling (compatible with Vercel serverless deployments).
- */
 export function useClassroomWebRTC({
   sessionId,
   user,
+  audioDeviceId = '',
+  videoDeviceId = '',
+  initialMuted = false,
+  initialCamOff = false,
   onChatMessage,
   onPeerJoin,
   onPeerLeave,
   onSessionEnded,
-  onMediaError
+  onMediaError,
 }) {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStreams, setRemoteStreams] = useState({});
   const [peers, setPeers] = useState({});
 
-  const [muted, setMuted] = useState(false);
-  const [camOff, setCamOff] = useState(false);
+  const [muted, setMuted] = useState(Boolean(initialMuted));
+  const [camOff, setCamOff] = useState(Boolean(initialCamOff));
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [handRaised, setHandRaised] = useState(false);
 
@@ -75,7 +63,7 @@ export function useClassroomWebRTC({
 
   // Stable persistent peerId for this tab
   const [myId] = useState(() => {
-    if (user?.id || user?._id) return user.id || user._id;
+    if (user?.id || user?._id) return String(user.id || user._id);
     if (typeof window !== 'undefined') {
       const stored = sessionStorage.getItem(`insighted_peer_${sessionId}`);
       if (stored) return stored;
@@ -86,16 +74,30 @@ export function useClassroomWebRTC({
     return 'peer_client';
   });
 
-  const myName = user?.name || (typeof window !== 'undefined' ? localStorage.getItem('userName') : null) || (user?.role === 'teacher' ? 'Instructor' : 'Student');
+  const myName =
+    user?.name ||
+    (typeof window !== 'undefined' ? localStorage.getItem('userName') : null) ||
+    (user?.role === 'teacher' ? 'Instructor' : 'Student');
   const myRole = user?.role || 'student';
 
-  // Refs for callbacks, peer state, and local media
-  const callbacksRef = useRef({ onChatMessage, onPeerJoin, onPeerLeave, onSessionEnded, onMediaError });
+  const callbacksRef = useRef({
+    onChatMessage,
+    onPeerJoin,
+    onPeerLeave,
+    onSessionEnded,
+    onMediaError,
+  });
   const myInfoRef = useRef({ id: myId, name: myName, role: myRole });
   const peersRef = useRef(peers);
 
   useEffect(() => {
-    callbacksRef.current = { onChatMessage, onPeerJoin, onPeerLeave, onSessionEnded, onMediaError };
+    callbacksRef.current = {
+      onChatMessage,
+      onPeerJoin,
+      onPeerLeave,
+      onSessionEnded,
+      onMediaError,
+    };
     myInfoRef.current = { id: myId, name: myName, role: myRole };
     peersRef.current = peers;
   }, [onChatMessage, onPeerJoin, onPeerLeave, onSessionEnded, onMediaError, myId, myName, myRole, peers]);
@@ -112,223 +114,235 @@ export function useClassroomWebRTC({
   const lastSignalTimeRef = useRef(0);
   const processedSignalIdsRef = useRef(new Set());
   const joinSentRef = useRef(false);
-  const mediaStateRef = useRef({ muted, camOff });
-  const peerStatusRef = useRef({ muted, camOff, handRaised, isSpeaking });
+  const mediaStateRef = useRef({ muted: Boolean(initialMuted), camOff: Boolean(initialCamOff) });
+  const peerStatusRef = useRef({
+    muted: Boolean(initialMuted),
+    camOff: Boolean(initialCamOff),
+    handRaised,
+    isSpeaking,
+  });
 
   useEffect(() => {
     peerStatusRef.current = { muted, camOff, handRaised, isSpeaking };
   }, [muted, camOff, handRaised, isSpeaking]);
 
   // ─── Send signal via POST ───
-  const sendSignal = useCallback(async (type, data = {}, to = 'all') => {
-    if (!sessionId || !myId) return;
-    try {
-      const response = await fetch(`/api/classroom/${sessionId}/signal`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: myId,
-          to,
-          type,
-          data,
-          senderName: myInfoRef.current.name,
-          senderRole: myInfoRef.current.role
-        })
-      });
-      if (!response.ok) {
-        throw new Error(`Signal request failed with status ${response.status}`);
+  const sendSignal = useCallback(
+    async (type, data = {}, to = 'all') => {
+      if (!sessionId || !myId) return;
+      try {
+        const response = await fetch(`/api/classroom/${sessionId}/signal`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: myId,
+            to,
+            type,
+            data,
+            senderName: myInfoRef.current.name,
+            senderRole: myInfoRef.current.role,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error(`Signal request failed with status ${response.status}`);
+        }
+      } catch (err) {
+        console.warn('Signal send failed:', type, err);
       }
-    } catch (err) {
-      console.warn('Signal send failed:', type, err);
-    }
-  }, [sessionId, myId]);
+    },
+    [sessionId, myId]
+  );
 
   // ─── Create PeerConnection for camera/mic ───
-  const createPeerConnection = useCallback((peerId, peerName, peerRole) => {
-    if (pcsRef.current[peerId]) {
-      return pcsRef.current[peerId];
-    }
-
-    const pc = new RTCPeerConnection(RTC_CONFIG);
-    let restartInProgress = false;
-    pcsRef.current[peerId] = pc;
-    iceCandidatesQueueRef.current[peerId] = [];
-
-    // Add local media tracks if available
-    if (localStreamRef.current) {
-      localStreamRef.current.getTracks().forEach(track => {
-        try {
-          pc.addTrack(track, localStreamRef.current);
-        } catch (e) {
-          console.warn('Failed to add track to PC:', e);
-        }
-      });
-    }
-
-    // ICE candidate handler
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        sendSignal('ice-candidate', { candidate: event.candidate }, peerId);
+  const createPeerConnection = useCallback(
+    (peerId, peerName, peerRole) => {
+      if (pcsRef.current[peerId]) {
+        return pcsRef.current[peerId];
       }
-    };
 
-    // Remote track handler — deduplicate streams
-    pc.ontrack = (event) => {
-      const [stream] = event.streams;
-      if (stream) {
-        setRemoteStreams(prev => {
-          if (prev[peerId] === stream) return prev;
-          return { ...prev, [peerId]: stream };
+      const pc = new RTCPeerConnection(RTC_CONFIG);
+      let restartInProgress = false;
+      pcsRef.current[peerId] = pc;
+      iceCandidatesQueueRef.current[peerId] = [];
+
+      if (localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach((track) => {
+          try {
+            pc.addTrack(track, localStreamRef.current);
+          } catch (e) {
+            console.warn('Failed to add track to PC:', e);
+          }
         });
       }
-    };
 
-    pc.onconnectionstatechange = () => {
-      const state = pc.connectionState;
-      if (state === 'connected') {
-        setConnectionStatus('connected');
-      } else if (state === 'failed') {
-        restartIce();
-      }
-    };
-
-    const restartIce = async () => {
-      if (restartInProgress || pc.signalingState !== 'stable') return;
-      restartInProgress = true;
-      try {
-        const offer = await pc.createOffer({ iceRestart: true });
-        await pc.setLocalDescription(offer);
-        await sendSignal('offer', { sdp: pc.localDescription }, peerId);
-      } catch (err) {
-        console.warn(`ICE restart failed for peer ${peerId}:`, err);
-      } finally {
-        restartInProgress = false;
-      }
-    };
-
-    pc.oniceconnectionstatechange = () => {
-      if (pc.iceConnectionState === 'disconnected') {
-        // Give it a moment, then try ICE restart
-        setTimeout(() => {
-          if (pc.iceConnectionState === 'disconnected') {
-            restartIce();
-          }
-        }, 3000);
-      }
-    };
-
-    setPeers(prev => {
-      const cleaned = { ...prev };
-      Object.keys(cleaned).forEach(id => {
-        if (id !== peerId && cleaned[id].name === peerName) {
-          delete cleaned[id];
-        }
-      });
-
-      return {
-        ...cleaned,
-        [peerId]: {
-          id: peerId,
-          name: peerName || 'Participant',
-          role: peerRole || 'student',
-          camOff: false,
-          muted: false,
-          handRaised: false,
-          isSpeaking: false
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          sendSignal('ice-candidate', { candidate: event.candidate }, peerId);
         }
       };
-    });
 
-    return pc;
-  }, [sendSignal]);
+      pc.ontrack = (event) => {
+        const stream = event.streams?.[0] || new MediaStream([event.track]);
+        setRemoteStreams((prev) => ({
+          ...prev,
+          [peerId]: stream,
+        }));
+      };
 
-  const createScreenOffer = useCallback(async (peerId, share) => {
-    const connectionKey = getScreenConnectionKey(peerId, share.shareId);
-    const previous = screenSendPcsRef.current[connectionKey];
-    if (previous) {
-      previous.close();
-    }
+      const restartIce = async () => {
+        if (restartInProgress || pc.signalingState !== 'stable') return;
+        restartInProgress = true;
+        try {
+          const rawOffer = await pc.createOffer({ iceRestart: true });
+          const offer = { type: rawOffer.type, sdp: optimizeOpusForVoice(rawOffer.sdp) };
+          await pc.setLocalDescription(offer);
+          await sendSignal('offer', { sdp: pc.localDescription }, peerId);
+        } catch (err) {
+          console.warn(`ICE restart failed for peer ${peerId}:`, err);
+        } finally {
+          restartInProgress = false;
+        }
+      };
 
-    const pc = new RTCPeerConnection(RTC_CONFIG);
-    screenSendPcsRef.current[connectionKey] = pc;
-    share.stream.getTracks().forEach(track => {
-      pc.addTrack(track, share.stream);
-    });
-    pc.onicecandidate = event => {
-      if (event.candidate) {
-        sendSignal('screen-ice', {
-          shareId: share.shareId,
-          candidate: event.candidate
-        }, peerId);
+      pc.onconnectionstatechange = () => {
+        const state = pc.connectionState;
+        if (state === 'connected') {
+          setConnectionStatus('connected');
+        } else if (state === 'failed') {
+          restartIce();
+        }
+      };
+
+      pc.oniceconnectionstatechange = () => {
+        if (pc.iceConnectionState === 'disconnected') {
+          setTimeout(() => {
+            if (pc.iceConnectionState === 'disconnected') {
+              restartIce();
+            }
+          }, 3000);
+        }
+      };
+
+      // Deduplicate strictly by peerId (never delete participants who share a name)
+      setPeers((prev) => ({
+        ...prev,
+        [peerId]: {
+          id: peerId,
+          name: peerName || prev[peerId]?.name || 'Participant',
+          role: peerRole || prev[peerId]?.role || 'student',
+          camOff: prev[peerId]?.camOff ?? false,
+          muted: prev[peerId]?.muted ?? false,
+          handRaised: prev[peerId]?.handRaised ?? false,
+          isSpeaking: prev[peerId]?.isSpeaking ?? false,
+        },
+      }));
+
+      return pc;
+    },
+    [sendSignal]
+  );
+
+  const createScreenOffer = useCallback(
+    async (peerId, share) => {
+      const connectionKey = getScreenConnectionKey(peerId, share.shareId);
+      const previous = screenSendPcsRef.current[connectionKey];
+      if (previous) {
+        previous.close();
       }
-    };
 
-    try {
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      await sendSignal('screen-offer', {
-        shareId: share.shareId,
-        sdp: pc.localDescription,
-        sharerName: share.name
-      }, peerId);
-    } catch (err) {
-      pc.close();
-      delete screenSendPcsRef.current[connectionKey];
-      throw err;
-    }
-  }, [sendSignal]);
+      const pc = new RTCPeerConnection(RTC_CONFIG);
+      screenSendPcsRef.current[connectionKey] = pc;
+      share.stream.getTracks().forEach((track) => {
+        pc.addTrack(track, share.stream);
+      });
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          sendSignal(
+            'screen-ice',
+            {
+              shareId: share.shareId,
+              candidate: event.candidate,
+            },
+            peerId
+          );
+        }
+      };
+
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        await sendSignal(
+          'screen-offer',
+          {
+            shareId: share.shareId,
+            sdp: pc.localDescription,
+            sharerName: share.name,
+          },
+          peerId
+        );
+      } catch (err) {
+        pc.close();
+        delete screenSendPcsRef.current[connectionKey];
+        throw err;
+      }
+    },
+    [sendSignal]
+  );
 
   // ─── Initialize local media (camera & microphone) ───
   useEffect(() => {
     let active = true;
 
     async function setupLocalMedia() {
+      const videoConstraints = videoDeviceId
+        ? { deviceId: { exact: videoDeviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+        : { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' };
+
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: 'user'
-          },
-            audio: AUDIO_CAPTURE_CONSTRAINTS
+          video: videoConstraints,
+          audio: getCleanVoiceConstraints(audioDeviceId),
         });
 
         if (!active) {
-          stream.getTracks().forEach(t => t.stop());
+          stream.getTracks().forEach((t) => t.stop());
           return;
         }
 
         localStreamRef.current = stream;
-        stream.getAudioTracks().forEach(track => {
+        stream.getAudioTracks().forEach((track) => {
           track.enabled = !mediaStateRef.current.muted;
         });
-        stream.getVideoTracks().forEach(track => {
+        stream.getVideoTracks().forEach((track) => {
           track.enabled = !mediaStateRef.current.camOff;
         });
         setLocalStream(stream);
       } catch (err) {
         console.warn('Webcam/mic access error (or denied):', err);
-        // Try audio-only fallback
         try {
           const audioStream = await navigator.mediaDevices.getUserMedia({
-            audio: AUDIO_CAPTURE_CONSTRAINTS
+            audio: getCleanVoiceConstraints(audioDeviceId),
           });
           if (active) {
             localStreamRef.current = audioStream;
-            audioStream.getAudioTracks().forEach(track => {
+            audioStream.getAudioTracks().forEach((track) => {
               track.enabled = !mediaStateRef.current.muted;
             });
             setLocalStream(audioStream);
             mediaStateRef.current.camOff = true;
             setCamOff(true);
-            callbacksRef.current.onMediaError?.('Camera unavailable. You joined using microphone audio only.');
+            callbacksRef.current.onMediaError?.(
+              'Camera unavailable. You joined using microphone audio only.'
+            );
           } else {
-            audioStream.getTracks().forEach(track => track.stop());
+            audioStream.getTracks().forEach((track) => track.stop());
           }
         } catch (audioErr) {
           console.warn('Audio-only access also unavailable:', audioErr);
           if (active) {
-            callbacksRef.current.onMediaError?.('Microphone access is unavailable. Check your browser permissions and device settings.');
+            callbacksRef.current.onMediaError?.(
+              'Microphone access is unavailable. Check your browser permissions and device settings.'
+            );
           }
         }
       } finally {
@@ -343,10 +357,73 @@ export function useClassroomWebRTC({
     return () => {
       active = false;
       if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach(t => t.stop());
+        localStreamRef.current.getTracks().forEach((t) => t.stop());
         localStreamRef.current = null;
       }
     };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ─── Hot-swap microphone or camera mid-call across all active PeerConnections ───
+  const switchAudioDevice = useCallback(async (newMicId) => {
+    try {
+      const newAudioStream = await navigator.mediaDevices.getUserMedia({
+        audio: getCleanVoiceConstraints(newMicId),
+      });
+      const newTrack = newAudioStream.getAudioTracks()[0];
+      if (!newTrack) return;
+
+      newTrack.enabled = !mediaStateRef.current.muted;
+
+      if (localStreamRef.current) {
+        localStreamRef.current.getAudioTracks().forEach((t) => {
+          localStreamRef.current.removeTrack(t);
+          t.stop();
+        });
+        localStreamRef.current.addTrack(newTrack);
+        setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+      }
+
+      for (const pc of Object.values(pcsRef.current)) {
+        const sender = pc.getSenders().find((s) => s.track?.kind === 'audio');
+        if (sender) {
+          await sender.replaceTrack(newTrack);
+        }
+      }
+    } catch (err) {
+      callbacksRef.current.onMediaError?.('Could not switch microphone device.');
+    }
+  }, []);
+
+  const switchVideoDevice = useCallback(async (newCamId) => {
+    try {
+      const newVideoStream = await navigator.mediaDevices.getUserMedia({
+        video: newCamId
+          ? { deviceId: { exact: newCamId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+          : { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+      });
+      const newTrack = newVideoStream.getVideoTracks()[0];
+      if (!newTrack) return;
+
+      newTrack.enabled = !mediaStateRef.current.camOff;
+
+      if (localStreamRef.current) {
+        localStreamRef.current.getVideoTracks().forEach((t) => {
+          localStreamRef.current.removeTrack(t);
+          t.stop();
+        });
+        localStreamRef.current.addTrack(newTrack);
+        setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+      }
+
+      for (const pc of Object.values(pcsRef.current)) {
+        const sender = pc.getSenders().find((s) => s.track?.kind === 'video');
+        if (sender) {
+          await sender.replaceTrack(newTrack);
+        }
+      }
+    } catch (err) {
+      callbacksRef.current.onMediaError?.('Could not switch camera device.');
+    }
   }, []);
 
   // ─── Speech volume indicator ───
@@ -418,15 +495,16 @@ export function useClassroomWebRTC({
         const pc = createPeerConnection(from, senderName, senderRole);
 
         try {
-          const offer = await pc.createOffer();
+          const rawOffer = await pc.createOffer();
+          const offer = { type: rawOffer.type, sdp: optimizeOpusForVoice(rawOffer.sdp) };
           await pc.setLocalDescription(offer);
-          sendSignal('offer', { sdp: offer }, from);
+          sendSignal('offer', { sdp: pc.localDescription }, from);
 
           if (localScreenStreamRef.current && localScreenShareIdRef.current) {
             await createScreenOffer(from, {
               shareId: localScreenShareIdRef.current,
               stream: localScreenStreamRef.current,
-              name: myInfoRef.current.name
+              name: myInfoRef.current.name,
             });
           }
         } catch (err) {
@@ -439,21 +517,15 @@ export function useClassroomWebRTC({
         const pc = createPeerConnection(from, senderName, senderRole);
 
         try {
-          // If we already have a local description (glare), handle politely
           if (pc.signalingState === 'have-local-offer') {
-            // Polite peer: rollback our offer and accept theirs
-            // Use peerId comparison to decide who is polite
             if (myId > from) {
-              // We are impolite, ignore their offer
               break;
             }
-            // We are polite, rollback
             await pc.setLocalDescription({ type: 'rollback' });
           }
 
           await pc.setRemoteDescription(new RTCSessionDescription(data.sdp));
 
-          // Flush buffered ICE candidates
           if (iceCandidatesQueueRef.current[from]) {
             for (const cand of iceCandidatesQueueRef.current[from]) {
               try {
@@ -463,9 +535,10 @@ export function useClassroomWebRTC({
             iceCandidatesQueueRef.current[from] = [];
           }
 
-          const answer = await pc.createAnswer();
+          const rawAnswer = await pc.createAnswer();
+          const answer = { type: rawAnswer.type, sdp: optimizeOpusForVoice(rawAnswer.sdp) };
           await pc.setLocalDescription(answer);
-          sendSignal('answer', { sdp: answer }, from);
+          sendSignal('answer', { sdp: pc.localDescription }, from);
         } catch (err) {
           console.error('Error handling offer from peer:', from, err);
         }
@@ -513,7 +586,7 @@ export function useClassroomWebRTC({
       }
 
       case 'peer-status': {
-        setPeers(prev => {
+        setPeers((prev) => {
           if (!prev[from]) {
             return {
               ...prev,
@@ -521,16 +594,16 @@ export function useClassroomWebRTC({
                 id: from,
                 name: senderName || 'Participant',
                 role: senderRole || 'student',
-                ...data
-              }
+                ...data,
+              },
             };
           }
           return {
             ...prev,
             [from]: {
               ...prev[from],
-              ...data
-            }
+              ...data,
+            },
           };
         });
         break;
@@ -550,28 +623,32 @@ export function useClassroomWebRTC({
         screenPc.ontrack = (event) => {
           const scrStream = event.streams[0] || new MediaStream([event.track]);
           if (scrStream) {
-            setScreenShares(prev => ({
+            setScreenShares((prev) => ({
               ...prev,
               [shareId]: {
                 shareId,
                 peerId: from,
                 name: data.sharerName || senderName || 'Participant',
                 stream: scrStream,
-                isLocal: false
-              }
+                isLocal: false,
+              },
             }));
           }
           if (event.track.kind === 'video') {
-            event.track.addEventListener('ended', () => {
-              screenReceivePcsRef.current[connectionKey]?.close();
-              delete screenReceivePcsRef.current[connectionKey];
-              delete screenIceQueueRef.current[connectionKey];
-              setScreenShares(prev => {
-                const next = { ...prev };
-                delete next[shareId];
-                return next;
-              });
-            }, { once: true });
+            event.track.addEventListener(
+              'ended',
+              () => {
+                screenReceivePcsRef.current[connectionKey]?.close();
+                delete screenReceivePcsRef.current[connectionKey];
+                delete screenIceQueueRef.current[connectionKey];
+                setScreenShares((prev) => {
+                  const next = { ...prev };
+                  delete next[shareId];
+                  return next;
+                });
+              },
+              { once: true }
+            );
           }
         };
 
@@ -595,10 +672,14 @@ export function useClassroomWebRTC({
 
           const scrAnswer = await screenPc.createAnswer();
           await screenPc.setLocalDescription(scrAnswer);
-          await sendSignal('screen-answer', {
-            shareId,
-            sdp: screenPc.localDescription
-          }, from);
+          await sendSignal(
+            'screen-answer',
+            {
+              shareId,
+              sdp: screenPc.localDescription,
+            },
+            from
+          );
         } catch (err) {
           console.error('Error handling screen offer:', err);
         }
@@ -631,9 +712,10 @@ export function useClassroomWebRTC({
       case 'screen-ice': {
         const shareId = data.shareId || `screen:${from}`;
         const connectionKey = getScreenConnectionKey(from, shareId);
-        const screenPc = data.shareId === localScreenShareIdRef.current
-          ? screenSendPcsRef.current[connectionKey]
-          : screenReceivePcsRef.current[connectionKey];
+        const screenPc =
+          data.shareId === localScreenShareIdRef.current
+            ? screenSendPcsRef.current[connectionKey]
+            : screenReceivePcsRef.current[connectionKey];
         if (data.candidate) {
           if (screenPc && screenPc.remoteDescription) {
             try {
@@ -658,33 +740,37 @@ export function useClassroomWebRTC({
           screenReceivePcsRef.current[connectionKey]?.close();
           delete screenReceivePcsRef.current[connectionKey];
           delete screenIceQueueRef.current[connectionKey];
-          setScreenShares(prev => {
+          setScreenShares((prev) => {
             const next = { ...prev };
             delete next[shareId];
             return next;
           });
         } else {
           Object.keys(screenReceivePcsRef.current)
-            .filter(key => key.startsWith(`${from}|`))
-            .forEach(key => {
+            .filter((key) => key.startsWith(`${from}|`))
+            .forEach((key) => {
               screenReceivePcsRef.current[key].close();
               delete screenReceivePcsRef.current[key];
               delete screenIceQueueRef.current[key];
             });
-          setScreenShares(prev => Object.fromEntries(
-            Object.entries(prev).filter(([, share]) => share.peerId !== from)
-          ));
+          setScreenShares((prev) =>
+            Object.fromEntries(Object.entries(prev).filter(([, share]) => share.peerId !== from))
+          );
         }
         break;
       }
 
       case 'chat': {
         callbacksRef.current.onChatMessage?.({
-          id: sig.id,
+          id: data.clientMsgId || sig.id,
+          clientMsgId: data.clientMsgId || sig.id,
           sender: senderName,
           role: senderRole,
           msg: data.msg,
-          time: data.time || new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })
+          time:
+            data.time ||
+            new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }),
+          timestamp: data.timestamp || Date.now(),
         });
         break;
       }
@@ -698,32 +784,32 @@ export function useClassroomWebRTC({
           delete pcsRef.current[from];
         }
         Object.keys(screenSendPcsRef.current)
-          .filter(key => key.startsWith(`${from}|`))
-          .forEach(key => {
+          .filter((key) => key.startsWith(`${from}|`))
+          .forEach((key) => {
             screenSendPcsRef.current[key].close();
             delete screenSendPcsRef.current[key];
             delete screenIceQueueRef.current[key];
           });
         Object.keys(screenReceivePcsRef.current)
-          .filter(key => key.startsWith(`${from}|`))
-          .forEach(key => {
+          .filter((key) => key.startsWith(`${from}|`))
+          .forEach((key) => {
             screenReceivePcsRef.current[key].close();
             delete screenReceivePcsRef.current[key];
             delete screenIceQueueRef.current[key];
           });
-        setPeers(prev => {
+        setPeers((prev) => {
           const next = { ...prev };
           delete next[from];
           return next;
         });
-        setRemoteStreams(prev => {
+        setRemoteStreams((prev) => {
           const next = { ...prev };
           delete next[from];
           return next;
         });
-        setScreenShares(prev => Object.fromEntries(
-          Object.entries(prev).filter(([, share]) => share.peerId !== from)
-        ));
+        setScreenShares((prev) =>
+          Object.fromEntries(Object.entries(prev).filter(([, share]) => share.peerId !== from))
+        );
         break;
       }
 
@@ -737,12 +823,11 @@ export function useClassroomWebRTC({
     }
   };
 
-  // Keep handleSignalRef always up to date
   useEffect(() => {
     handleSignalRef.current = handleSignal;
   });
 
-  // ─── Connect to signaling channel — runs ONCE on mount ───
+  // ─── Connect to signaling channel ───
   useEffect(() => {
     if (!sessionId || !myId || !localMediaReady) return;
 
@@ -756,24 +841,24 @@ export function useClassroomWebRTC({
       pollInFlight = true;
       try {
         const since = lastSignalTimeRef.current;
-        const res = await fetch(`/api/classroom/${sessionId}/signal?userId=${encodeURIComponent(myId)}&since=${since}`);
+        const res = await fetch(
+          `/api/classroom/${sessionId}/signal?userId=${encodeURIComponent(myId)}&since=${since}`
+        );
         if (!res.ok) return;
         const json = await res.json();
 
         if (!initialTimeFetched && json.serverTime) {
-          // On first poll, skip old signals — just set the cursor to server time
           lastSignalTimeRef.current = json.serverTime;
           initialTimeFetched = true;
 
-          // Now broadcast our join (after we know the server time cursor)
           if (!joinSentRef.current) {
             joinSentRef.current = true;
             await sendSignal('join', {
               name: myInfoRef.current.name,
-              role: myInfoRef.current.role
+              role: myInfoRef.current.role,
             });
             await sendSignal('peer-status', {
-              ...peerStatusRef.current
+              ...peerStatusRef.current,
             });
           }
           return;
@@ -800,7 +885,6 @@ export function useClassroomWebRTC({
       }
     };
 
-    // Poll every 800ms for near real-time
     pollTimer = setInterval(pollSignals, 800);
     pollSignals();
 
@@ -808,19 +892,29 @@ export function useClassroomWebRTC({
       isSubscribed = false;
       if (pollTimer) clearInterval(pollTimer);
 
-      // Send leave signal
       sendSignal('leave');
 
-      // Close all peer connections
-      Object.values(pcsRef.current).forEach(pc => { try { pc.close(); } catch (e) {} });
+      Object.values(pcsRef.current).forEach((pc) => {
+        try {
+          pc.close();
+        } catch (e) {}
+      });
       pcsRef.current = {};
-      Object.values(screenSendPcsRef.current).forEach(pc => { try { pc.close(); } catch (e) {} });
+      Object.values(screenSendPcsRef.current).forEach((pc) => {
+        try {
+          pc.close();
+        } catch (e) {}
+      });
       screenSendPcsRef.current = {};
-      Object.values(screenReceivePcsRef.current).forEach(pc => { try { pc.close(); } catch (e) {} });
+      Object.values(screenReceivePcsRef.current).forEach((pc) => {
+        try {
+          pc.close();
+        } catch (e) {}
+      });
       screenReceivePcsRef.current = {};
       screenIceQueueRef.current = {};
       if (localScreenStreamRef.current) {
-        localScreenStreamRef.current.getTracks().forEach(track => track.stop());
+        localScreenStreamRef.current.getTracks().forEach((track) => track.stop());
         localScreenStreamRef.current = null;
         localScreenShareIdRef.current = null;
       }
@@ -834,7 +928,7 @@ export function useClassroomWebRTC({
       muted,
       camOff,
       handRaised,
-      isSpeaking
+      isSpeaking,
     });
   }, [isSpeaking, muted, camOff, handRaised, sendSignal]);
 
@@ -843,7 +937,7 @@ export function useClassroomWebRTC({
     const next = !mediaStateRef.current.muted;
     mediaStateRef.current.muted = next;
     setMuted(next);
-    localStreamRef.current?.getAudioTracks().forEach(track => {
+    localStreamRef.current?.getAudioTracks().forEach((track) => {
       track.enabled = !next;
     });
   }, []);
@@ -853,14 +947,14 @@ export function useClassroomWebRTC({
     const next = !mediaStateRef.current.camOff;
     mediaStateRef.current.camOff = next;
     setCamOff(next);
-    localStreamRef.current?.getVideoTracks().forEach(track => {
+    localStreamRef.current?.getVideoTracks().forEach((track) => {
       track.enabled = !next;
     });
   }, []);
 
   // ─── Toggle hand raise ───
   const toggleHandRaise = useCallback(() => {
-    setHandRaised(prev => !prev);
+    setHandRaised((prev) => !prev);
   }, []);
 
   // ─── Stop screen sharing ───
@@ -869,21 +963,21 @@ export function useClassroomWebRTC({
     if (!shareId) return;
 
     if (localScreenStreamRef.current) {
-      localScreenStreamRef.current.getTracks().forEach(t => t.stop());
+      localScreenStreamRef.current.getTracks().forEach((t) => t.stop());
       localScreenStreamRef.current = null;
     }
     localScreenShareIdRef.current = null;
     setLocalScreenStream(null);
     setIsScreenSharing(false);
-    setScreenShares(prev => {
+    setScreenShares((prev) => {
       const next = { ...prev };
       delete next[shareId];
       return next;
     });
 
     Object.keys(screenSendPcsRef.current)
-      .filter(key => key.endsWith(`|${shareId}`))
-      .forEach(key => {
+      .filter((key) => key.endsWith(`|${shareId}`))
+      .forEach((key) => {
         screenSendPcsRef.current[key].close();
         delete screenSendPcsRef.current[key];
         delete screenIceQueueRef.current[key];
@@ -895,7 +989,9 @@ export function useClassroomWebRTC({
   // ─── Start screen sharing ───
   const startScreenShare = useCallback(async () => {
     if (!navigator.mediaDevices?.getDisplayMedia) {
-      alert('Screen sharing is not supported on this browser (e.g. mobile devices). You can still view screens shared by others.');
+      callbacksRef.current.onMediaError?.(
+        'Screen sharing is not supported on this browser. You can still view shared screens.'
+      );
       return;
     }
 
@@ -903,11 +999,13 @@ export function useClassroomWebRTC({
     try {
       scrStream = await navigator.mediaDevices.getDisplayMedia({
         video: { cursor: 'always', frameRate: { ideal: 30, max: 60 } },
-        audio: true
+        audio: true,
       });
 
       localScreenStreamRef.current = scrStream;
-      const shareId = `${myId}:${globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
+      const shareId = `${myId}:${
+        globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`
+      }`;
       localScreenShareIdRef.current = shareId;
       setLocalScreenStream(scrStream);
       setIsScreenSharing(true);
@@ -916,9 +1014,9 @@ export function useClassroomWebRTC({
         peerId: myId,
         name: myInfoRef.current.name,
         stream: scrStream,
-        isLocal: true
+        isLocal: true,
       };
-      setScreenShares(prev => ({ ...prev, [shareId]: share }));
+      setScreenShares((prev) => ({ ...prev, [shareId]: share }));
 
       const peerIds = Object.keys(peersRef.current);
       for (const peerId of peerIds) {
@@ -929,10 +1027,13 @@ export function useClassroomWebRTC({
         }
       }
 
-      // Auto-stop when user clicks browser's native "Stop sharing" button
-      scrStream.getVideoTracks()[0]?.addEventListener('ended', () => {
-        stopScreenShare();
-      }, { once: true });
+      scrStream.getVideoTracks()[0]?.addEventListener(
+        'ended',
+        () => {
+          stopScreenShare();
+        },
+        { once: true }
+      );
     } catch (err) {
       console.warn('Screen share cancelled or failed:', err);
       if (scrStream && localScreenStreamRef.current === scrStream) {
@@ -941,16 +1042,25 @@ export function useClassroomWebRTC({
     }
   }, [myId, createScreenOffer, stopScreenShare]);
 
-  // ─── Send chat message ───
-  const sendChatMessage = useCallback((text) => {
-    if (!text?.trim()) return;
-    const msgObj = {
-      msg: text.trim(),
-      time: new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' })
-    };
-    sendSignal('chat', msgObj);
-    return msgObj;
-  }, [sendSignal]);
+  // ─── Send chat message with shared clientMsgId ───
+  const sendChatMessage = useCallback(
+    (text, customMeta = {}) => {
+      if (!text?.trim()) return;
+      const msgObj = {
+        clientMsgId:
+          customMeta.clientMsgId ||
+          `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        msg: text.trim(),
+        time:
+          customMeta.time ||
+          new Date().toLocaleTimeString('en', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: customMeta.timestamp || Date.now(),
+      };
+      sendSignal('chat', msgObj);
+      return msgObj;
+    },
+    [sendSignal]
+  );
 
   return {
     myId,
@@ -970,8 +1080,10 @@ export function useClassroomWebRTC({
     toggleMic,
     toggleCam,
     toggleHandRaise,
+    switchAudioDevice,
+    switchVideoDevice,
     startScreenShare,
     stopScreenShare,
-    sendChatMessage
+    sendChatMessage,
   };
 }

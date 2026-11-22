@@ -22,7 +22,7 @@ const ParticipantSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['student', 'teacher'],
+    enum: ['student', 'teacher', 'observer'],
     default: 'student',
   },
   score: {
@@ -48,7 +48,7 @@ const ParticipantSchema = new mongoose.Schema({
   },
   lastSeen: {
     // Timestamp of the most recent heartbeat from this participant.
-    // Used to prune stale participants (inactive > 15 s) in GET handler.
+    // Used to prune stale participants in the GET handler.
     type: Date,
     default: Date.now,
   },
@@ -59,24 +59,28 @@ const ParticipantSchema = new mongoose.Schema({
  * Embedded sub-document for a single chat message within a meeting.
  */
 const MessageSchema = new mongoose.Schema({
+  clientMsgId: {
+    // Client-generated ID used to deduplicate optimistic UI messages against DB polls
+    type: String,
+  },
   sender: {
     // Display name of the sender
     type: String,
     required: true,
   },
   msg: {
-    // The message text — stored as-is; sanitize on the client before rendering as HTML
+    // The message text — stored as-is; escaped by React on render
     type: String,
     required: true,
   },
   time: {
-    // Formatted time string (e.g. "10:35 AM") — stored for display convenience
+    // Formatted time string (e.g. "10:35 AM")
     type: String,
     required: true,
   },
   role: {
     type: String,
-    enum: ['student', 'teacher'],
+    enum: ['student', 'teacher', 'observer'],
     default: 'student',
   },
   createdAt: {
@@ -87,22 +91,18 @@ const MessageSchema = new mongoose.Schema({
 
 /**
  * TopicMarkerSchema
- * Records a topic/chapter boundary set by the teacher during a live session.
- * Used in the post-session analytics timeline.
+ * Records a topic/chapter boundary set by the host during a live session.
  */
 const TopicMarkerSchema = new mongoose.Schema({
   label: {
-    // Topic name or description
     type: String,
     required: true,
   },
   time: {
-    // Session elapsed time when the marker was placed (e.g. "00:12:30")
     type: String,
     required: true,
   },
   cfi: {
-    // Class Focus Index at the moment the marker was placed (snapshot for the timeline)
     type: Number,
     required: true,
   },
@@ -111,7 +111,6 @@ const TopicMarkerSchema = new mongoose.Schema({
 /**
  * MeetingSchema
  * Represents a single live classroom session.
- * Contains embedded participants, messages, and topic markers.
  */
 const MeetingSchema = new mongoose.Schema(
   {
@@ -132,53 +131,53 @@ const MeetingSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    teacherId: {
+      // Reference to the creator's User document for authoritative host checks
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
     teacherName: {
-      // Denormalised teacher name for quick display without a join
+      // Denormalized teacher name for quick display
       type: String,
       required: true,
     },
+    threshold: {
+      // Class Focus Index alert threshold (10–80%) configured at session creation
+      type: Number,
+      default: 40,
+    },
     active: {
-      // Set to false when the teacher ends the session
+      // Set to false only when the creator explicitly ends the session
       type: Boolean,
       default: true,
     },
 
-    // ── Embedded arrays (kept in-document for fast real-time access) ──────
+    // ── Embedded arrays ──────────────────────────────────────────────────
     participants: [ParticipantSchema],
-    messages: [MessageSchema],      // Chat messages — consider a separate collection for large classes
+    messages: [MessageSchema],
     topicMarkers: [TopicMarkerSchema],
 
     // ── Aggregate engagement metrics ─────────────────────────────────────
-    // Recalculated on each GET from participant scores
     cfi: {
-      // Class Focus Index — average comprehension score (0–100)
       type: Number,
       default: 75,
     },
     attention: {
-      // Proportion of students paying attention (0.0–1.0)
       type: Number,
       default: 0.75,
     },
     confusion: {
-      // Estimated confusion level (0.0–1.0), inversely derived from score
       type: Number,
       default: 0.20,
     },
     energy: {
-      // Estimated class energy level (0.0–1.0)
       type: Number,
       default: 0.70,
     },
   },
   {
-    timestamps: true, // Adds createdAt (session start) and updatedAt
+    timestamps: true,
   }
 );
 
-/**
- * Safe model export pattern for Next.js.
- * Reuses the compiled model if it already exists to prevent
- * "Cannot overwrite model" errors during hot-reload.
- */
 export default mongoose.models.Meeting || mongoose.model('Meeting', MeetingSchema);
