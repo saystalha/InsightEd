@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import NotificationCenter from "@/components/NotificationCenter";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -11,6 +12,22 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("hero");
   const [clickedId, setClickedId] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (isMounted && data?.authenticated && data.user) {
+          setCurrentUser(data.user);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, [pathname]);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40);
@@ -140,34 +157,46 @@ export default function Navbar() {
         </nav>
  
         {/* ── Auth Buttons ─────────────────── */}
-        <div className="hidden md:flex items-center gap-2.5 flex-shrink-0">
-          <Link
-            href="/login"
-            id="nav-login"
-            className="px-5 py-2 text-[0.85rem] font-semibold rounded-full transition-all duration-200 active:scale-95"
-            style={{
-              color: pathname === "/login" ? "#FFFFFF" : "rgba(255, 255, 255, 0.80)",
-              background: pathname === "/login" ? "rgba(255, 255, 255, 0.12)" : "transparent",
-              borderColor: pathname === "/login" ? "rgba(255, 255, 255, 0.50)" : "rgba(255, 255, 255, 0.25)",
-              borderStyle: "solid",
-              borderWidth: "1px",
-            }}
-            onMouseEnter={(e) => {
-              if (pathname !== "/login") {
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
-                e.currentTarget.style.color = "#FFFFFF";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (pathname !== "/login") {
-                e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "rgba(255, 255, 255, 0.80)";
-              }
-            }}
-          >
-            Login
-          </Link>
-          {/* Removed Get Started Button */}
+        <div className="hidden md:flex items-center gap-3 flex-shrink-0">
+          {currentUser ? (
+            <>
+              <NotificationCenter user={currentUser} />
+              <Link
+                href="/dashboard"
+                id="nav-dashboard-link"
+                className="px-5 py-2 text-[0.85rem] font-bold rounded-full bg-white text-[#1D5BF1] hover:bg-white/90 transition-all duration-200 shadow-sm active:scale-95"
+              >
+                Dashboard
+              </Link>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              id="nav-login"
+              className="px-5 py-2 text-[0.85rem] font-semibold rounded-full transition-all duration-200 active:scale-95"
+              style={{
+                color: pathname === "/login" ? "#FFFFFF" : "rgba(255, 255, 255, 0.80)",
+                background: pathname === "/login" ? "rgba(255, 255, 255, 0.12)" : "transparent",
+                borderColor: pathname === "/login" ? "rgba(255, 255, 255, 0.50)" : "rgba(255, 255, 255, 0.25)",
+                borderStyle: "solid",
+                borderWidth: "1px",
+              }}
+              onMouseEnter={(e) => {
+                if (pathname !== "/login") {
+                  e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
+                  e.currentTarget.style.color = "#FFFFFF";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (pathname !== "/login") {
+                  e.currentTarget.style.background = "transparent";
+                  e.currentTarget.style.color = "rgba(255, 255, 255, 0.80)";
+                }
+              }}
+            >
+              Login
+            </Link>
+          )}
         </div>
 
         {/* ── Mobile Hamburger ─────────────── */}
@@ -226,19 +255,28 @@ export default function Navbar() {
             </Link>
           ))}
           <div className="flex gap-3 pt-5">
-            <Link
-              href="/login"
-              onClick={() => setMenuOpen(false)}
-              className="flex-1 py-3 text-center text-[0.88rem] font-semibold rounded-xl text-white active:scale-95 transition-transform"
-              style={{
-                border: "1px solid rgba(255, 255, 255, 0.25)",
-                background: pathname === "/login" ? "rgba(255, 255, 255, 0.12)" : "transparent",
-                borderColor: pathname === "/login" ? "rgba(255, 255, 255, 0.50)" : "rgba(255, 255, 255, 0.25)"
-              }}
-            >
-              Login
-            </Link>
-            {/* Removed Get Started Button */}
+            {currentUser ? (
+              <Link
+                href="/dashboard"
+                onClick={() => setMenuOpen(false)}
+                className="flex-1 py-3 text-center text-[0.88rem] font-bold rounded-xl bg-white text-[#1D5BF1] active:scale-95 transition-transform shadow-md"
+              >
+                Go to Dashboard
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="flex-1 py-3 text-center text-[0.88rem] font-semibold rounded-xl text-white active:scale-95 transition-transform"
+                style={{
+                  border: "1px solid rgba(255, 255, 255, 0.25)",
+                  background: pathname === "/login" ? "rgba(255, 255, 255, 0.12)" : "transparent",
+                  borderColor: pathname === "/login" ? "rgba(255, 255, 255, 0.50)" : "rgba(255, 255, 255, 0.25)"
+                }}
+              >
+                Login
+              </Link>
+            )}
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import NotificationCenter from '@/components/NotificationCenter';
 
 export default function CreateMeetingPage() {
   const router = useRouter();
@@ -163,17 +164,20 @@ export default function CreateMeetingPage() {
 
   return (
     <div className="min-h-screen dashboard-bg relative overflow-hidden text-snow flex flex-col justify-between">
-      <header className="sticky top-0 z-30 px-6 sm:px-8 py-4 flex items-center gap-4 glass-topbar">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-1.5 text-mist hover:text-snow transition-colors text-xs font-bold uppercase tracking-wider"
-        >
-          ← Dashboard
-        </Link>
-        <div className="h-4 w-px bg-black/10" />
-        <span className="text-xs font-black uppercase tracking-wider text-snow">
-          New Classroom Session
-        </span>
+      <header className="sticky top-0 z-30 px-6 sm:px-8 py-4 flex items-center justify-between glass-topbar">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1.5 text-mist hover:text-snow transition-colors text-xs font-bold uppercase tracking-wider"
+          >
+            ← Dashboard
+          </Link>
+          <div className="h-4 w-px bg-black/10" />
+          <span className="text-xs font-black uppercase tracking-wider text-snow">
+            New Classroom Session
+          </span>
+        </div>
+        <NotificationCenter />
       </header>
 
       <div className="max-w-xl w-full mx-auto px-6 py-10 flex-1 flex flex-col justify-center relative z-10">

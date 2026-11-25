@@ -109,3 +109,36 @@ export function playTestChime(sinkId = '') {
     // Ignore autoplay restriction errors
   }
 }
+
+export function playNotificationPop(sinkId = '') {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AudioCtx();
+    if (sinkId && typeof ctx.setSinkId === 'function') {
+      ctx.setSinkId(sinkId).catch((err) => {
+        console.warn('Could not select notification audio output:', err);
+      });
+    }
+
+    const now = ctx.currentTime;
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(880, now);
+    oscillator.frequency.exponentialRampToValueAtTime(660, now + 0.12);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.09, now + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.onended = () => {
+      ctx.close().catch((err) => {
+        console.warn('Could not close notification audio context:', err);
+      });
+    };
+    oscillator.start(now);
+    oscillator.stop(now + 0.15);
+  } catch (err) {
+    console.warn('Notification sound could not be played:', err);
+  }
+}

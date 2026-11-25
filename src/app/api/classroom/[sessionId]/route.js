@@ -85,7 +85,20 @@ export async function GET(request, { params }) {
       (p) => now - new Date(p.lastSeen).getTime() < staleLimit
     );
 
-    if (meeting.participants.length !== originalCount) {
+    let waitingRoomChanged = false;
+
+    // Prune stale waiting room entries (> 90s inactive)
+    if (meeting.waitingRoom && meeting.waitingRoom.length > 0) {
+      const activeWaitingRoom = meeting.waitingRoom.filter(
+        (w) => w.status === 'admitted' || (now - new Date(w.lastSeen || w.requestedAt).getTime() < 90000)
+      );
+      if (activeWaitingRoom.length !== meeting.waitingRoom.length) {
+        meeting.waitingRoom = activeWaitingRoom;
+        waitingRoomChanged = true;
+      }
+    }
+
+    if (meeting.participants.length !== originalCount || waitingRoomChanged) {
       await meeting.save();
     }
 
@@ -169,8 +182,263 @@ export async function POST(request, { params }) {
         : user.role
       : guestRole || body.role || 'student';
 
+    if (action === 'pin-for-everyone') {
+      if (!creator) {
+        return NextResponse.json(
+          { error: 'Forbidden. Only the host can pin content for everyone.' },
+          { status: 403 }
+        );
+      }
+
+      const { pin } = body;
+      if (
+        pin !== null &&
+        (!pin ||
+          !['participant', 'screen'].includes(pin.type) ||
+          typeof pin.id !== 'string' ||
+          !pin.id)
+      ) {
+        return NextResponse.json({ error: 'A valid shared pin target is required.' }, { status: 400 });
+      }
+
+      meeting.globalPin = pin;
+      await meeting.save();
+
+      try {
+        await Signal.create({
+          sessionId: uppercaseCode,
+          from: userId,
+          to: 'all',
+          type: 'pin-state',
+          senderName: userName,
+          senderRole: 'teacher',
+          data: { pin },
+          timestamp: Date.now() + 10,
+          createdAt: new Date(),
+        });
+      } catch (err) {
+        console.error('Failed to broadcast classroom pin state:', err);
+      }
+
+      return NextResponse.json({ success: true, globalPin: meeting.globalPin });
+    }
+
+    const clientPeerId = body.peerId || userId;
+
+    // ── ACTION: REQUEST JOIN (Knock / Enter Waiting Room) ──
+    if (action === 'request-join') {
+      if (creator) {
+        return NextResponse.json({ success: true, status: 'admitted', isCreator: true });
+      }
+
+      if (!meeting.waitingRoom) meeting.waitingRoom = [];
+
+      const existingWIdx = meeting.waitingRoom.findIndex(
+        (w) => w.peerId === clientPeerId || (user && w.userId && String(w.userId) === String(user._id))
+      );
+
+      if (existingWIdx > -1) {
+        const item = meeting.waitingRoom[existingWIdx];
+        item.lastSeen = new Date();
+        item.peerId = clientPeerId;
+        if (item.status === 'admitted') {
+          await meeting.save();
+          return NextResponse.json({ success: true, status: 'admitted' });
+        }
+        if (item.status === 'denied') {
+          await meeting.save();
+          return NextResponse.json({
+            success: false,
+            status: 'denied',
+            error: 'Host declined your request to join this session.',
+          });
+        }
+        await meeting.save();
+        return NextResponse.json({ success: true, status: 'waiting' });
+      }
+
+      meeting.waitingRoom.push({
+        userId: user ? user._id : undefined,
+        peerId: clientPeerId,
+        name: userName,
+        initials: userInitials,
+        role: userRole,
+        status: 'waiting',
+        requestedAt: new Date(),
+        lastSeen: new Date(),
+      });
+
+      await meeting.save();
+
+      // Emit real-time knock signal to alert host immediately
+      try {
+        await Signal.create({
+          sessionId: uppercaseCode,
+          from: clientPeerId,
+          to: 'all',
+          type: 'knock',
+          senderName: userName,
+          senderRole: userRole,
+          data: {
+            peerId: clientPeerId,
+            name: userName,
+            initials: userInitials,
+            role: userRole,
+          },
+          timestamp: Date.now() + 10,
+          createdAt: new Date(),
+        });
+      } catch (sigErr) {}
+
+      return NextResponse.json({ success: true, status: 'waiting' });
+    }
+
+    // ── ACTION: CHECK ADMISSION (Waiting room polling) ──
+    if (action === 'check-admission') {
+      if (creator) {
+        return NextResponse.json({ success: true, status: 'admitted', isCreator: true });
+      }
+
+      if (!meeting.waitingRoom) meeting.waitingRoom = [];
+      const item = meeting.waitingRoom.find(
+        (w) => w.peerId === clientPeerId || (user && w.userId && String(w.userId) === String(user._id))
+      );
+
+      if (!item) {
+        return NextResponse.json({ success: true, status: 'not-requested' });
+      }
+
+      item.lastSeen = new Date();
+      await meeting.save();
+      return NextResponse.json({ success: true, status: item.status });
+    }
+
+    // ── ACTION: ADMIT PARTICIPANT(S) (Host Only) ──
+    if (action === 'admit') {
+      if (!creator && user?.role !== 'admin') {
+        return NextResponse.json(
+          { error: 'Forbidden. Only the host can admit participants.' },
+          { status: 403 }
+        );
+      }
+
+      const { peerId, admitAll } = body;
+      if (!meeting.waitingRoom) meeting.waitingRoom = [];
+      const admittedIds = [];
+
+      if (admitAll) {
+        meeting.waitingRoom.forEach((w) => {
+          if (w.status === 'waiting') {
+            w.status = 'admitted';
+            admittedIds.push(w.peerId);
+          }
+        });
+      } else if (peerId) {
+        const item = meeting.waitingRoom.find((w) => w.peerId === peerId);
+        if (item) {
+          item.status = 'admitted';
+          admittedIds.push(item.peerId);
+        }
+      }
+
+      await meeting.save();
+
+      try {
+        for (const targetPeer of admittedIds) {
+          await Signal.create({
+            sessionId: uppercaseCode,
+            from: userId || 'host',
+            to: targetPeer,
+            type: 'admission-granted',
+            senderName: userName,
+            senderRole: 'teacher',
+            data: { peerId: targetPeer },
+            timestamp: Date.now() + 10,
+            createdAt: new Date(),
+          });
+        }
+      } catch (e) {}
+
+      return NextResponse.json({
+        success: true,
+        waitingRoom: meeting.waitingRoom.filter((w) => w.status === 'waiting'),
+      });
+    }
+
+    // ── ACTION: DENY PARTICIPANT (Host Only) ──
+    if (action === 'deny') {
+      if (!creator && user?.role !== 'admin') {
+        return NextResponse.json(
+          { error: 'Forbidden. Only the host can deny participants.' },
+          { status: 403 }
+        );
+      }
+
+      const { peerId } = body;
+      if (!meeting.waitingRoom) meeting.waitingRoom = [];
+
+      const item = meeting.waitingRoom.find((w) => w.peerId === peerId);
+      if (item) {
+        item.status = 'denied';
+      }
+
+      await meeting.save();
+
+      try {
+        if (peerId) {
+          await Signal.create({
+            sessionId: uppercaseCode,
+            from: userId || 'host',
+            to: peerId,
+            type: 'admission-denied',
+            senderName: userName,
+            senderRole: 'teacher',
+            data: { peerId },
+            timestamp: Date.now() + 10,
+            createdAt: new Date(),
+          });
+        }
+      } catch (e) {}
+
+      return NextResponse.json({
+        success: true,
+        waitingRoom: meeting.waitingRoom.filter((w) => w.status === 'waiting'),
+      });
+    }
+
+    // ── ACTION: CANCEL KNOCK (Participant Leaves Waiting Room) ──
+    if (action === 'cancel-knock') {
+      if (meeting.waitingRoom) {
+        meeting.waitingRoom = meeting.waitingRoom.filter(
+          (w) => w.peerId !== clientPeerId && (!user || String(w.userId) !== String(user._id))
+        );
+        await meeting.save();
+      }
+      return NextResponse.json({ success: true });
+    }
+
     // ── ACTION: JOIN ──
     if (action === 'join') {
+      // Security Enforcement: Non-hosts must be admitted by the host
+      if (!creator) {
+        const isAdmitted = (meeting.waitingRoom || []).some(
+          (w) =>
+            (w.peerId === clientPeerId || (user && w.userId && String(w.userId) === String(user._id))) &&
+            w.status === 'admitted'
+        );
+
+        if (!isAdmitted) {
+          return NextResponse.json(
+            {
+              error: 'Host permission is required to enter this classroom.',
+              status: 'waiting',
+              requiresPermission: true,
+            },
+            { status: 403 }
+          );
+        }
+      }
+
       const pIdx = meeting.participants.findIndex((p) =>
         user && p.userId ? p.userId.toString() === userId : p.name === userName
       );

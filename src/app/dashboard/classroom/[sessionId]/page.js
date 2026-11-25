@@ -4,7 +4,11 @@ import { useState, useEffect, useRef, useMemo, useCallback, Suspense } from 'rea
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
 import { useClassroomWebRTC } from '@/lib/useClassroomWebRTC';
 import MeetingVideoTile from '@/components/MeetingVideoTile';
-import { getCleanVoiceConstraints, playTestChime } from '@/lib/webrtcAudio';
+import {
+  getCleanVoiceConstraints,
+  playNotificationPop,
+  playTestChime,
+} from '@/lib/webrtcAudio';
 
 /* ─── SVG Icon Helper ─────────────────────────── */
 function Icon({ d, size = 18, fill = 'none', className = '', ...rest }) {
@@ -56,7 +60,16 @@ function RemoteAudioTrack({ stream, sinkId }) {
 }
 
 /* ─── Screen Share Tile ─────────────────────────── */
-function ScreenShareTile({ share, featured = false, isPinned = false, onPin, onStop }) {
+function ScreenShareTile({
+  share,
+  featured = false,
+  isPinned = false,
+  isPinnedForEveryone = false,
+  isHost = false,
+  onPin,
+  onPinForEveryone,
+  onStop,
+}) {
   const videoRef = useRef(null);
 
   useEffect(() => {
@@ -101,6 +114,20 @@ function ScreenShareTile({ share, featured = false, isPinned = false, onPin, onS
         >
           {isPinned ? 'Unpin' : 'Pin screen'}
         </button>
+        {isHost && onPinForEveryone && (
+          <button
+            onClick={onPinForEveryone}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all backdrop-blur-md ${
+              isPinnedForEveryone
+                ? 'bg-[#A78BFA] text-[#202124]'
+                : 'bg-[#202124]/85 text-white hover:bg-[#3C4043] border border-white/10'
+            }`}
+            aria-pressed={isPinnedForEveryone}
+            title={isPinnedForEveryone ? 'Unpin for everyone' : 'Pin for everyone'}
+          >
+            {isPinnedForEveryone ? 'Unpin for all' : 'Pin for all'}
+          </button>
+        )}
         {share.isLocal && onStop && (
           <button
             onClick={onStop}
@@ -197,6 +224,7 @@ function PreJoinLobby({
   setSelectedCamId,
   selectedSpeakerId,
   setSelectedSpeakerId,
+  joinRequestError,
   onJoinCall,
   onBack,
 }) {
@@ -438,6 +466,11 @@ function PreJoinLobby({
               {mediaWarning}
             </p>
           )}
+          {joinRequestError && (
+            <p role="alert" className="text-xs text-red-300 bg-red-500/10 border border-red-500/25 px-3.5 py-2 rounded-xl">
+              {joinRequestError}
+            </p>
+          )}
         </div>
 
         <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left gap-4">
@@ -472,7 +505,7 @@ function PreJoinLobby({
               onClick={handleEnter}
               className="flex-1 sm:flex-initial px-8 py-3.5 rounded-full bg-[#8AB4F8] hover:bg-[#A8C7FA] text-[#202124] font-bold text-sm transition-all shadow-lg active:scale-95"
             >
-              {isCreator ? 'Start Classroom' : 'Join Now'}
+              {isCreator ? 'Start Classroom' : 'Ask to Join'}
             </button>
             <button
               type="button"
@@ -537,6 +570,7 @@ function ActiveClassroomStage({
   const chatScrollRef = useRef(null);
 
   const [toasts, setToasts] = useState([]);
+  const [joinRequestAlert, setJoinRequestAlert] = useState(null);
   const [breakAlert, setBreakAlert] = useState(false);
   const [topicLabel, setTopicLabel] = useState('');
   const [topicMarkers, setTopicMarkers] = useState(meetingMeta?.topicMarkers || []);
@@ -548,6 +582,17 @@ function ActiveClassroomStage({
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [pinnedPeerId, setPinnedPeerId] = useState(null);
   const [pinnedScreenShareId, setPinnedScreenShareId] = useState(null);
+  const [globalPinnedTarget, setGlobalPinnedTarget] = useState(meetingMeta?.globalPin || null);
+
+  const [waitingList, setWaitingList] = useState(
+    () => meetingMeta?.waitingRoom?.filter((w) => w.status === 'waiting') || []
+  );
+
+  useEffect(() => {
+    if (!joinRequestAlert) return;
+    const timeout = setTimeout(() => setJoinRequestAlert(null), 10000);
+    return () => clearTimeout(timeout);
+  }, [joinRequestAlert]);
 
   const prevHandsRef = useRef({});
   const hasEndedExplicitlyRef = useRef(false);
@@ -561,6 +606,82 @@ function ActiveClassroomStage({
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4000);
   }, []);
+
+  // Poll waiting room if creator
+  useEffect(() => {
+    if (!isCreator) return;
+    let active = true;
+
+    const fetchWaiting = async () => {
+      try {
+        const res = await fetch(`/api/classroom/${sessionId}`, { cache: 'no-store' });
+        if (!res.ok) {
+          throw new Error(`Waiting room refresh failed with status ${res.status}`);
+        }
+        const data = await res.json();
+        if (active && Array.isArray(data?.meeting?.waitingRoom)) {
+          setWaitingList(data.meeting.waitingRoom.filter((w) => w.status === 'waiting'));
+        }
+      } catch (err) {
+        console.error('Failed to refresh classroom waiting room:', err);
+      }
+    };
+
+    fetchWaiting();
+    const interval = setInterval(fetchWaiting, 2500);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [isCreator, sessionId]);
+
+  const handleAdmit = async (peerId) => {
+    try {
+      const res = await fetch(`/api/classroom/${sessionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'admit', peerId }),
+      });
+      if (res.ok) {
+        setWaitingList((prev) => prev.filter((w) => w.peerId !== peerId));
+        showToast('Participant admitted into classroom', '✓');
+      }
+    } catch (e) {
+      showToast('Failed to admit participant', '⚠️');
+    }
+  };
+
+  const handleAdmitAll = async () => {
+    try {
+      const res = await fetch(`/api/classroom/${sessionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'admit', admitAll: true }),
+      });
+      if (res.ok) {
+        setWaitingList([]);
+        showToast('All waiting participants admitted', '✓');
+      }
+    } catch (e) {
+      showToast('Failed to admit all', '⚠️');
+    }
+  };
+
+  const handleDeny = async (peerId) => {
+    try {
+      const res = await fetch(`/api/classroom/${sessionId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'deny', peerId }),
+      });
+      if (res.ok) {
+        setWaitingList((prev) => prev.filter((w) => w.peerId !== peerId));
+        showToast('Entry request declined', '✕');
+      }
+    } catch (e) {
+      showToast('Failed to decline entry', '⚠️');
+    }
+  };
 
   const currentUser = useMemo(() => {
     const storedName = typeof window !== 'undefined' ? localStorage.getItem('userName') : null;
@@ -656,6 +777,23 @@ function ActiveClassroomStage({
     [showToast]
   );
 
+  const onKnock = useCallback(
+    (request) => {
+      if (isCreator && request?.peerId) {
+        playNotificationPop(selectedSpeakerId);
+        setJoinRequestAlert({
+          peerId: request.peerId,
+          name: request.name || 'A student',
+        });
+      }
+    },
+    [isCreator, selectedSpeakerId]
+  );
+
+  const onPinState = useCallback((pin) => {
+    setGlobalPinnedTarget(pin);
+  }, []);
+
   const {
     myId,
     myName,
@@ -686,10 +824,42 @@ function ActiveClassroomStage({
     initialCamOff: initialMediaPrefs.initialCamOff,
     onChatMessage: upsertChatMessage,
     onPeerJoin,
+    onKnock,
+    onPinState,
     onPeerLeave,
     onMediaError: (message) => showToast(message, '⚠️'),
     onSessionEnded: () => setIsSessionEndedModalOpen(true),
   });
+
+  const handlePinForEveryone = useCallback(
+    async (target) => {
+      const isAlreadyPinned =
+        globalPinnedTarget?.type === target.type && globalPinnedTarget?.id === target.id;
+      const pin = isAlreadyPinned ? null : target;
+
+      try {
+        const res = await fetch(`/api/classroom/${sessionId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'pin-for-everyone', pin }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data?.error || 'Could not change the pin for everyone.');
+        }
+        setGlobalPinnedTarget(data.globalPin || null);
+        setPinnedPeerId(null);
+        setPinnedScreenShareId(null);
+      } catch (err) {
+        console.error('Failed to change classroom-wide pin:', err);
+        showToast(
+          err instanceof Error ? err.message : 'Could not change the pin for everyone.',
+          '⚠️'
+        );
+      }
+    },
+    [globalPinnedTarget, sessionId, showToast]
+  );
 
   // Hot-swap microphone when changed in Settings modal
   useEffect(() => {
@@ -737,7 +907,7 @@ function ActiveClassroomStage({
 
     async function fetchSessionState() {
       try {
-        const res = await fetch(`/api/classroom/${sessionId}`);
+        const res = await fetch(`/api/classroom/${sessionId}`, { cache: 'no-store' });
         if (res.status === 410 || res.status === 404) {
           if (isMounted) setIsSessionEndedModalOpen(true);
           return;
@@ -760,6 +930,7 @@ function ActiveClassroomStage({
             confusion: meeting.confusion ?? 0.2,
             energy: meeting.energy ?? 0.7,
           });
+          setGlobalPinnedTarget(meeting.globalPin || null);
           setTopicMarkers(meeting.topicMarkers || []);
 
           if (Array.isArray(meeting.messages)) {
@@ -1065,17 +1236,37 @@ function ActiveClassroomStage({
   }, [myId, myName, myRole, localStream, muted, camOff, isSpeaking, handRaised, peerList, remoteStreams]);
 
   const totalCount = allParticipants.length;
-  const pinnedParticipant = allParticipants.find((p) => p.id === pinnedPeerId) || null;
+  const localPinnedTarget = pinnedPeerId
+    ? { type: 'participant', id: pinnedPeerId }
+    : pinnedScreenShareId
+    ? { type: 'screen', id: pinnedScreenShareId }
+    : null;
+  const activePinnedTarget = localPinnedTarget || globalPinnedTarget;
+  const pinnedParticipant =
+    activePinnedTarget?.type === 'participant'
+      ? allParticipants.find((p) => p.id === activePinnedTarget.id) || null
+      : null;
   const unpinnedParticipants = pinnedParticipant
     ? allParticipants.filter((p) => p.id !== pinnedParticipant.id)
     : allParticipants;
 
   const screenShareList = Object.values(screenShares);
   const featuredScreenShare =
-    screenShareList.find((share) => share.shareId === pinnedScreenShareId) || screenShareList[0];
+    screenShareList.find(
+      (share) =>
+        activePinnedTarget?.type === 'screen' && share.shareId === activePinnedTarget.id
+    ) || screenShareList[0];
   const otherScreenShares = screenShareList.filter(
     (share) => share.shareId !== featuredScreenShare?.shareId
   );
+  const pinParticipantLocally = (peerId) => {
+    setPinnedPeerId((current) => (current === peerId ? null : peerId));
+    setPinnedScreenShareId(null);
+  };
+  const pinScreenLocally = (shareId) => {
+    setPinnedScreenShareId((current) => (current === shareId ? null : shareId));
+    setPinnedPeerId(null);
+  };
 
   return (
     <div className="fixed inset-0 w-full h-[100dvh] max-h-[100dvh] flex flex-col overflow-hidden bg-[#202124] text-white font-sans select-none">
@@ -1102,6 +1293,59 @@ function ActiveClassroomStage({
           </div>
         ))}
       </div>
+
+      {isCreator && joinRequestAlert && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-24 right-4 sm:right-6 z-[60] w-[calc(100%-2rem)] max-w-sm pointer-events-auto animate-modal-in"
+        >
+          <div className="rounded-2xl bg-[#303134]/95 backdrop-blur-xl border border-white/15 shadow-2xl px-4 py-3.5 text-white">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 shrink-0 rounded-full bg-[#8AB4F8] text-[#202124] flex items-center justify-center font-bold text-sm">
+                {(joinRequestAlert.name || 'S').slice(0, 1).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-bold">Join request</p>
+                <p className="mt-0.5 text-xs text-white/75 truncate">
+                  <span className="font-semibold text-white">{joinRequestAlert.name}</span> wants to join
+                  the classroom.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setJoinRequestAlert(null)}
+                aria-label="Dismiss join request notification"
+                className="text-white/55 hover:text-white -mt-1 -mr-1 p-1"
+              >
+                <Icon d="M18 6 6 18M6 6l12 12" size={15} />
+              </button>
+            </div>
+            <div className="flex justify-end gap-2 mt-3">
+              <button
+                type="button"
+                onClick={() => {
+                  handleDeny(joinRequestAlert.peerId);
+                  setJoinRequestAlert(null);
+                }}
+                className="px-3 py-1.5 rounded-full text-xs font-semibold text-white/80 hover:bg-white/10 transition-colors"
+              >
+                Deny
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleAdmit(joinRequestAlert.peerId);
+                  setJoinRequestAlert(null);
+                }}
+                className="px-4 py-1.5 rounded-full text-xs font-bold bg-[#8AB4F8] hover:bg-[#A8C7FA] text-[#202124] transition-colors"
+              >
+                Admit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── BREAK ALERT BANNER ────────────────── */}
       {breakAlert && (
@@ -1198,18 +1442,106 @@ function ActiveClassroomStage({
       {/* ── MAIN VIDEO STAGE + SIDE DRAWER ── */}
       <div className="flex-1 flex overflow-hidden relative min-h-0 px-3 sm:px-5 pb-2 gap-4">
         <div className="flex-1 flex flex-col justify-center items-center overflow-hidden relative min-h-0 w-full">
-          {screenShareList.length > 0 ? (
+          {pinnedParticipant ? (
+            <div className="w-full h-full flex flex-col lg:flex-row gap-3 min-h-0 max-w-7xl mx-auto">
+              <div className="flex-1 min-h-0 rounded-2xl overflow-hidden">
+                <MeetingVideoTile
+                  stream={pinnedParticipant.stream}
+                  name={pinnedParticipant.name}
+                  role={pinnedParticipant.role}
+                  isLocal={pinnedParticipant.isLocal}
+                  muted={pinnedParticipant.muted}
+                  camOff={pinnedParticipant.camOff}
+                  isSpeaking={pinnedParticipant.isSpeaking}
+                  handRaised={pinnedParticipant.handRaised}
+                  isPinned={true}
+                  isHost={isCreator}
+                  isPinnedForEveryone={
+                    globalPinnedTarget?.type === 'participant' &&
+                    globalPinnedTarget.id === pinnedParticipant.id
+                  }
+                  onPin={() => pinParticipantLocally(pinnedParticipant.id)}
+                  onPinForEveryone={() =>
+                    handlePinForEveryone({ type: 'participant', id: pinnedParticipant.id })
+                  }
+                />
+              </div>
+
+              {(screenShareList.length > 0 || unpinnedParticipants.length > 0) && (
+                <div className="h-[110px] lg:h-full lg:w-[240px] flex lg:flex-col gap-2.5 overflow-x-auto lg:overflow-y-auto flex-shrink-0">
+                  {screenShareList.map((share) => (
+                    <div
+                      key={share.shareId}
+                      className="w-[160px] lg:w-full h-full lg:h-[145px] flex-shrink-0 rounded-2xl overflow-hidden"
+                    >
+                      <ScreenShareTile
+                        share={share}
+                        isPinned={
+                          activePinnedTarget?.type === 'screen' &&
+                          activePinnedTarget.id === share.shareId
+                        }
+                        isPinnedForEveryone={
+                          globalPinnedTarget?.type === 'screen' &&
+                          globalPinnedTarget.id === share.shareId
+                        }
+                        isHost={isCreator}
+                        onPin={() => pinScreenLocally(share.shareId)}
+                        onPinForEveryone={() =>
+                          handlePinForEveryone({ type: 'screen', id: share.shareId })
+                        }
+                        onStop={share.isLocal ? stopScreenShare : null}
+                      />
+                    </div>
+                  ))}
+                  {unpinnedParticipants.map((p) => (
+                    <div
+                      key={p.id}
+                      className="w-[160px] lg:w-full h-full lg:h-[145px] flex-shrink-0 rounded-2xl overflow-hidden"
+                    >
+                      <MeetingVideoTile
+                        stream={p.stream}
+                        name={p.name}
+                        role={p.role}
+                        isLocal={p.isLocal}
+                        muted={p.muted}
+                        camOff={p.camOff}
+                        isSpeaking={p.isSpeaking}
+                        handRaised={p.handRaised}
+                        isPinned={activePinnedTarget?.type === 'participant' && activePinnedTarget.id === p.id}
+                        isHost={isCreator}
+                        isPinnedForEveryone={
+                          globalPinnedTarget?.type === 'participant' &&
+                          globalPinnedTarget.id === p.id
+                        }
+                        onPin={() => pinParticipantLocally(p.id)}
+                        onPinForEveryone={() =>
+                          handlePinForEveryone({ type: 'participant', id: p.id })
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : screenShareList.length > 0 ? (
             <div className="w-full h-full flex flex-col lg:flex-row gap-3 min-h-0">
               <div className="flex-1 flex flex-col gap-2 min-h-0">
                 <div className="flex-1 min-h-0">
                   <ScreenShareTile
                     share={featuredScreenShare}
                     featured={screenShareList.length > 1}
-                    isPinned={featuredScreenShare.shareId === pinnedScreenShareId}
-                    onPin={() =>
-                      setPinnedScreenShareId((current) =>
-                        current === featuredScreenShare.shareId ? null : featuredScreenShare.shareId
-                      )
+                    isPinned={
+                      activePinnedTarget?.type === 'screen' &&
+                      activePinnedTarget.id === featuredScreenShare.shareId
+                    }
+                    isPinnedForEveryone={
+                      globalPinnedTarget?.type === 'screen' &&
+                      globalPinnedTarget.id === featuredScreenShare.shareId
+                    }
+                    isHost={isCreator}
+                    onPin={() => pinScreenLocally(featuredScreenShare.shareId)}
+                    onPinForEveryone={() =>
+                      handlePinForEveryone({ type: 'screen', id: featuredScreenShare.shareId })
                     }
                     onStop={featuredScreenShare.isLocal ? stopScreenShare : null}
                   />
@@ -1220,11 +1552,18 @@ function ActiveClassroomStage({
                       <div key={share.shareId} className="w-[200px] h-full flex-shrink-0">
                         <ScreenShareTile
                           share={share}
-                          isPinned={share.shareId === pinnedScreenShareId}
-                          onPin={() =>
-                            setPinnedScreenShareId((current) =>
-                              current === share.shareId ? null : share.shareId
-                            )
+                          isPinned={
+                            activePinnedTarget?.type === 'screen' &&
+                            activePinnedTarget.id === share.shareId
+                          }
+                          isPinnedForEveryone={
+                            globalPinnedTarget?.type === 'screen' &&
+                            globalPinnedTarget.id === share.shareId
+                          }
+                          isHost={isCreator}
+                          onPin={() => pinScreenLocally(share.shareId)}
+                          onPinForEveryone={() =>
+                            handlePinForEveryone({ type: 'screen', id: share.shareId })
                           }
                           onStop={share.isLocal ? stopScreenShare : null}
                         />
@@ -1249,53 +1588,23 @@ function ActiveClassroomStage({
                       camOff={p.camOff}
                       isSpeaking={p.isSpeaking}
                       handRaised={p.handRaised}
-                      isPinned={pinnedPeerId === p.id}
-                      onPin={() => setPinnedPeerId((curr) => (curr === p.id ? null : p.id))}
+                      isPinned={
+                        activePinnedTarget?.type === 'participant' &&
+                        activePinnedTarget.id === p.id
+                      }
+                      isHost={isCreator}
+                      isPinnedForEveryone={
+                        globalPinnedTarget?.type === 'participant' &&
+                        globalPinnedTarget.id === p.id
+                      }
+                      onPin={() => pinParticipantLocally(p.id)}
+                      onPinForEveryone={() =>
+                        handlePinForEveryone({ type: 'participant', id: p.id })
+                      }
                     />
                   </div>
                 ))}
               </div>
-            </div>
-          ) : pinnedParticipant ? (
-            <div className="w-full h-full flex flex-col lg:flex-row gap-3 min-h-0 max-w-7xl mx-auto">
-              <div className="flex-1 min-h-0 rounded-2xl overflow-hidden">
-                <MeetingVideoTile
-                  stream={pinnedParticipant.stream}
-                  name={pinnedParticipant.name}
-                  role={pinnedParticipant.role}
-                  isLocal={pinnedParticipant.isLocal}
-                  muted={pinnedParticipant.muted}
-                  camOff={pinnedParticipant.camOff}
-                  isSpeaking={pinnedParticipant.isSpeaking}
-                  handRaised={pinnedParticipant.handRaised}
-                  isPinned={true}
-                  onPin={() => setPinnedPeerId(null)}
-                />
-              </div>
-
-              {unpinnedParticipants.length > 0 && (
-                <div className="h-[110px] lg:h-full lg:w-[240px] flex lg:flex-col gap-2.5 overflow-x-auto lg:overflow-y-auto flex-shrink-0">
-                  {unpinnedParticipants.map((p) => (
-                    <div
-                      key={p.id}
-                      className="w-[160px] lg:w-full h-full lg:h-[145px] flex-shrink-0 rounded-2xl overflow-hidden"
-                    >
-                      <MeetingVideoTile
-                        stream={p.stream}
-                        name={p.name}
-                        role={p.role}
-                        isLocal={p.isLocal}
-                        muted={p.muted}
-                        camOff={p.camOff}
-                        isSpeaking={p.isSpeaking}
-                        handRaised={p.handRaised}
-                        isPinned={false}
-                        onPin={() => setPinnedPeerId(p.id)}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           ) : (
             <div
@@ -1322,8 +1631,19 @@ function ActiveClassroomStage({
                     camOff={p.camOff}
                     isSpeaking={p.isSpeaking}
                     handRaised={p.handRaised}
-                    isPinned={pinnedPeerId === p.id}
-                    onPin={() => setPinnedPeerId((curr) => (curr === p.id ? null : p.id))}
+                    isPinned={
+                      activePinnedTarget?.type === 'participant' &&
+                      activePinnedTarget.id === p.id
+                    }
+                    isHost={isCreator}
+                    isPinnedForEveryone={
+                      globalPinnedTarget?.type === 'participant' &&
+                      globalPinnedTarget.id === p.id
+                    }
+                    onPin={() => pinParticipantLocally(p.id)}
+                    onPinForEveryone={() =>
+                      handlePinForEveryone({ type: 'participant', id: p.id })
+                    }
                   />
                 </div>
               ))}
@@ -1458,6 +1778,61 @@ function ActiveClassroomStage({
             {/* TAB 2: PARTICIPANTS */}
             {sidebarTab === 'participants' && (
               <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2.5 min-h-0">
+                {/* WAITING ROOM (HOST ONLY) */}
+                {isCreator && waitingList.length > 0 && (
+                  <div className="p-3 rounded-2xl bg-[#8AB4F8]/10 border border-[#8AB4F8]/30 mb-2 flex flex-col gap-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-bold text-[#8AB4F8] uppercase tracking-wider flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[#8AB4F8] animate-pulse" />
+                        Waiting to Join ({waitingList.length})
+                      </span>
+                      {waitingList.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={handleAdmitAll}
+                          className="text-[10px] font-bold text-white hover:underline cursor-pointer"
+                        >
+                          Admit All
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      {waitingList.map((w) => (
+                        <div
+                          key={w.peerId}
+                          className="flex items-center justify-between gap-2 p-2 rounded-xl bg-black/25"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-6 h-6 rounded-full bg-[#8AB4F8] text-[#202124] text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+                              {w.initials || w.name.slice(0, 2).toUpperCase()}
+                            </div>
+                            <span className="text-xs font-medium text-white truncate max-w-[110px]">
+                              {w.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => handleAdmit(w.peerId)}
+                              className="px-2 py-1 rounded-md text-[10px] font-bold bg-[#8AB4F8] hover:bg-[#A8C7FA] text-[#202124] transition-colors cursor-pointer"
+                            >
+                              Admit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeny(w.peerId)}
+                              className="px-2 py-1 rounded-md text-[10px] font-semibold text-white/70 hover:text-white bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+                            >
+                              Deny
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-1">
                   In call ({totalCount})
                 </p>
@@ -1488,9 +1863,7 @@ function ActiveClassroomStage({
                     <div className="flex items-center gap-2">
                       {person.handRaised && <span className="text-sm">✋</span>}
                       <button
-                        onClick={() =>
-                          setPinnedPeerId((curr) => (curr === person.id ? null : person.id))
-                        }
+                        onClick={() => pinParticipantLocally(person.id)}
                         className={`p-1.5 rounded-full text-xs transition-colors ${
                           pinnedPeerId === person.id
                             ? 'bg-[#8AB4F8] text-[#202124]'
@@ -1503,6 +1876,34 @@ function ActiveClassroomStage({
                           size={13}
                         />
                       </button>
+                      {isCreator && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handlePinForEveryone({ type: 'participant', id: person.id })
+                          }
+                          className={`px-1.5 py-1 rounded-full text-[9px] font-bold transition-colors ${
+                            globalPinnedTarget?.type === 'participant' &&
+                            globalPinnedTarget.id === person.id
+                              ? 'bg-[#A78BFA] text-[#202124]'
+                              : 'text-white/60 hover:text-white hover:bg-white/10'
+                          }`}
+                          title={
+                            globalPinnedTarget?.type === 'participant' &&
+                            globalPinnedTarget.id === person.id
+                              ? 'Unpin for everyone'
+                              : 'Pin for everyone'
+                          }
+                          aria-label={
+                            globalPinnedTarget?.type === 'participant' &&
+                            globalPinnedTarget.id === person.id
+                              ? 'Unpin for everyone'
+                              : 'Pin for everyone'
+                          }
+                        >
+                          All
+                        </button>
+                      )}
                       {person.muted ? (
                         <Icon
                           d="m19 10-1.39 4.5M9 5a3 3 0 0 1 5.3 1.8M12 19v4M8 23h8M1 1l22 22"
@@ -1922,6 +2323,7 @@ function ClassroomContent() {
   const [userProfile, setUserProfile] = useState(null);
   const [meetingMeta, setMeetingMeta] = useState(null);
   const [sessionGone, setSessionGone] = useState(false);
+  const [joinRequestError, setJoinRequestError] = useState('');
 
   const [inCall, setInCall] = useState(false);
   const [initialMediaPrefs, setInitialMediaPrefs] = useState({
@@ -1990,6 +2392,54 @@ function ClassroomContent() {
     return () => navigator.mediaDevices?.removeEventListener?.('devicechange', loadDevices);
   }, []);
 
+  const getClientPeerId = useCallback(() => {
+    if (userProfile?._id) return String(userProfile._id);
+    const storageKey = `insighted_peer_${sessionId}`;
+    const stored = sessionStorage.getItem(storageKey);
+    if (stored) return stored;
+
+    const peerId = `peer_${Date.now().toString(36)}${Math.random().toString(36).substring(2, 6)}`;
+    sessionStorage.setItem(storageKey, peerId);
+    return peerId;
+  }, [userProfile, sessionId]);
+
+  const [admissionStatus, setAdmissionStatus] = useState('lobby'); // 'lobby' | 'waiting' | 'admitted' | 'denied'
+
+  // Poll admission status while in waiting room
+  useEffect(() => {
+    if (admissionStatus !== 'waiting' || inCall) return;
+
+    let active = true;
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/classroom/${sessionId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'check-admission',
+            peerId: getClientPeerId(),
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (!active) return;
+          if (data?.status === 'admitted') {
+            playTestChime(selectedSpeakerId);
+            setAdmissionStatus('admitted');
+            setInCall(true);
+          } else if (data?.status === 'denied') {
+            setAdmissionStatus('denied');
+          }
+        }
+      } catch (err) {}
+    }, 2000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, [admissionStatus, inCall, sessionId, getClientPeerId, selectedSpeakerId]);
+
   if (!authReady) {
     return (
       <div className="fixed inset-0 bg-[#202124] flex items-center justify-center">
@@ -2034,6 +2484,89 @@ function ClassroomContent() {
         (userProfile?.role === 'teacher' || userProfile?.role === 'admin')
   );
 
+  // WAITING ROOM SCREEN
+  if (admissionStatus === 'waiting' && !inCall) {
+    return (
+      <div className="min-h-[100dvh] bg-[#202124] text-white flex flex-col justify-between p-6 sm:p-8 animate-fadeUp">
+        <header className="max-w-5xl w-full mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl overflow-hidden border border-white/15">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.jpeg" alt="InsightEd" className="w-full h-full object-cover" />
+            </div>
+            <div>
+              <span className="font-bold text-base tracking-tight text-white">InsightEd Meet</span>
+              <p className="text-xs text-white/60">Classroom Code: {sessionId}</p>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-md w-full mx-auto my-auto p-8 rounded-3xl bg-[#292A2D] border border-white/15 text-center shadow-2xl">
+          <div className="w-16 h-16 rounded-full bg-[#8AB4F8]/10 border border-[#8AB4F8]/30 flex items-center justify-center mx-auto mb-5">
+            <div className="w-8 h-8 border-3 border-[#8AB4F8] border-t-transparent rounded-full animate-spin" />
+          </div>
+
+          <h2 className="text-xl font-black text-white tracking-tight mb-2">
+            Waiting for Host Permission…
+          </h2>
+          <p className="text-xs text-white/70 leading-relaxed mb-6">
+            The meeting host (<strong>{meetingMeta?.teacherName || 'Instructor'}</strong>) has been notified that you want to join. You will be admitted automatically once approved.
+          </p>
+
+          <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white/80 font-mono mb-6 text-left flex justify-between items-center">
+            <span>Participant: {resolvedName}</span>
+            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">
+              Knocking
+            </span>
+          </div>
+
+          <button
+            onClick={async () => {
+              try {
+                await fetch(`/api/classroom/${sessionId}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ action: 'cancel-knock', peerId: getClientPeerId() }),
+                });
+              } catch (e) {}
+              router.push('/dashboard');
+            }}
+            className="w-full py-2.5 rounded-full text-xs font-semibold text-white/80 hover:text-white bg-white/10 hover:bg-white/20 transition-all border border-white/10 cursor-pointer"
+          >
+            Leave Waiting Room
+          </button>
+        </main>
+
+        <footer className="text-center text-[11px] text-white/40">
+          Secure Host Admission Control • InsightEd Education
+        </footer>
+      </div>
+    );
+  }
+
+  // ENTRY DENIED SCREEN
+  if (admissionStatus === 'denied') {
+    return (
+      <div className="fixed inset-0 bg-[#202124] flex items-center justify-center p-4">
+        <div className="rounded-2xl max-w-[400px] w-full p-6 bg-[#292A2D] border border-red-500/30 text-center shadow-2xl animate-modal-in">
+          <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
+            ✕
+          </div>
+          <h2 className="text-base font-bold text-white mb-2">Entry Declined</h2>
+          <p className="text-xs text-white/70 mb-5 leading-relaxed">
+            The host declined your request to join this classroom session. Please check with your instructor or return to the dashboard.
+          </p>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="w-full py-2.5 rounded-full bg-[#8AB4F8] text-[#202124] text-xs font-bold transition-all cursor-pointer hover:bg-[#A8C7FA]"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!inCall) {
     return (
       <PreJoinLobby
@@ -2048,9 +2581,44 @@ function ClassroomContent() {
         setSelectedCamId={setSelectedCamId}
         selectedSpeakerId={selectedSpeakerId}
         setSelectedSpeakerId={setSelectedSpeakerId}
-        onJoinCall={(prefs) => {
+        joinRequestError={joinRequestError}
+        onJoinCall={async (prefs) => {
           setInitialMediaPrefs(prefs);
-          setInCall(true);
+          if (isCreator) {
+            setInCall(true);
+            return;
+          }
+
+          setJoinRequestError('');
+          setAdmissionStatus('waiting');
+          try {
+            const res = await fetch(`/api/classroom/${sessionId}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'request-join',
+                peerId: getClientPeerId(),
+                guestName: resolvedName,
+                guestRole: requestedRole,
+              }),
+            });
+            const data = await res.json();
+            if (data?.status === 'admitted') {
+              playTestChime(selectedSpeakerId);
+              setAdmissionStatus('admitted');
+              setInCall(true);
+            } else if (data?.status === 'denied') {
+              setAdmissionStatus('denied');
+            } else if (!res.ok || !data?.success || data?.status !== 'waiting') {
+              throw new Error(data?.error || 'Your request could not be sent. Please try again.');
+            }
+          } catch (err) {
+            console.error('Request join failed:', err);
+            setJoinRequestError(
+              err instanceof Error ? err.message : 'Your request could not be sent. Please try again.'
+            );
+            setAdmissionStatus('lobby');
+          }
         }}
         onBack={() => router.push('/dashboard')}
       />

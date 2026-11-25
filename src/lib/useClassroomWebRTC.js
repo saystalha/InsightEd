@@ -41,6 +41,8 @@ export function useClassroomWebRTC({
   initialCamOff = false,
   onChatMessage,
   onPeerJoin,
+  onKnock,
+  onPinState,
   onPeerLeave,
   onSessionEnded,
   onMediaError,
@@ -83,6 +85,8 @@ export function useClassroomWebRTC({
   const callbacksRef = useRef({
     onChatMessage,
     onPeerJoin,
+    onKnock,
+    onPinState,
     onPeerLeave,
     onSessionEnded,
     onMediaError,
@@ -94,13 +98,15 @@ export function useClassroomWebRTC({
     callbacksRef.current = {
       onChatMessage,
       onPeerJoin,
+      onKnock,
+      onPinState,
       onPeerLeave,
       onSessionEnded,
       onMediaError,
     };
     myInfoRef.current = { id: myId, name: myName, role: myRole };
     peersRef.current = peers;
-  }, [onChatMessage, onPeerJoin, onPeerLeave, onSessionEnded, onMediaError, myId, myName, myRole, peers]);
+  }, [onChatMessage, onPeerJoin, onKnock, onPinState, onPeerLeave, onSessionEnded, onMediaError, myId, myName, myRole, peers]);
 
   const pcsRef = useRef({});
   const screenSendPcsRef = useRef({});
@@ -488,6 +494,16 @@ export function useClassroomWebRTC({
     const { from, type, data, senderName, senderRole } = sig;
 
     switch (type) {
+      case 'knock': {
+        callbacksRef.current.onKnock?.(data);
+        break;
+      }
+
+      case 'pin-state': {
+        callbacksRef.current.onPinState?.(data?.pin || null);
+        break;
+      }
+
       case 'join': {
         if (!peersRef.current[from]) {
           callbacksRef.current.onPeerJoin?.({ id: from, name: senderName, role: senderRole });

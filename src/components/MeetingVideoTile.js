@@ -12,7 +12,10 @@ export default function MeetingVideoTile({
   isSpeaking = false,
   handRaised = false,
   isPinned = false,
+  isHost = false,
+  isPinnedForEveryone = false,
   onPin,
+  onPinForEveryone,
 }) {
   const videoRef = useRef(null);
 
@@ -185,6 +188,22 @@ export default function MeetingVideoTile({
               <path d="M12 17v5" />
               <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z" />
             </svg>
+          </button>
+        )}
+        {isHost && onPinForEveryone && (
+          <button
+            type="button"
+            onClick={onPinForEveryone}
+            className={`h-8 min-w-8 px-1.5 rounded-full flex items-center justify-center text-[9px] font-bold transition-all ${
+              isPinnedForEveryone
+                ? 'bg-[#A78BFA] text-[#202124] shadow-md'
+                : 'bg-[#202124]/80 text-white/80 hover:text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 backdrop-blur-md border border-white/10'
+            }`}
+            title={isPinnedForEveryone ? 'Unpin for everyone' : 'Pin for everyone'}
+            aria-label={isPinnedForEveryone ? 'Unpin for everyone' : 'Pin for everyone'}
+            aria-pressed={isPinnedForEveryone}
+          >
+            All
           </button>
         )}
       </div>

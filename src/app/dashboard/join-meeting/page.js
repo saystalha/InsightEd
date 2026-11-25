@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import NotificationCenter from '@/components/NotificationCenter';
 
 function JoinMeetingContent() {
   const router = useRouter();
@@ -113,17 +114,20 @@ function JoinMeetingContent() {
 
   return (
     <div className="min-h-screen dashboard-bg text-snow flex flex-col justify-between">
-      <header className="sticky top-0 z-30 px-6 sm:px-8 py-4 flex items-center gap-4 glass-topbar">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-1.5 text-mist hover:text-snow transition-colors text-xs font-bold uppercase tracking-wider"
-        >
-          ← Dashboard
-        </Link>
-        <div className="h-4 w-px bg-black/10" />
-        <span className="text-xs font-black uppercase tracking-wider text-snow">
-          Join Live Classroom
-        </span>
+      <header className="sticky top-0 z-30 px-6 sm:px-8 py-4 flex items-center justify-between glass-topbar">
+        <div className="flex items-center gap-4">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-1.5 text-mist hover:text-snow transition-colors text-xs font-bold uppercase tracking-wider"
+          >
+            ← Dashboard
+          </Link>
+          <div className="h-4 w-px bg-black/10" />
+          <span className="text-xs font-black uppercase tracking-wider text-snow">
+            Join Live Classroom
+          </span>
+        </div>
+        <NotificationCenter />
       </header>
 
       <main className="max-w-4xl w-full mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start my-auto">

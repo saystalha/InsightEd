@@ -109,6 +109,62 @@ const TopicMarkerSchema = new mongoose.Schema({
 });
 
 /**
+ * WaitingParticipantSchema
+ * Embedded sub-document for participants knocking/waiting for host permission.
+ */
+const WaitingParticipantSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+  peerId: {
+    type: String,
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  initials: {
+    type: String,
+    required: true,
+  },
+  role: {
+    type: String,
+    enum: ['student', 'teacher', 'observer'],
+    default: 'student',
+  },
+  status: {
+    type: String,
+    enum: ['waiting', 'admitted', 'denied'],
+    default: 'waiting',
+  },
+  requestedAt: {
+    type: Date,
+    default: Date.now,
+  },
+  lastSeen: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+const GlobalPinSchema = new mongoose.Schema(
+  {
+    type: {
+      type: String,
+      enum: ['participant', 'screen'],
+      required: true,
+    },
+    id: {
+      type: String,
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
+/**
  * MeetingSchema
  * Represents a single live classroom session.
  */
@@ -154,6 +210,11 @@ const MeetingSchema = new mongoose.Schema(
 
     // ── Embedded arrays ──────────────────────────────────────────────────
     participants: [ParticipantSchema],
+    waitingRoom: [WaitingParticipantSchema],
+    globalPin: {
+      type: GlobalPinSchema,
+      default: null,
+    },
     messages: [MessageSchema],
     topicMarkers: [TopicMarkerSchema],
 
@@ -179,5 +240,13 @@ const MeetingSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+if (
+  mongoose.models.Meeting &&
+  (!mongoose.models.Meeting.schema.path('waitingRoom') ||
+    !mongoose.models.Meeting.schema.path('globalPin'))
+) {
+  delete mongoose.models.Meeting;
+}
 
 export default mongoose.models.Meeting || mongoose.model('Meeting', MeetingSchema);

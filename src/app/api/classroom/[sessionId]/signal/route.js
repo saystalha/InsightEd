@@ -1,5 +1,8 @@
 import connectDB from '@/lib/db';
 import Signal from '@/models/Signal';
+import Meeting from '@/models/Meeting';
+import User from '@/models/User';
+import { cookies } from 'next/headers';
 
 let lastMonotonicTime = 0;
 function getMonotonicTimestamp() {
@@ -25,6 +28,26 @@ export async function POST(request, { params }) {
     const timestamp = getMonotonicTimestamp();
 
     await connectDB();
+
+    if (type === 'pin-state') {
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get('insighted_session');
+      const [user, meeting] = await Promise.all([
+        sessionCookie?.value ? User.findById(sessionCookie.value) : null,
+        Meeting.findOne({ code: uppercaseCode, active: true }).select('teacherId teacherName'),
+      ]);
+      const isCreator =
+        user &&
+        (meeting?.teacherId
+          ? String(meeting.teacherId) === String(user._id)
+          : meeting?.teacherName === `${user.firstName} ${user.lastName}` &&
+            (user.role === 'teacher' || user.role === 'admin'));
+
+      if (!isCreator || String(from) !== String(user._id)) {
+        return Response.json({ error: 'Only the meeting host can change the shared pin.' }, { status: 403 });
+      }
+    }
+
     const newSignal = await Signal.create({
       sessionId: uppercaseCode,
       from,

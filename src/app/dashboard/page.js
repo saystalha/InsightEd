@@ -3,6 +3,7 @@
 import { useState, useEffect, Fragment } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import NotificationCenter, { NotificationSettingsPanel } from "@/components/NotificationCenter";
 
 
 /* ── Icons ─────────────────────────────── */
@@ -404,6 +405,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [readNotifIds, setReadNotifIds] = useState([]);
   const [role, setRole] = useState("teacher"); // 'teacher' | 'student'
   const [userName, setUserName] = useState("Jane Doe");
   const [userEmail, setUserEmail] = useState("jane.doe@insighted.com");
@@ -680,7 +682,12 @@ export default function DashboardPage() {
       const res = await fetch("/api/auth/me", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profileForm),
+        body: JSON.stringify({
+          firstName: profileForm.firstName,
+          lastName: profileForm.lastName,
+          currentPassword: profileForm.currentPassword,
+          password: profileForm.password,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -693,9 +700,7 @@ export default function DashboardPage() {
       setCurrentUser(user);
       const fullName = `${user.firstName} ${user.lastName}`;
       setUserName(fullName);
-      setUserEmail(user.email);
       localStorage.setItem('userName', fullName);
-      localStorage.setItem('userEmail', user.email);
       setProfileForm(prev => ({ ...prev, password: "", currentPassword: "" }));
 
       setTimeout(() => {
@@ -1381,12 +1386,14 @@ export default function DashboardPage() {
   );
   const studentReportStartIndex =
     (studentReportCurrentPage - 1) * studentReportItemsPerPage;
+
   const paginatedStudentMeetings = filteredStudentMeetings.slice(
     studentReportStartIndex,
     studentReportStartIndex + studentReportItemsPerPage
   );
 
   return (
+    
     <div
       className="min-h-screen flex dashboard-bg text-snow"
     >
@@ -1437,34 +1444,48 @@ export default function DashboardPage() {
               {greeting}, {firstName}! 👋
             </h1>
             <p className="text-[0.8rem] text-mist">
-              <p className="text-[0.8rem] text-mist">
-                {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                })}
-              </p>
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              className="relative w-9 h-9 rounded-xl flex items-center justify-center text-mist hover:text-snow hover:bg-[rgba(59, 130, 246,0.16)] transition-all"
-              style={{ border: "1px solid rgba(59, 130, 246,0.26)" }}
-            >
-              <SvgIcon
-                paths={[
-                  "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9",
-                  "M13.73 21a2 2 0 0 1-3.46 0",
-                ]}
-                size={17}
-              />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-[#3B82F6]" />
-            </button>
+            {/* Role-Specific Notification Center Bell & Dropdown */}
+            <NotificationCenter
+              user={
+                currentUser
+                  ? {
+                      ...currentUser,
+                      teacher: assignedTeacher,
+                      mappedSubject: assignedSubject,
+                      students: myStudents,
+                    }
+                  : {
+                      firstName: userName.split(" ")[0] || "",
+                      lastName: userName.split(" ").slice(1).join(" ") || "",
+                      email: userEmail,
+                      role,
+                      teacher: assignedTeacher,
+                      mappedSubject: assignedSubject,
+                      students: myStudents,
+                    }
+              }
+              role={role}
+              activeMeetings={activeMeetings}
+              pastMeetings={teacherMeetings}
+              auditLogs={auditLogs}
+              onNavigateTab={(tab) => setActiveTab(tab)}
+            />
+
             <div className="relative">
               <button
                 id="header-profile-btn"
-                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                onClick={() => {
+                  setUserDropdownOpen(!userDropdownOpen);
+                }}
                 className="w-9 h-9 rounded-full flex items-center justify-center text-[#111827] text-xs font-bold cursor-pointer transition-all duration-200 active:scale-95 hover:shadow-[0_0_12px_rgba(59,130,246,0.15)] focus:outline-none"
                 style={{
                   background: "linear-gradient(135deg,#3B82F6,#FFFFFF)",
@@ -2226,41 +2247,70 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : activeTab === 'nav-settings' ? (
-              <div className="card-navy rounded-[24px] p-8 border border-black/5 max-w-2xl animate-fadeUp">
-                <h2 className="text-[1.2rem] font-black text-snow mb-2">System Configuration</h2>
-                <p className="text-[0.82rem] text-mist mb-6">Manage platform parameters and global administrative configurations.</p>
+              <div className="flex flex-col gap-6 max-w-3xl animate-fadeUp">
+                <NotificationSettingsPanel
+                  user={
+                    currentUser
+                      ? {
+                          ...currentUser,
+                          teacher: assignedTeacher,
+                          mappedSubject: assignedSubject,
+                          students: myStudents,
+                        }
+                      : {
+                          firstName: userName.split(" ")[0] || "",
+                          lastName: userName.split(" ").slice(1).join(" ") || "",
+                          email: userEmail,
+                          role,
+                          teacher: assignedTeacher,
+                          mappedSubject: assignedSubject,
+                          students: myStudents,
+                        }
+                  }
+                  role={role}
+                  activeMeetings={activeMeetings}
+                  pastMeetings={[]}
+                  teacherAlerts={[]}
+                  auditLogs={auditLogs}
+                  onNavigateTab={(tab) => setActiveTab(tab)}
+                />
 
-                <div className="flex flex-col gap-5">
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
-                    <div>
-                      <h3 className="text-[0.88rem] font-bold text-snow">Database Status</h3>
-                      <p className="text-[0.74rem] text-mist mt-0.5">MongoDB Atlas Connection Status</p>
-                    </div>
-                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                      CONNECTED
-                    </span>
-                  </div>
+                <div className="card-navy rounded-[24px] p-8 border border-black/5">
+                  <h2 className="text-[1.2rem] font-black text-snow mb-2">System Configuration</h2>
+                  <p className="text-[0.82rem] text-mist mb-6">Manage platform parameters and global administrative configurations.</p>
 
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
-                    <div>
-                      <h3 className="text-[0.88rem] font-bold text-snow">API Health</h3>
-                      <p className="text-[0.74rem] text-mist mt-0.5">Routes & Handlers Status</p>
+                  <div className="flex flex-col gap-5">
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
+                      <div>
+                        <h3 className="text-[0.88rem] font-bold text-snow">Database Status</h3>
+                        <p className="text-[0.74rem] text-mist mt-0.5">MongoDB Atlas Connection Status</p>
+                      </div>
+                      <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                        CONNECTED
+                      </span>
                     </div>
-                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                      OPERATIONAL
-                    </span>
-                  </div>
 
-                  <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
-                    <div>
-                      <h3 className="text-[0.88rem] font-bold text-snow">Platform Version</h3>
-                      <p className="text-[0.74rem] text-mist mt-0.5">Production Build Tag</p>
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
+                      <div>
+                        <h3 className="text-[0.88rem] font-bold text-snow">API Health</h3>
+                        <p className="text-[0.74rem] text-mist mt-0.5">Routes & Handlers Status</p>
+                      </div>
+                      <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                        OPERATIONAL
+                      </span>
                     </div>
-                    <span className="px-3 py-1 rounded-lg text-[0.75rem] font-bold text-snow bg-[rgba(59, 130, 246,0.15)] border border-[rgba(59, 130, 246,0.22)] font-mono">
-                      v1.0.0-release
-                    </span>
+
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
+                      <div>
+                        <h3 className="text-[0.88rem] font-bold text-snow">Platform Version</h3>
+                        <p className="text-[0.74rem] text-mist mt-0.5">Production Build Tag</p>
+                      </div>
+                      <span className="px-3 py-1 rounded-lg text-[0.75rem] font-bold text-snow bg-[rgba(59, 130, 246,0.15)] border border-[rgba(59, 130, 246,0.22)] font-mono">
+                        v1.0.0-release
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3755,41 +3805,69 @@ export default function DashboardPage() {
               </div>
             </div>
           ) : activeTab === 'nav-settings' ? (
-            <div className="card-navy rounded-[24px] p-8 border border-black/5 max-w-2xl">
-              <h2 className="text-[1.2rem] font-black text-snow mb-2">System Configuration</h2>
-              <p className="text-[0.82rem] text-mist mb-6">Manage platform parameters and global administrative configurations.</p>
+            <div className="flex flex-col gap-6 max-w-3xl animate-fadeUp">
+              <NotificationSettingsPanel
+                user={
+                  currentUser
+                    ? {
+                        ...currentUser,
+                        teacher: assignedTeacher,
+                        mappedSubject: assignedSubject,
+                        students: myStudents,
+                      }
+                    : {
+                        firstName: userName.split(" ")[0] || "",
+                        lastName: userName.split(" ").slice(1).join(" ") || "",
+                        email: userEmail,
+                        role,
+                        teacher: assignedTeacher,
+                        mappedSubject: assignedSubject,
+                        students: myStudents,
+                      }
+                }
+                role={role}
+                activeMeetings={activeMeetings}
+                pastMeetings={teacherMeetings}
+                auditLogs={auditLogs}
+                onNavigateTab={(tab) => setActiveTab(tab)}
+              />
 
-              <div className="flex flex-col gap-5">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
-                  <div>
-                    <h3 className="text-[0.88rem] font-bold text-snow">Database Status</h3>
-                    <p className="text-[0.74rem] text-mist mt-0.5">MongoDB Atlas Connection Status</p>
-                  </div>
-                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                    CONNECTED
-                  </span>
-                </div>
+              <div className="card-navy rounded-[24px] p-8 border border-black/5">
+                <h2 className="text-[1.2rem] font-black text-snow mb-2">System Configuration</h2>
+                <p className="text-[0.82rem] text-mist mb-6">Manage platform parameters and global administrative configurations.</p>
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
-                  <div>
-                    <h3 className="text-[0.88rem] font-bold text-snow">API Health</h3>
-                    <p className="text-[0.74rem] text-mist mt-0.5">Routes & Handlers Status</p>
+                <div className="flex flex-col gap-5">
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
+                    <div>
+                      <h3 className="text-[0.88rem] font-bold text-snow">Database Status</h3>
+                      <p className="text-[0.74rem] text-mist mt-0.5">MongoDB Atlas Connection Status</p>
+                    </div>
+                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                      CONNECTED
+                    </span>
                   </div>
-                  <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                    OPERATIONAL
-                  </span>
-                </div>
 
-                <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
-                  <div>
-                    <h3 className="text-[0.88rem] font-bold text-snow">Platform Version</h3>
-                    <p className="text-[0.74rem] text-mist mt-0.5">Production Build Tag</p>
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
+                    <div>
+                      <h3 className="text-[0.88rem] font-bold text-snow">API Health</h3>
+                      <p className="text-[0.74rem] text-mist mt-0.5">Routes & Handlers Status</p>
+                    </div>
+                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-full text-[0.7rem] font-extrabold text-blue-400 bg-blue-500/10 border border-blue-500/20">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                      OPERATIONAL
+                    </span>
                   </div>
-                  <span className="px-3 py-1 rounded-lg text-[0.75rem] font-bold text-snow bg-[rgba(59, 130, 246,0.15)] border border-[rgba(59, 130, 246,0.22)] font-mono">
-                    v1.0.0-release
-                  </span>
+
+                  <div className="flex items-center justify-between p-4 rounded-xl bg-black/[0.02] border border-[rgba(59, 130, 246,0.12)]">
+                    <div>
+                      <h3 className="text-[0.88rem] font-bold text-snow">Platform Version</h3>
+                      <p className="text-[0.74rem] text-mist mt-0.5">Production Build Tag</p>
+                    </div>
+                    <span className="px-3 py-1 rounded-lg text-[0.75rem] font-bold text-snow bg-[rgba(59, 130, 246,0.15)] border border-[rgba(59, 130, 246,0.22)] font-mono">
+                      v1.0.0-release
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -4471,15 +4549,28 @@ export default function DashboardPage() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[0.78rem] font-semibold text-snow/70">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="name@insighted.com"
-                  value={profileForm.email}
-                  onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                  className="neu-input px-4 py-2.5 rounded-xl text-[0.88rem] outline-none"
-                />
+                <div className="flex items-center justify-between">
+                  <label className="text-[0.78rem] font-semibold text-snow/70">Email Address</label>
+                  <span className="text-[0.68rem] font-semibold text-mist">Cannot be changed</span>
+                </div>
+                <div className="relative">
+                  <input
+                    type="email"
+                    value={userEmail}
+                    disabled
+                    readOnly
+                    tabIndex={-1}
+                    spellCheck={false}
+                    autoComplete="off"
+                    className="neu-input w-full pl-4 pr-10 py-2.5 rounded-xl text-[0.88rem] outline-none opacity-65 cursor-not-allowed select-none pointer-events-none bg-slate-100"
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-snow/40 pointer-events-none">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  </span>
+                </div>
               </div>
 
               <div className="h-px bg-[rgba(59, 130, 246,0.12)] my-1" />
